@@ -1,0 +1,43 @@
+# from https://github.com/PHPirates/travis-ci-latex-pdf/blob/master/4-texlive/.travis.yml
+language: minimal
+sudo: true
+
+# Dependency of the minted package
+#before_install:
+# - sudo apt-get install python-pygments
+install:
+  - sudo apt-get install -yy biber
+  - source ./texlive/texlive_install.sh
+  - mkdir -p ~/.ssh
+  - echo '-----BEGIN OPENSSH PRIVATE KEY-----' > ~/.ssh/id_rsa
+  - echo $SSH_KEY >> ~/.ssh/id_rsa
+  - echo '-----END OPENSSH PRIVATE KEY-----' >> ~/.ssh/id_rsa
+  - chmod og= ~/.ssh/id_rsa
+cache:
+  directories:
+    - /tmp/texlive
+    - $HOME/.texlive
+# Change working directory so including files will work
+before_script:
+  - cd $TRAVIS_BUILD_DIR/
+
+addons:
+  apt:
+    update: true
+
+script:
+  # Texliveonfly will download packages automatically
+  - texliveonfly thesis.tex
+  - make -B
+
+  - git remote -v
+  - git remote set-url origin git@github.com:vlstill/phd-thesis.git
+  - git remote -v
+  - git checkout --orphan pdf
+  - git reset --hard
+  - git stage thesis.pdf
+  - git commit -a -m "Update PDF"
+  - if test "$TRAVIS_BRANCH" = ci; then git push --set-upstream origin pdf --force; fi
+
+  # You can also pass arguments to texliveonfly:
+#  - texliveonfly --arguments='-shell-escape' main.tex
