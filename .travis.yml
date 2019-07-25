@@ -37,7 +37,7 @@ script:
   - git reset --hard
   - git stage thesis.pdf
   - git commit -a -m "Update PDF"
-  - if test "$TRAVIS_BRANCH" = ci; then git push --set-upstream origin pdf --force; fi
+  - if test "$TRAVIS_BRANCH" = master; then git push --set-upstream origin pdf --force; fi
 
   # You can also pass arguments to texliveonfly:
 #  - texliveonfly --arguments='-shell-escape' main.tex
