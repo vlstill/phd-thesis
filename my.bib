@@ -1,0 +1,197 @@
+@inproceedings{SB2019,
+ abstract = {One of the key problems with parallel programs is ensuring that they do not hang or wait indefinitely -- i.e., there are no deadlocks, livelocks and the program proceeds towards its goals. In this work, we present a practical approach to detection of nonterminating sections of programs written in C or C++, and its implementation into the DIVINE model checker. This complements the existing techniques for finding safety violations such as assertion failures and memory errors. Our approach makes it possible to detect partial deadlocks and livelocks, i.e., those situations in which some of the threads are progressing normally while the others are waiting indefinitely. The approach is also applicable to programs that do not terminate (such as daemons with infinite control loops) as it can be configured to check only for termination of selected sections of the program. The termination criteria can be user-provided; however, DIVINE comes with the set of built-in termination criteria suited for the analysis of programs with mutexes and other common synchronisation primitives.},
+ address = {Cham},
+ author = {{\v{S}}till, Vladim{\'i}r and Barnat, Ji{\v{r}}{\'i}},
+ booktitle = {Software Engineering and Formal Methods},
+ doi = {10.1007/978-3-030-30446-1_20},
+ editor = {{\"O}lveczky, Peter Csaba and Sala{\"u}n, Gwen},
+ isbn = {978-3-030-30446-1},
+ note = {https://divine.fi.muni.cz/2019/lnterm},
+ pages = {373--390},
+ publisher = {Springer International Publishing},
+ title = {Local Nontermination Detection for Parallel C++ Programs},
+ year = {2019}
+}
+
+@article{RSCB2018,
+ author = {Petr Ročkai and Vladimír Štill and Ivana Černá and Jiří Barnat},
+ doi = {10.1016/j.jss.2018.04.026},
+ journal = {Journal of Systems and Software},
+ note = {https://divine.fi.muni.cz/2017/divm/},
+ pages = {1--13},
+ publisher = {Elsevier},
+ title = {{DiVM: Model checking with LLVM and graph memory}},
+ volume = {143},
+ year = {2018}
+}
+
+@inproceedings{SB2018x86tso,
+ abstract = {In this work, we present an extension of the DIVINE model checker that allows for analysis of C and C++ programs under the relaxed memory model. We use an approach in which the program to be verified is first transformed, so that it itself encodes the relaxed memory behavior, and after that it is verified by an explicit-state model checker supporting only the standard sequentially consistent memory. The novelty of our approach is in a careful design of an encoding of operations so that the nondeterminism introduced by the relaxed memory simulation is minimized. In particular, we allow for nondeterminism only in connection with memory fences and load operations of those memory addresses that were written to by a preceding store. We evaluate and compare our approach with the state-of-the-art bounded model checker CBMC and stateless model checker Nidhugg. For the comparison we employ SV-COMP concurrency benchmarks that do not exhibit data nondeterminism, and we show that our solution built on top of the explicit-state model checker outperforms both of the other tools. The implementation is publicly available as an open source software.},
+ address = {Cham},
+ author = {Vladimír Štill and Jiří Barnat},
+ booktitle = {Formal Methods and Software Engineering},
+ doi = {https://doi.org/10.1007/978-3-030-02450-5_8},
+ editor = {Sun, Jing and Sun, Meng},
+ isbn = {978-3-030-02450-5},
+ keywords = {divine},
+ note = {https://divine.fi.muni.cz/2018/x86tso},
+ pages = {124--140},
+ publisher = {Springer International Publishing},
+ title = {{Model Checking of C++ Programs Under the x86-TSO Memory Model}},
+ url = {https://link.springer.com/chapter/10.1007%2F978-3-030-02450-5_8},
+ year = {2018}
+}
+
+@inproceedings{DIVINEToolPaper2017,
+ author = {Zuzana Baranová and Jiří Barnat and Katarína Kejstová and Tadeáš Kučera and Henrich Lauko and Jan Mrázek and Petr Ročkai and Vladimír Štill},
+ booktitle = {International Symposium on Automated Technology for Verification and Analysis (ATVA) (to appear)},
+ doi = {10.1007/978-3-319-68167-2_14},
+ keywords = {divine, tool paper, red hat},
+ note = {https://divine.fi.muni.cz/2017/divine4/},
+ series = {Lecture Notes in Computer Science},
+ title = {{Model Checking of C and C++ with DIVINE 4}},
+ volume = {10482},
+ year = {2017}
+}
+
+@inbook{MJSLB2017,
+ _booksubtitle = {23rd International Conference, TACAS 2017, Held as Part of the European Joint Conferences on Theory and Practice of Software, ETAPS 2017, Uppsala, Sweden, April 22-29, 2017, Proceedings, Part II},
+ abstract = {This paper presents a new version of the tool SymDIVINE, a model-checker for concurrent C/C++ programs. SymDIVINE uses a control-explicit data-symbolic approach to model checking, which allows for the bit-precise verification of programs with inputs, by representing data part of a program state by a first-order bit-vector formula. The new version of the tool employs a refined representation of symbolic states, which allows for efficient caching of smt queries. Moreover, the new version employs additional simplifications of first-order bit-vector formulas, such as elimination of unconstrained variables from quantified formulas. All changes are documented in detail in the paper.},
+ address = {Berlin, Heidelberg},
+ author = {Jan Mrázek and Martin Jonáš and Vladimír Štill and Henrich Lauko and Jiří Barnat},
+ booktitle = {Tools and Algorithms for the Construction and Analysis of Systems},
+ doi = {10.1007/978-3-662-54580-5_29},
+ editor = {Legay, Axel
+and Margaria, Tiziana},
+ isbn = {978-3-662-54580-5},
+ keywords = {divine,symdivine},
+ pages = {390--393},
+ publisher = {Springer Berlin Heidelberg},
+ title = {{Optimizing and Caching SMT Queries in SymDIVINE}},
+ url = {https://doi.org/10.1007/978-3-662-54580-5_29},
+ year = {2017}
+}
+
+@inproceedings{SRB2017,
+ author = {Vladimír Štill and Petr Ročkai and Jiří Barnat},
+ booktitle = {IEEE International Conference on Software Quality, Reliability and Security (QRS)},
+ doi = {10.1109/QRS.2017.15},
+ keywords = {C++ languages, Libraries, Software, Standards, Testing, Tools, C++, Exceptions, Model Checking, Unwinder, divine, exceptions, red hat},
+ month = {July},
+ note = {https://divine.fi.muni.cz/2017/exceptions/},
+ pages = {54-64},
+ title = {{Using Off-the-Shelf Exception Support Components in C++ Verification}},
+ url = {http://ieeexplore.ieee.org/document/8009908/},
+ year = {2017}
+}
+
+@inproceedings{SRB16SVC,
+ address = {Berlin, Heidelberg},
+ author = {Vladimír Štill and Petr Ročkai and Jiří Barnat},
+ booktitle = {{Tools and Algorithms for the Construction and Analysis of Systems}},
+ doi = {10.1007/978-3-662-49674-9_60},
+ isbn = {978-3-662-49674-9},
+ keywords = {divine},
+ pages = {920--922},
+ publisher = {Springer Berlin Heidelberg},
+ title = {{DIVINE: Explicit-State LTL Model Checker}},
+ url = {http://dx.doi.org/10.1007/978-3-662-49674-9_60},
+ year = {2016}
+}
+
+@inproceedings{BCRSZ16Prob,
+ author = {Jiří Barnat and Ivana Černá and Petr Ročkai and Vladimír Štill and
+Kristína Zákopčanová},
+ bibsource = {dblp computer science bibliography, http://dblp.org},
+ biburl = {http://dblp.uni-trier.de/rec/bib/conf/sac/BarnatCRSZ16},
+ booktitle = {{ACM Symposium on Applied Computing}},
+ crossref = {DBLP:conf/sac/2016},
+ doi = {10.1145/2851613.2851721},
+ isbn = {978-1-4503-3739-7},
+ keywords = {divine, red hat},
+ pages = {1238--1243},
+ title = {{On Verifying C++ Programs with Probabilities}},
+ url = {http://doi.acm.org/10.1145/2851613.2851721},
+ year = {2016}
+}
+
+@inproceedings{SRB15weakmem,
+ author = {Vladimír Štill and Petr Ročkai and Jiří Barnat},
+ booktitle = {{Mathematical and Engineering Methods in Computer Science, Revised Selected Papers}},
+ doi = {10.1007/978-3-319-29817-7_13},
+ editor = {Jan Kofroň and Tomáš Vojnar},
+ isbn = {978-3-319-29817-7},
+ keywords = {divine, red hat},
+ pages = {144--155},
+ publisher = {Springer International Publishing},
+ series = {Lecture Notes in Computer Science},
+ title = {{Weak Memory Models as LLVM-to-LLVM Transformations}},
+ volume = {9548},
+ year = {2016}
+}
+
+@incollection{BRSW15HS,
+ author = {Jiří Barnat and Petr Ročkai and Vladimír Štill and Jiří Weiser},
+ booktitle = {Model Checking Software (SPIN 2015)},
+ doi = {10.1007/978-3-319-23404-5_5},
+ editor = {Fischer, Bernd and Geldenhuys, Jaco},
+ isbn = {978-3-319-23403-8},
+ keywords = {divine, red hat},
+ language = {English},
+ pages = {49-65},
+ publisher = {Springer International Publishing},
+ series = {Lecture Notes in Computer Science},
+ title = {Fast, Dynami\-cally-Sized Concurrent Hash Table},
+ volume = {9232},
+ year = {2015}
+}
+
+@inproceedings{RSB15TC,
+ author = {Petr Ročkai and Vladimír Štill and Jiří Barnat},
+ booktitle = {{Software Engineering and Formal Methods}},
+ doi = {10.1007/978-3-319-22969-0_19},
+ editor = {Calinescu, Radu and Rumpe, Bernhard},
+ isbn = {978-3-319-22968-3},
+ keywords = {divine},
+ language = {English},
+ pages = {268--282},
+ publisher = {Springer International Publishing},
+ series = {Lecture Notes in Computer Science},
+ title = {{Techniques for Memory-Efficient Model Checking of C and C++ Code}},
+ volume = {9276},
+ year = {2015}
+}
+
+@inproceedings{SRB14CSDR,
+ author = {Vladimír Štill and Petr Ročkai and Jiří Barnat},
+ booktitle = {{Mathematical and Engineering Methods in Computer Science}},
+ doi = {10.1007/978-3-319-14896-0_12},
+ editor = {Hliněný, Petr and Dvořák, Zdeněk and Jaroš, Jiří and Kofroň, Jan and
+Kořenek, Jan and Matula, Petr and Pala, Karel},
+ isbn = {978-3-319-14895-3},
+ keywords = {divine,red hat},
+ language = {English},
+ pages = {135--146},
+ publisher = {Springer International Publishing},
+ series = {Lecture Notes in Computer Science},
+ title = {{Context-Switch-Directed Verification in DIVINE}},
+ volume = {8934},
+ year = {2014}
+}
+
+@inproceedings{BBH+13DIVINE,
+ author = {Jiří Barnat and Luboš Brim and Vojtěch Havel and Jan Havlíček and Jan Kriho and Milan Lenčo and Petr Ročkai and Vladimír Štill and Jiří Weiser},
+ booktitle = {{Computer Aided Verification}},
+ doi = {10.1007/978-3-642-39799-8_60},
+ editor = {Sharygina, Natasha and Veith, Helmut},
+ isbn = {978-3-642-39798-1},
+ keywords = {divine, red hat},
+ language = {English},
+ pages = {863--868},
+ publisher = {Springer Berlin Heidelberg},
+ series = {Lecture Notes in Computer Science},
+ title = {{DiVinE 3.0 – An Explicit-State Model Checker for Multithreaded C \& C++ Programs}},
+ volume = {8044},
+ year = {2013}
+}
+
