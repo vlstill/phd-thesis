@@ -1,0 +1,77 @@
+\section{Real-World Parallel Programs}
+
+\section{Relaxed Memory Models}
+
+There are numerous techniques for analysis of programs with respect to relaxed memory.
+
+\paragraph{Verification of Absence of SC Violations}
+
+For these methods, the question is whether a program, when running under a relaxed memory model, exhibits any runs not possible under sequential consistency.
+This problem is explored under many names, e.g. (TSO-)safety~\cite{Burckhardt2008}, robustness~\cite{Bouajjani2013,Derevenetc2014}, stability~\cite{Alglave2011}, and monitoring of sequential consistency~\cite{Burnim2011}.
+A similar techniques are used in \cite{Yang2004} to detect data races in Java programs.
+A related problem of correspondence between a parallel and sequential implementation of a data structure is explored in~\cite{Ou2017}.
+Some of these techniques can also be used to insert memory fences into the programs to recover sequential consistency.
+
+Neither of these techniques is directly comparable to our method.
+For these techniques, a program is incorrect if it exhibits relaxed behavior, while for us, it is incorrect if it violates specification (e.g., assertion safety and memory safety).
+In practice, the appearance of relaxed behavior is often not a problem, provided the overall behavior of the data structure or algorithm matches desired specification.
+In many lock-free data structures, a relaxed behavior is essential to achieving high performance.
+
+\paragraph{Direct Analysis Techniques}
+
+There are multiple methods for analysis of relaxed memory models based on program transformation.
+In~\cite{Alglave2013} a transformation-based technique for the x86, POWER, and ARM memory models is presented.
+Another approach to program transformation is taken in~\cite{Atig2011}, in this case, the transformation uses context switch bounding but not buffer bounding, and it uses additional copies for shared variables for TSO simulation.
+In~\cite{Abdulla2017} the context-bounded analysis using transformation is applied to the POWER memory model.
+Our work in~\cite{SRB15weakmem} presents a transformation of LLVM bitcode to simulate buffer-bounded \xtso runs; compared to this work it has significantly less efficient implementation of the \xtso simulation.
+
+A stateless model checking~\cite{Godefroid1997} approach to the analysis of programs running under the C++11 memory model (except for the release-consume synchronization) is presented in~\cite{Norris2013}.
+In~\cite{Zhang2015} the authors focus mostly on modeling of TSO and PSO and its interplay with dynamic partial order reduction (DPOR, \cite{Flanagan2005dpor}).
+They combine modeling of thread scheduling nondeterminism and memory model nondeterminism using store buffers to a common framework by adding shadow thread for each store buffer which is responsible for flushing contents of this buffer to the memory.
+Another approach to combining TSO and PSO analysis with stateless model checking is presented in~\cite{Abdulla2015}.
+The advantage of this approach is that for a program without relaxed behavior it should produce no additional traces compared to sequential consistency.
+Another approach to stateless model checking is taken in \cite{Kokologiannakis2017}, which uses execution graphs to explore all behavior of a C/C++ program under a modified C++11 memory model without exploring its interleaving directly.
+
+So far, all of the described techniques used some kind of bounding to achieve efficiency -- either bounding number of reordered operations, number of context switches, or number of iterations of loops.
+An unbounded approach to verification of programs under TSO is presented in~\cite{Linden2010}.
+It uses store buffers represented by automata and leverages cycle iteration acceleration to get a representation of store buffers on paths which would form cycles if values in store buffers were disregarded.
+It does not, however, target any real-world programming language.
+Instead, it targets a modified Promela language~\cite{Holzmann1997}.
+Another unbounded approach is presented in~\cite{Bouajjani2015} -- it introduces TSO behaviors lazily by iterative refinement, and while it is not complete, it should eventually find all errors.
+
+\paragraph{Other Methods}\label{other-methods}
+
+In~\cite{Park1995}, the SPARC hierarchy of memory models (TSO, PSO, RMO) is modeled using encoding from assembly to Mur\(\varphi\)~\cite{Murphi}.
+In~\cite{Huynh2006} an explicit state model checker for C\# programs (supporting subset of C\#/.NET bytecode) which uses the .NET memory model is presented.
+The verifier first verifies program under SC and then it explores additional runs allowed under the .NET memory model.
+The implementation of the exploration algorithm uses a list of delayed instructions to implement instruction reordering.
+The work~\cite{Dan2013} presents verification of (potentially infinite state space) programs under TSO and PSO (with bounded store buffers) using predicate abstraction.
+
+A completely different approach is taken in~\cite{Turon2014}.
+This work introduces a separation logic GPS, which allows proving properties about programs using (a fragment of) the C11 memory model.
+That is, this work is intended for manual proving of properties of parallel programs, not for automatic verification.
+The memory model is not complete; it lacks relaxed and consume-release accesses.
+Another fragment of the C11 memory model is targeted by the RSL separation logic introduced in~\cite{Vafeiadis2013}.
+
+\section{Termination of Parallel Programs}
+
+For the related work, we consider only results which go beyond safety checking.
+There are many approaches to find problems such as assertion violations or memory safety violations, but they are fundamentally limited to properties concerning finite runs of the program, and we are focusing here on an infinite behaviour, namely on the absence of termination.
+Similarly, we do not mention techniques which specialise on checking sequential programs and have no support for parallelism, as well as techniques which are tailored to a specific modelling language and cannot be applied in general.
+
+Several techniques for checking properties other than safety exist -- indeed
+usage of various temporal logics, such as Linear Temporal Logic (LTL)
+\cite[Chapter 5]{PoMC} and Computation Tree Logic (CTL) \cite[Chapter 6]{PoMC} in the context of model checking dates way back to the beginning of research in formal methods.
+Unfortunately, these techniques are not often applied to programs written in real-world programming languages such as C and C++.
+
+As for techniques which detect nontermination, both static and dynamic
+techniques exist for the detection of deadlocks caused by circular waiting for
+mutexes~\cite{CC14,agarwal2010detection,bensalem2005scalable}.
+However, these techniques specialise on mutexes and do not allow general nontermination detection, and it is unlikely that they could be naturally extended to cover it.
+There are also techniques that detect deadlocks of the whole program (i.e., a program state from which the program cannot move) \cite{Chaki2005,Demartini99}, but these techniques cannot find cases in which only some threads of the program are making progress, while other threads are blocked forever.
+Also, these global deadlock detection techniques are inadequate in the presence of synchronisation mechanisms which causes busy waiting instead of blocking (for example spin locks) or in the cases when normally blocking operations are implemented using busy waiting (which can be easier to handle for the verifier in some cases).
+A somewhat different approach based on communicating channels is proposed in \cite{Ng2016}, but this approach is aiming at the Go programming language which primarily uses shared channels for communication between threads.
+Overall, neither of these techniques is applicable in general for the detection of nontermination in programs which use a combination of synchronisation primitives in shared memory.
+Finally, there are also techniques for checking termination of sequential programs, to name a few \cite{Giesl2017,Chen2018}.
+
+\section{Benchmark Suites}

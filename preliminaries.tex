@@ -1,0 +1,183 @@
+\section{Theoretical Model of Programs}
+
+\subsection{State Space}
+
+- finite-state programs, finite-state threads
+
+The \emph{state space} of a program is a directed multigraph with labelled edges.
+The vertices of the state space multigraph are called \emph{states} (of the program).
+Each state represents a snapshot of the program (its memory, program counters and stacks of all its threads, …).
+% However, for our purposes, we will consider states to be opaque and will only require the ability to determine the successors of a state from it.
+States $v_1, v_2$ are connected by an edge in the state space if $v_2$ can be reached from $v_1$ in an atomic step, which is a sequence of instructions that executes at most one action which can interfere with any action executed in parallel with it.
+In \divine, the state space generator attempts to make the longest possible atomic step while ensuring that the generation of the edge terminates.
+Edges are labelled, and the labels can be used to indicate accepting edges and error edges.
+Error edges are edges on which safety violation occurs (e.g., an assertion violation or memory error).
+The notion of accepting edges was taken initially from transition-based Büchi automata and used for LTL model checking, but in general, it is a way to mark an edge as interesting for the verification algorithm, but not erroneous.
+These labels are set by the verified program, which can be instrumented to influence edge labelling or by \divine when it detects an error.
+
+The state space of a program can be an infinite graph.
+However, in \divine, we are primarily concerned with programs which have finite state space.
+If the state space is infinite, \divine might find an error if it is present
+there, or it might compute until its resources are exhausted.
+Please note that programs with finite state space can have infinite behaviour as they can loop through the same set of states indefinitely.
+
+\section{Realistic Programs}
+
+\subsection{High-Level Programming Languages}
+
+\subsection{Libraries \& Environment}
+
+\subsection{Hardware-Related Considerations}
+
+- word size, required alignment, memory model
+
+\section{Parallelism \& Threading Model}
+
+\subsection{Relaxed Memory Models}
+
+The relaxed behavior of processors arises from optimizations in cache consistency protocols and observable effects of instructions reordering and speculation.
+The effect of this behavior is that memory-manipulating instructions can appear to be executed in a different order than the order in which they appear in the binary, and their effect can even appear to be in different order on different threads.
+For efficiency reasons, virtually all modern processors (except for very simple ones in microcontrollers) exhibit relaxed behavior.
+The extent of this relaxation is dependent on the processor architecture (e.g., x86, ARM, POWER) but also on the concrete processor model.
+Furthermore, the actual behavior of the processor is often not precisely described by the processor vendor \cite{x86tso}.
+To abstract from the details of particular processor models, \emph{relaxed memory models} are used to describe (often formally) behavior of processor architectures.
+Examples of relaxed memory models of modern processors are the memory model of x86 and x86\_64 CPUs described formally as \xtso~\cite{x86tso} and the multiple variants of POWER~\cite{Sarkar2011,Mador-Haim2012} and ARM~\cite{Flur2016,Alglave2014,Pulte2017} memory models.
+
+For the description of a memory model, it is sufficient to consider operations which affect the memory.
+These operations include loads (reading of data from the memory to a register in the processor), stores (writing of data from a register to the memory), memory barriers (which constrain memory relaxation), and atomic compound operations (read-modify-write operations and compare-and-swap operation).
+
+\subsection{The \xtso Memory Model}
+
+The \xtso is very similar to the SPARC Total Store Order (TSO) memory model~\cite{SPARC94}.
+It does not reorder stores with each other, and it also does not reorder loads with other loads.
+The only relaxation allowed by \xtso is that store can appear to be executed later than a load which succeeds it.
+The memory model does not give any limit on how long a store can be delayed.
+An example of non-intuitive execution of a simple program under \xtso can be found in Figure~\ref{fig:xtso}.
+
+\begin{figure}[th] % fig:xtso
+    \begin{minipage}[b]{0.25\textwidth}
+    \tt
+    \textcolor{gray}{int} x = 0, y = 0;
+    \par\smallskip
+    \textcolor{gray}{void} thread0() \{ \\
+    \indent{}y = 1; \\
+    \indent{}\textcolor{gray}{int} a = x; \\
+    \indent{}\textcolor{gray}{int} c = y; \\
+    \}
+    \par\smallskip
+    \textcolor{gray}{void} thread1() \{ \\
+    \indent{}x = 1; \\
+    \indent{}\textcolor{gray}{int} b = y; \\
+    \indent{}\textcolor{gray}{int} d = x; \\
+    \}
+    \end{minipage}
+    %
+    \hfill
+    %
+    \begin{minipage}[b]{0.73\textwidth}
+    \begin{center}
+    \noindent
+    Is $a = 0 \land b = 0$ reachable?\\[2.5ex]
+    \begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, node distance=3cm
+                       , semithick
+                       , scale=0.5
+                       ]
+
+      \draw [-] (-10,0) rectangle (-7,-5);
+      \draw [-] (-10,-1) -- (-7,-1)
+                (-10,-2) -- (-7,-2)
+                (-10,-3) -- (-7,-3)
+                (-10,-4) -- (-7,-4);
+      \draw [-] (-9,0) -- (-9,-5);
+      \node () [] at (-8.5,0.5) {shared memory};
+      \node () [anchor=west] at (-10,-2.5)  {\texttt{\color{blue}x}};
+      \node () [anchor=west] at (-9,-2.5) {\texttt{\color{blue}0}};
+
+      \node () [anchor=west] at (-10,-3.5)  {\texttt{\color{blue}y}};
+      \node () [anchor=west] at (-9,-3.5)  {\texttt{\color{blue}0}};
+
+      \node () [anchor=center] at (-2.5,-3.5) {store buffer};
+      \draw [-] (-4.5,-4) rectangle (-0.5,-5);
+      \draw [-] (-2.5,-4) -- (-2.5,-5);
+
+      \node () [anchor=center] at (3.5,-3.5) {store buffer};
+      \draw [-] (1.5,-4) rectangle (5.5,-5);
+      \draw [-] (3.5,-4) -- (3.5,-5);
+
+      \node () [anchor=west] at (-4.5,-4.5)  {\texttt{\color{red}y}};
+      \node () [anchor=west] at (-2.5,-4.5)  {\texttt{\color{red}1}};
+
+      \node () [anchor=west] at (1.5,-4.5)  {\texttt{\color{red}x}};
+      \node () [anchor=west] at (3.5,-4.5)  {\texttt{\color{red}1}};
+
+      \node () [anchor = west, xshift = -1em] at (-4.5, 0.5) {thread 0};
+      \draw [->] (-4.5,0) -- (-4.5,-3);
+      \node () [anchor=west] at (-4, -0.5) {\texttt{\color{red}y = 1;}};
+      \node () [anchor=west] at (-4, -1.5) {\texttt{\color{blue}load x; \textrightarrow 0}};
+      \node () [anchor=west] at (-4, -2.5) {\texttt{\color{frombuf}load y; \textrightarrow 1}};
+
+      \node () [anchor = west, xshift = -1em] at (1.5, 0.5) {thread 1};
+      \draw [->] (1.5,0) -- (1.5,-3);
+      \node () [anchor=west] at (2, -0.5) {\texttt{\color{red}x = 1;}};
+      \node () [anchor=west] at (2, -1.5) {\texttt{\color{blue}load y; \textrightarrow 0}};
+      \node () [anchor=west] at (2, -2.5) {\texttt{\color{frombuf}load x; \textrightarrow 1}};
+
+  \end{tikzpicture}
+  \end{center}
+  \end{minipage}
+
+  \caption{
+  A demonstration of the \xtso memory model.
+  The thread 0 stores 1 to variable \texttt{y} and then loads variables \texttt{x} and \texttt{y}.
+  The thread 1 stores 1 to \texttt{x} and then loads \texttt{y} and \texttt{x}.
+  Intuitively, we would expect it to be impossible for $a = 0$ and $b = 0$ to both be true at the end of the execution, as there is no interleaving of thread actions which would produce such a result.
+  However, under \xtso, the stores are cached in the store buffers (marked \textcolor{red}{red}).
+  A load consults only shared memory and the store buffer of the given thread, which means it can load data from the memory and ignore newer values from the other thread (\textcolor{blue}{blue}).
+  Therefore \texttt{a} and \texttt{b} will contain old values from the memory.
+  On the other hand, \texttt{c} and \texttt{d} will contain local values from the store buffers (locally read values are marked \textcolor{frombuf}{green}).
+  }
+
+  \label{fig:xtso}
+\end{figure}
+
+The operational semantics of \xtso is described by Sewell et al. in~\cite{x86tso}.
+The corresponding machine has hardware threads (or cores), each with associated local store buffer, a shared memory subsystem, and a shared memory lock.
+Store buffers are first-in-first-out caches into which store entries are saved before they are propagated to the shared memory.
+Load instructions first attempt to read from the store buffer of the given
+thread, and only if they are not succesfull, they read from the shared memory.
+Store instructions push a new entry to the local store buffer.
+Atomic instructions include various read-modify-write instructions, e.g. atomic
+arithmetic operations (which take memory address and a constant),\footnote{These
+  instructions have the \texttt{lock} prefix in the assembly, for example
+  \texttt{lock xadd} for atomic addition.}
+or compare-and-swap instruction.\footnote{\texttt{lock cmpxchg}}
+All atomic instructions use the shared memory lock so that only one such instruction can be executed at a given time, regardless of the number of hardware threads in the machine.
+Furthermore, atomic instructions flush the store buffer of their thread before they release the lock.
+This means that effects of atomic operations are immediately visible, i.e., atomics are sequentially consistent on \xtso.
+On top of these instructions, \xtso has a full memory barrier (\texttt{mfence}) which flushes the store buffer of the thread that executed it.\footnote{There are two more fence instructions in the x86 instruction set, but according to~\cite{x86tso} they are not relevant to normal program execution.}
+
+To recover sequential consistency on x86, it is necessary to make memory stores propagate to the main memory before subsequent loads execute.
+This is most commonly done in practice by inserting memory fence after each store.
+An alternative approach would be to use atomic exchange instruction
+(\texttt{lock xchg}) which can atomically swap value between a register and a
+memory slot.
+
+One of the specifics of x86 is that it can handle unaligned memory operations.\footnote{Other architectures, for example ARM, require loaded values to be aligned, usually so that the address is divisible by the value size.}
+While the \xtso paper does not give any specifics about handling unaligned and
+mixed memory operations (e.g., writing a 64-bit value and then reading a 16-bit
+value from inside it) it seems from our own experiments that such the operations
+are not only fully supported, but they are also correctly synchronized if atomic instructions are used.
+This is in agreement with the aforementioned operational semantics of \xtso in
+which all the atomic operations share a single global lock.
+
+
+\section{Verification Techniqes}
+
+\subsection{Explicit-State Model Checking}
+
+\subsection{Bounded Model Checking}
+
+\subsection{Stateless Model Checking}
+
+\section{LLVM}
+

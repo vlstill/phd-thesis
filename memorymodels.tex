@@ -1,0 +1,372 @@
+\section{\xtso in \divine} \label{sec:work}
+
+
+\divine does not natively support relaxed memory, and we decided not to complicate the already complex execution engine and memory representation with a simulation of relaxed behavior.
+Instead, we encode the relaxed behavior into the program itself on the level of \llvm intermediate representation.
+The modified program running under sequential consistency simulates all \xtso runs of the original program, up to some bound on the number of stores which can be delayed.
+The program transformation is rather similar to the one presented in our previous work in \cite{SRB15weakmem}.
+The main novelty is in the way of simulation of \xtso which produces significantly less nondeterminism and therefore substantial efficiency improvements.
+
+\subsection{Simulation of the \xtso Memory Model}
+
+The most straight-forward way of simulating \xtso is to add store buffers to the program and flush them nondeterministically, for example using a dedicated flusher thread which flushes one entry at a time and interleaves freely with all other threads.
+We used this technique in \cite{SRB15weakmem}.
+This approach does, however, create many redundant interleavings as the flusher
+thread can flush an entry at any point, regardless of whether or not it is going
+to produce a run with a different memory access ordering, i.e. without any
+respect to the fact whether the flushed value is going to be read or not.
+
+To alleviate this problem, it is possible to delay the choice whether to flush
+an entry from a store buffer to the point when the first load tries to read a buffered address.
+Only when such a load is detected, all possible ways the store buffers could have been flushed are simulated.
+In this case, the load can trigger flushing from any of the store buffers, to simulate that they could have been flushed before the load.
+To further improve the performance, only entries relevant to the loaded address
+are affected by the flushing.
+These are the entries with matching addresses and any entries which precede them in the corresponding store buffers (that are flushed before them to maintain the store order).
+
+A disadvantage of this approach is that there are too many ways in which a store
+buffer entry can be flushed, especially if this entry is not the oldest in its
+store buffer, or if there are entries concerning the same addresses in multiple store buffers.
+All of these cases can cause many entries to be flushed, often with a multitude of interleavings of entries from different store buffers which has to be simulated.
+% An illustration of this can be seen in Figure \ref{fig:multiflush}.
+
+Therefore, we propose a \emph{delayed flushing}: entries in the store buffers can be kept in the store buffer after newer entries were flushed if the retained entries are marked as \emph{flushed}.
+Such the entries behave as if they were already written to the main memory, but can still be reordered with entries in other store buffers.
+That is, when there is a flushed entry for a given location in any store buffer, the value stored in the memory is irrelevant as any load will either read the flushed entry or entry from the other store buffer (which can be written after the flushed entry).
+Flushed entries make it possible to remove store buffer entries out of order while preserving total store order.
+This way a load only affects entries from the matching addresses and not their predecessors in the store order.
+This improvement is demonstrated in Figures \ref{fig:flushflagA} to \ref{fig:flushflagC}.
+
+
+\begin{figure}[th]
+\newcommand{\colwidth}{11.7em}
+
+\begin{minipage}[t]{\colwidth}
+\begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, node distance=3cm
+                   , semithick
+                   , scale=0.5
+                   , thck/.style = { thick, decoration={markings,mark=at position 1 with {\arrow[scale=4]{>}}}, postaction={decorate}, },
+                   ]
+
+  \draw [-] (-10,0) rectangle (-7,-4);
+  \draw [-] (-10,-1) -- (-7,-1)
+            (-10,-2) -- (-7,-2)
+            (-10,-3) -- (-7,-3);
+  \node () [anchor=center] at (-8.5, 0.5) {s.b. 1};
+  \node () [anchor=center] at (-8.5,-0.5) {\texttt{x $\leftarrow$ 1}};
+  \node () [anchor=center] at (-8.5,-1.5) {\texttt{y $\leftarrow$ 1}};
+  \node () [anchor=center] at (-8.5,-2.5) {\texttt{x $\leftarrow$ 2}};
+  \node () [anchor=center] at (-8.5,-3.5) {\color{frombuf}\texttt{y $\leftarrow$ 2}};
+
+  \draw [-] (-6,0) rectangle (-3,-4);
+  \draw [-] (-6,-1) -- (-3,-1)
+            (-6,-2) -- (-3,-2)
+            (-6,-3) -- (-3,-3);
+  \node () [anchor=center] at (-4.5, 0.5) {s.b. 2};
+  \node () [anchor=center] at (-4.5,-0.5) {\texttt{x $\leftarrow$ 3}};
+  \node () [anchor=center] at (-4.5,-1.5) {\texttt{y $\leftarrow$ 3}};
+
+\end{tikzpicture}
+\begingroup
+    \tt
+    \textcolor{gray}{void} thread0() \{ \\
+    \indent{}\textcolor{gray}{int} a = y; \\
+    \indent{}\textcolor{gray}{int} b = x; \\
+    \}
+\endgroup
+
+\caption{
+Suppose \texttt{thread0} is about to execute with the displayed contents of store buffers of two other threads and suppose it had nondeterministically chosen to load value 2 from \texttt{y} (denoted by \textcolor{frombuf}{green} in the figure).
+The entries at the top of the store buffers are the oldest entries.
+}
+
+\label{fig:flushflagA}
+
+\end{minipage}
+%
+\hfill
+%
+\begin{minipage}[t]{\colwidth}
+
+\begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, node distance=3cm
+                   , semithick
+                   , scale=0.5
+                   , thck/.style = { thick, decoration={markings,mark=at position 1 with {\arrow[scale=4]{>}}}, postaction={decorate}, },
+                   ]
+
+  \draw [-] (-10,0) rectangle (-7,-4);
+  \draw [-] (-10,-1) -- (-7,-1)
+            (-10,-2) -- (-7,-2)
+            (-10,-3) -- (-7,-3);
+  \node () [anchor=center] at (-8.5, 0.5) {s.b. 1};
+  \node () [anchor=center] at (-8.5,-0.5) {\color{flushed}\texttt{x $\leftarrow$ 1}};
+  \node () [anchor=center] at (-8.5,-1.5) {\color{flushed}\texttt{x $\leftarrow$ 2}};
+
+  \draw [-] (-6,0) rectangle (-3,-4);
+  \draw [-] (-6,-1) -- (-3,-1)
+            (-6,-2) -- (-3,-2)
+            (-6,-3) -- (-3,-3);
+  \node () [anchor=center] at (-4.5, 0.5) {s.b. 2};
+  \node () [anchor=center] at (-4.5,-0.5) {\color{frombuf}\texttt{x $\leftarrow$ 3}};
+  \node () [anchor=center] at (-4.5,-1.5) {\texttt{y $\leftarrow$ 3}};
+
+\end{tikzpicture}
+
+\begingroup
+    \tt
+    \textcolor{gray}{void} thread0() \{ \\
+    \indent{}\textcolor{gray}{int} a = y; \textcolor{gray}{// \textrightarrow 2} \\
+    \indent{}\textcolor{gray}{int} b = x; \\
+    \}
+\endgroup
+
+\caption{At this point, \texttt{x}~entries of store buffer 1 are marked as flushed (\textcolor{flushed}{orange}) and the \mbox{$\texttt{y} \leftarrow \texttt{1}$} entry was removed as it was succeeded by the used entry \mbox{$\texttt{y} \leftarrow \texttt{2}$}.
+The thread had nondeterministically selected to load \texttt{x} from store buffer 2.}
+
+\label{fig:flushflagB}
+
+\end{minipage}
+%
+\hfill
+%
+\begin{minipage}[t]{\colwidth}
+
+\begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, node distance=3cm
+                   , semithick
+                   , scale=0.5
+                   , thck/.style = { thick, decoration={markings,mark=at position 1 with {\arrow[scale=4]{>}}}, postaction={decorate}, },
+                   ]
+
+  \draw [-] (-10,0) rectangle (-7,-4);
+  \draw [-] (-10,-1) -- (-7,-1)
+            (-10,-2) -- (-7,-2)
+            (-10,-3) -- (-7,-3);
+  \node () [anchor=center] at (-8.5, 0.5) {s.b. 1};
+
+  \draw [-] (-6,0) rectangle (-3,-4);
+  \draw [-] (-6,-1) -- (-3,-1)
+            (-6,-2) -- (-3,-2)
+            (-6,-3) -- (-3,-3);
+  \node () [anchor=center] at (-4.5, 0.5) {s.b. 2};
+  \node () [anchor=center] at (-4.5,-0.5) {\texttt{y $\leftarrow$ 3}};
+
+\end{tikzpicture}
+
+\begingroup
+    \tt
+    \textcolor{gray}{void} thread0() \{ \\
+    \indent{}\textcolor{gray}{int} a = y; \textcolor{gray}{// \textrightarrow 2} \\
+    \indent{}\textcolor{gray}{int} b = x; \textcolor{gray}{// \textrightarrow 3} \\
+    \}
+\endgroup
+
+\caption{
+In the load of \texttt{x}, all \texttt{x} entries were evicted from the buffers -- all the flushed entries for \texttt{x} (which were not selected) had to be dropped before \mbox{$\texttt{x} \leftarrow \texttt{3}$} was propagated to the memory.
+The last entry (\mbox{$\texttt{y} \leftarrow \texttt{3}$}) will remain in the store buffer if \texttt{y} will never be loaded in the program again.
+}
+
+\label{fig:flushflagC}
+
+\end{minipage}
+\end{figure}
+
+\bigskip
+
+
+\divine handles C and C++ code by translating it to \llvm and instrumenting it (see Figure \ref{fig:workflow} for \divine's workflow).
+The support for relaxed memory is added in the instrumentation step, by replacing memory operations with calls to functions which simulate relaxed behavior.
+Essentially, all loads, stores, atomic instructions, and fences are replaced by calls to the appropriate functions.
+
+All of the \xtso-simulating functions are implemented so that they are executed atomically by \divine (i.e., not interleaved).
+The most complex of these is the load operation.
+It first finds all entries with overlap the loaded address (\emph{matching entries}) and out of these matching entries, it nondeterministically selects entries which will be written before the load (\emph{selected entries}).
+All matching entries marked as flushed have to be selected for writing.
+Similarly, all matching entries which occur in a store buffer before a selected entry also have to be selected.
+Out of the selected entries, one is selected to be written last -- this will be the entry read by the load.
+Next, selected entries are written, and all nonmatching entries which precede them are marked as flushed.
+Finally, the load is performed, either from the local store buffer if matching
+entry exists there, or from the shared memory.
+
+The remaining functions are relatively straightforward -- stores push a new
+entry to the store buffer, possibly evicting the oldest entry from the store
+buffer if the store buffer exceeds its size bound; fences flush all entries from the
+store buffer of the calling thread to the memory; atomic operations are basically a
+combination of a load, store, and a fence.
+The only intricate part of these operations is that if an entry is flushed out
+of the store buffer, the entries from other store buffers which involve the same memory location can also be non-deterministically flushed (to simulate they could have been flushed before the given entry).
+This flushing is similar to flushing performed in load.
+An example which shows a series of loads can be found in Figures~\ref{fig:flushflagA}~to~\ref{fig:flushflagC}.
+
+
+We will now argue that this way of implementing \xtso is correct.
+First, the nondeterminism in selecting entries to be flushed before a load serves the same purpose as the nondeterminism in the flusher thread of the more conventional implementation.
+The only difference is that in the flusher-thread scenario the entries are
+flushed in order, while in our new approach we are selecting only from the matching entries.
+Therefore, the difference between the two approaches is only on those entries
+which are not loaded by the load causing the flush, hence cannot be observed by the load.
+However, any entry which would be flushed before the selected entries in the flusher-thread approach is now marked with the flushed flag.
+This flag makes sure that such an entry will be flushed before an address which matches it is loaded, and therefore it behaves as if it was flushed.
+This way, the in-thread store order is maintained.
+
+\subsection{Stores to Freed Memory}
+
+As \xtso simulation can delay memory stores, special care must be taken to preserve memory safety of the program.
+More precisely, it is necessary to prevent the transformed program from writing into freed memory.
+This problem occurs if a store to dynamically allocated memory is delayed after the memory is freed, or if a store to stack location is delayed after the corresponding function had returned.
+This problem does not require special handling in normal program execution as both stack addresses as well as dynamic memory addresses remain to be writable for the program even after they are freed (except for memory mapped files, but these have to be released by a system call which includes sufficiently strong memory barrier).
+
+To solve the problem of freed memory, it is necessary to evict store buffer entries which correspond to the freed memory just before the memory is freed.
+For entries not marked as flushed, this eviction concerns only store buffer of the thread which freed the memory.
+If some other thread attempted to write to the freed memory, this is an error as there is insufficient synchronization between the freeing and the store to the memory.
+However, corresponding entries marked as flushed should be evicted from all store buffers, as these entries correspond to changes which should have been already written to the shared memory.
+% Eviction of dynamic memory is straightforward -- the transformation injects a call to the eviction function just before every call to the function which releases memory.
+% For eviction of stack memory, it is necessary to evict all local addresses whenever a function exits, regardless of the way it exits.
+% This means we also have to take into account exceptions and other ways of performing non-local transfers of control (e.g., \texttt{longjmp}).
+% The program transformation takes care of tracking which local memory addresses should be evicted and inserts code to evict them at the end of functions.
+The program transformation takes care of inserting code to evict entries corresponding to freed memory from the store buffer.
+
+\subsection{Integration with Other Parts of \divine}
+
+The integration of \xtso simulation with the rest of \divine is rather straightforward.
+No changes are required in the \divine's execution engine or state space exploration algorithms.
+As for the libraries shipped with \divine, only minor tweaks were required.
+The \texttt{pthread} implementation had to be modified to add full memory barrier both at the beginning and at the end of every synchronizing functions.
+This corresponds to barriers present in the implementations used for normal execution, \texttt{pthread} mutexes and other primitives have to guarantee sequential consistency of the guarded operations (provided all accesses are properly guarded).
+
+The \divine's operating system, \dios, is used to implement low-level threading as well as simulation of various filesystem APIs \cite{DIVINEToolPaper2017}.
+We had to add memory barrier into the system call entry which hands control to \dios.
+\dios itself does not use relaxed memory simulation -- the implementation of \xtso operations detects that the code is executed in the kernel mode and bypasses store buffers.
+In this way, the entire \dios executes as if under sequential consistency.
+This synchronization is easily justifiable -- system calls require a memory barrier or kernel lock in most operating systems.
+
+\subsection{Improvements} \label{sec:opt}
+
+We have implemented two further optimizations of our \xtso simulation.
+
+\paragraph{Static Local Variable Detection}
+Accesses of local variables which are not accessible to other threads need not
+use store buffering.  For this reason, we have inserted a static analysis pass
+which annotates accesses to local memory before the \xtso instrumentation.  The
+instrumentation ignores such annotated accesses.  The static analysis can
+detect most local variables which are never accessed using pointers.
+
+
+\paragraph{Dynamic Local Memory Detection}
+\divine can also dynamically detect if the given memory object is shared between threads (i.e., it is accessible from global variables or stacks of more then one thread).
+Using this information, it is possible to dynamically bypass store buffers for operations with non-shared memory objects.
+This optimization is correct even though the shared status of memory can change during its lifetime.
+A memory object $o$ can become shared only when its address is written to some memory object $s$ which is already shared (or $o$ can become shared transitively through a series of pointers and intermediate objects).
+For this to happen, there has to be a store to the already shared object $s$, and this store has to be propagated to other threads.
+Once the store of the address of $o$ is executed and written to the store buffer, $o$ becomes shared, and any newer stores into it will go through the store buffer.
+Furthermore, once this store is propagated, any store which happened before turning $o$ into a shared object also had to be propagated as \xtso does not reorder stores.
+Therefore, there is no reason to put stores to $o$ through the store buffer if $o$ is not shared.
+This optimization is not correct for memory models which allow store reordering -- for such memory models, we would need to know that the object will never be shared during its lifetime.
+
+\subsection{Bounding the Size of Store Buffers}
+
+The complexity of analysis of programs under the \xtso memory model is high.
+From the theoretical point of view, we know due to Atig et al.~\cite{wmdecidability} that reachability for programs with finite-state threads which run under TSO is decidable, but non-primitive recursive (it is in \textsc{pspace} for sequential consistency).
+The proof uses the so called SPARC TSO memory model~\cite{SPARC94} that is very similar to \xtso. However, the proof of decidability does not translate well to an efficient decision procedure, and real-world programs are much more complex than the finite-state systems used in the decidability proof.
+
+For this reason, we would need to introduce unbounded store buffers to properly
+verify real-world programs. Unfortunately, this can be impractical, especially for programs which do not terminate.
+Therefore, our program transformation
+inserts store buffers of limited size, limiting thus the number of store
+operations that can be delayed at any given time. The
+size of the store buffers is fully configurable, and it currently defaults to
+32, a value probably high enough to discover most bugs which can be observed on
+a real hardware.
+
+Our implementation also supports the store buffers of unlimited
+size (when size is set to 0). In this mode, programs with infinite loops that write into
+shared memory will not have finite state space. Therefore, \divine will not
+terminate unless it discovers an error in the program. Verification with
+unbounded buffers will still terminate for terminating programs and for all
+programs with errors.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Evaluation} \label{sec:evaluation}
+
+The implementation is available at \url{https://divine.fi.muni.cz/2018/x86tso/}, together with information about how to use it.
+We compared our implementation with the stateless model checker Nidhugg~\cite{Abdulla2015} and the bounded model checker CBMC~\cite{Clarke2004,Kroening2014}.
+For evaluation we used SV-COMP benchmarks from the Concurrency
+category~\cite{SV-COMP:2017}, excluding benchmarks with data
+nondeterminism\footnote{I.e., all the benchmarks which contain calls to
+  functions of the \texttt{\_\_VERIFIER\_nondet\_*} family were excluded.}~as
+our focus is on performance of relaxed memory analysis, not on handling of nondeterministic values.
+Furthermore, due to the limitation of stateless model checking with DPOR,
+Nidhugg cannot handle data nondeterminism at all. %Also, support for data nondetermism in \divine is rather new and not yet fully integrated with the support for relaxed memory.
+There are 55 benchmarks in total.
+
+The evaluation was performed on a machine with 2 dual core Intel Xeon 5130
+processors running at 2 GHz with 16 GB of RAM. Each tool was running with memory
+limit set to 10 GB and time limit set to 1 hour. The tools were not limited in
+the number of CPUs they can use.
+
+We have used CBMC version 5.8 with the option \texttt{--mm tso}. Since there is no official release of Nidhugg, we have used version 0.2 from git, commit id
+\texttt{375c554} with \texttt{-tso} option to enable relaxed memory support and inserted a definition of the \texttt{\_\_VERIFIER\_error} function.
+For \divine, we have used the \texttt{--svcomp} option to enable support for SV-COMP atomic sections (which are supported by default by CBMC and Nidhugg), and we disabled nondeterministic memory failure by using the \texttt{divine check} command (SV-COMP does not consider the possibility of allocation failure).
+To enable \xtso analysis, \texttt{--relaxed-memory tso} is used for \divine.\footnote{The complete invocation is \texttt{divine check --svcomp --relaxed-memory tso BENCH.c}.} The buffer bound was the default value (32) unless stated otherwise.
+
+\begin{table}[tt]
+\caption{
+    Comparison of the default configuration of \divine with CBMC and Nidhugg.
+} \label{tab:default:svc}
+\centering
+\begin{tabular}{lrrr} \toprule
+             & CBMC & \hspace*{1ex} Nidhugg & \hspace*{1ex} \divine \\ \midrule
+    finished &   21 &      25 &     27 \\
+    TSO bugs &    3 &       3 &      9 \\
+    unique   &    5 &       3 &      5 \\
+  \bottomrule
+\end{tabular}
+\end{table}
+
+Table \ref{tab:default:svc} compares performance of the default configuration of \divine with the remaining tools.
+The line ``finished'' shows the total number of benchmarks for which the verification task finished with the given limits.
+From these the line ``TSO bugs'' shows the number of errors caused by relaxed memory in benchmarks which were not supposed to contain any bugs under sequential consistency.
+All discovered errors were manually checked to really be observable under the \xtso memory model.
+Finally, ``unique'' shows the number of benchmarks solved only by the given tool and not the other two. There were only 8 benchmarks solved by all three tools, all of them without any errors found.
+
+\begin{table}[th]
+\caption{
+    Comparison of various configurations of \divine.
+    The ``base'' version uses none of the improvements from Section \ref{sec:opt}.
+    The configurations marked with ``s'' add the static local variable optimization, while the configurations marked with ``d'' add the dynamic detection of non-shared memory objects.
+    The ``+sdu'' configuration has both optimizations enabled and it has unbounded buffers.
+    Finally, the ``+sd4'' has buffer bound set to 4 entries instead of the default 32 entries.
+    The default version is ``+sd''.
+} \label{tab:divine:svc}
+\centering
+\begin{tabularx}{0.7\textwidth}{lRRRRRR} \toprule
+           & base & +s & +d & +sd & +sdu & +sd4 \\ \midrule
+  finished &   26 & 26 & 27 &  27 &   27 &   27 \\
+  TSO bugs &    8 &  8 &  9 &   9 &    9 &    9 \\
+  \bottomrule
+\end{tabularx}
+\bigskip
+\caption{
+    Comparison of various versions of \divine on benchmarks on the 26 which all the versions finished.
+    For the description of these versions, please refer to Table \ref{tab:divine:svc}.
+} \label{tab:divine:time:svc}
+\centering
+\begin{tabularx}{0.7\textwidth}{lRRRRRR} \toprule
+           &    base &      +s &      +d &     +sd &    +sdu &    +sd4 \\ \midrule
+  states   &   252 k &   263 k &   250 k &   231 k &   206 k &   296 k \\
+  time     & 2:14:49 & 2:17:13 & 1:09:23 & 1:05:05 & 0:58:28 & 1:24:59 \\
+  \bottomrule
+\end{tabularx}
+\end{table}
+
+Table \ref{tab:divine:svc} shows effects of buffer size bound and improvements described in Section~\ref{sec:opt}.
+It can be seen that all versions perform very similarly, only one more benchmark was solved by the versions with dynamic shared object detection (the remaining solved benchmarks were the same for all versions).
+The number of solved benchmarks remains the same regardless of used store buffer bound.
+
+Table \ref{tab:divine:time:svc} offers more detailed look at the 26 benchmarks solved by all versions of \divine.
+It shows the aggregate differences in state space sizes and solving times.
+It can be seen that the dynamic shared object detection improves performance significantly.
+Interestingly, we can see that of the 3 versions which differ only in store buffer size (``+sd'', ``+sdu'', and ``+sd4''), the unbounded version performs the best.
+We expect this to be caused by the nondeterminism in flushing the excessive entries out of the store buffer when the bound is reached -- this can trigger flushing of matching entries from other store buffers and therefore increase nondeterminism.

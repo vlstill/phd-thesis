@@ -32,7 +32,7 @@
 \definecolor{dark-green}{rgb}{0.15,0.4,0.15}
 \definecolor{medium-blue}{rgb}{0,0,0.5}
 \usepackage[ pdfauthor={Vladimir Still}
-           , pdftitle={Model Checking Parallel C++ Programs},
+           , pdftitle={Analysis of Parallel C++ Programs},
            , pdfsubject={PHD Thesis Proposal},
            , plainpages=false
            , pdfpagelabels
@@ -45,7 +45,7 @@
            , unicode=true
            ]{hyperref}
 
-\usepackage{amssymb,amsmath}
+\usepackage{amssymb,amsmath,amsthm}
 \usepackage{verbatim}
 \usepackage[final]{listings}
 \lstset{ language=C++ }
@@ -56,7 +56,7 @@
 \usepackage{xspace}
 \usepackage{pgf}
 \usepackage{tikz}
-\usetikzlibrary{arrows,positioning}
+\usetikzlibrary{arrows,positioning,shapes,snakes,automata,backgrounds,petri,fit}
 \usepackage{pdfpages}
 
 \usepackage{float}
@@ -84,10 +84,14 @@
 
 \usepackage{tabularx}
 \newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+\usepackage{booktabs}
 \usepackage{arydshln}
 \newcommand{\dg}{\textsuperscript{\dag}}
 
 \newcommand{\divine}{\mbox{\textsf{DIVINE}}\xspace}
+\newcommand{\divm}{Di\hspace*{-0.66pt}VM\xspace}
+\newcommand{\dios}{DiOS\xspace}
 \newcommand{\lart}{\mbox{\textsf{LART}}\xspace}
 
 \newcommand{\paradise}{ParaDiSe\xspace}
@@ -105,7 +109,7 @@
 
 \newcommand{\tso}{TSO\xspace}
 \newcommand{\pso}{PSO\xspace}
-\newcommand{\xtso}{\texttt{x86}-TSO\xspace}
+\newcommand{\xtso}{\mbox{x86-\kern-.15em TSO}\xspace}
 
 \newcommand{\dorel}[1]{\ifmmode\mathbin{#1}\else${#1}$\fi}
 \newcommand{\rel}[1]{\dorel{\xrightarrow{\mathrm{#1}}}}
@@ -120,15 +124,25 @@
 \newcommand{\Jirik}{prof. RNDr. Jiří Barnat, Ph.D.}
 \newcommand{\Mornfall}{RNDr. Petr Ročkai, Ph.D.}
 
-\newcommand{\thesistitle}{Model Checking Parallel C++ Programs} % enter thesis title
+\newcommand{\thesistitle}{Analysis of Parallel C++ Programs} % enter thesis title
 \newcommand{\thesissubtitle}{PHD Thesis}
 \newcommand{\thesisauthor}{Vladimír Štill}
 \newcommand{\thesisYearCity}{Brno, 2020}
 \newcommand{\thesisadvisor}{\Jirik}
 
 \newcommand{\note}{\textit{Note:}\xspace}
+\newcommand{\fcite}[1]{\emergencystretch 3em\fullcite{#1}~\cite{#1}\medskip}
+
+\renewcommand{\indent}{\mbox{}\ \ \ \ }
+\colorlet{frombuf}{green!60!black}
+\colorlet{flushed}{yellow!60!red!85!black}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
 
 \addbibresource{thesis.bib}
+\addbibresource{my.bib}
 
 \usepackage[pass]{geometry}
 \usepackage{setspace}
@@ -243,21 +257,36 @@ LLVM, C++, DIVINE, implementation
 \mainmatter
 
 \chapter{Introduction}\label{chap:introduction}
-% \input{intro}
+\input{intro}
 
+\chapter{Preliminaries}
+\input{preliminaries}
+
+\chapter{State of the Art}
+\input{stateoftheart}
+
+\chapter{Realistic Programs}
+\input{realprogs}
+
+\chapter{Realistic Memory Models}
+\input{memorymodels}
+
+\chapter{Termination of Parallel programs}
+\input{termination}
+
+\chapter{Conclusion}
 
 \appendix
 
-\chapter*{Bibliography}
+\chapter{Published Papers}
+\include{papers}
+
+\chapter{Bibliography}
 \addcontentsline{toc}{chapter}{Bibliography}
-\markboth{}{} % avoid headers from last chapter in bibliography
 
 {
     \emergencystretch 3em % there is little other fixing possible for bibio
     \printbibliography[heading=none]
 }
-
-\chapter{Publications}\label{chap:publications}
-% \input{publications}
 
 \end{document}
