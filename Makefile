@@ -3,7 +3,7 @@ PAPERS=# pdfs
 
 all : thesis.pdf
 
-thesis.pdf : thesis.tex thesis.bbl my.bbl $(wildcard *.tex)
+thesis.pdf : thesis.tex thesis.bbl $(wildcard *.tex)
 	latexmk -pdf $<
 
 # thesis-print.pdf : thesis-print.tex $(ALL:.md=.tex) thesis-print.bbl $(PAPERS)
@@ -16,8 +16,11 @@ thesis.pdf : thesis.tex thesis.bbl my.bbl $(wildcard *.tex)
 #		-e 's/\\iffalse.*%@ifprint/\\iftrue/' \
 #		$< > $@
 
-%.bbl : %.bib
-	-biber $(@:.bbl=)
+thesis.bbl : thesis.bcf
+	biber $(@:.bbl=)
+
+thesis.bcf : $(wildcard *.bib) $(wildcard *.tex)
+	pdflatex thesis.tex
 
 .PRECIOUS: %.bcf %.bbl
 
