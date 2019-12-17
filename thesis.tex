@@ -47,11 +47,12 @@
 
 \usepackage{amssymb,amsmath,amsthm}
 \usepackage{verbatim}
-\usepackage[final]{listings}
-\lstset{ language=C++ }
 \usepackage{paralist}
 % use upquote for straight quotes in verbatim environments
 \usepackage{upquote}
+\usepackage{minted}
+\newminted[cppcode]{cpp}{autogobble,breaklines}
+\newmintinline[cpp]{cpp}{}
 
 \usepackage{xspace}
 \usepackage{pgf}
@@ -157,7 +158,7 @@
   \setlength{\topsep}{0pt}%
   \setlength{\partopsep}{0pt}}
 
-% \newcommand{\TODO}[1]{\textbf{\color{red}#1}}
+\newcommand{\TODO}[1]{\textbf{\color{red}#1}}
 \renewcommand{\comment}[1]{\xspace}
 
 % autoref names

@@ -4,7 +4,7 @@ PAPERS=# pdfs
 all : thesis.pdf
 
 thesis.pdf : thesis.tex thesis.bbl $(wildcard *.tex)
-	latexmk -pdf $<
+	latexmk -pdf -shell-escape $<
 
 # thesis-print.pdf : thesis-print.tex $(ALL:.md=.tex) thesis-print.bbl $(PAPERS)
 #	./latexwrap $<
@@ -20,7 +20,7 @@ thesis.bbl : thesis.bcf
 	biber $(@:.bbl=)
 
 thesis.bcf : $(wildcard *.bib) $(wildcard *.tex)
-	pdflatex thesis.tex
+	pdflatex -shell-escape thesis.tex
 
 .PRECIOUS: %.bcf %.bbl
 

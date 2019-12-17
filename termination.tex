@@ -18,7 +18,7 @@ Similarly, a program can be in multiple resource sections which wait for the sam
 
 \begin{figure}[tp]
 \begin{minipage}[t]{0.49\textwidth}
-\begin{lstlisting}[gobble=4]
+\begin{cppcode}
     mutex m;
 
     void thread0() {
@@ -34,17 +34,17 @@ Similarly, a program can be in multiple resource sections which wait for the sam
         do_other_work();
       } // unlock
     }
-\end{lstlisting}
+\end{cppcode}
 \caption{
     A program with a nonterminating critical section (in \texttt{thread0}) and a deadlock (if \texttt{thread0} enters its critical section, \texttt{thread1} will wait infinitely).
-    Please note that in C++ it is possible to use scope-based locks: the critical section belonging to mutex \lstinline{m} is entered when \lstinline{unique_lock lock(m)} is executed and left at the end of the scope in which the \lstinline{lock} variable was defined (at the matching curly brace; also marked with comment \lstinline{// unlock}).
-} \label{fig:ntermsec0}
+    Please note that in C++ it is possible to use scope-based locks: the critical section belonging to mutex \cpp{m} is entered when \cpp{unique_lock lock(m)} is executed and left at the end of the scope in which the \cpp{lock} variable was defined (at the matching curly brace; also marked with comment \cpp{// unlock}).
+}\label{fig:ntermsec0}
 \end{minipage}
 %
 \hfill
 %
 \begin{minipage}[t]{0.49\textwidth}
-\begin{lstlisting}[gobble=4]
+\begin{cppcode}
     mutex m;
 
     void thread0() {
@@ -60,9 +60,9 @@ Similarly, a program can be in multiple resource sections which wait for the sam
         do_other_work();
       } // unlock
     }
-\end{lstlisting}
+\end{cppcode}
 \caption{
-    A fixed version of the program from \autoref{fig:ntermsec0} (the start of the critical section was moved from the position \lstinline{// Error} in the left code to \lstinline{// Fixed} and therefore the critical section can end now).
+    A fixed version of the program from \autoref{fig:ntermsec0} (the start of the critical section was moved from the position \cpp{// Error} in the left code to \cpp{// Fixed} and therefore the critical section can end now).
     Intuitively, each critical section in this program terminates.
     However, as we can see in \autoref{fig:ntermsec1ce}, it is possible to find an infinite path in the state space of this program that infinitely waits for one of the critical sections.
     To make matters worse, this path can respect weak fairness.
@@ -145,7 +145,7 @@ This is hard to do if resource sections can be created at runtime, which is ofte
 
 \begin{figure}[t]
 \begin{minipage}[t]{0.32\textwidth}
-\begin{lstlisting}[gobble=4]
+\begin{cppcode}
     mutex m1, m2;
     {
       unique_lock l1(m1);
@@ -155,7 +155,7 @@ This is hard to do if resource sections can be created at runtime, which is ofte
         do_work_2();
       } // unlock(m2)
     } // unlock(m1)
-\end{lstlisting}
+\end{cppcode}
 \end{minipage}
 \hfill%
 \begin{minipage}[t]{0.67\textwidth}
@@ -274,7 +274,6 @@ space of the waiting thread.\footnote{This is not a problem in practice as any
 As a result, the detection
 of nonterminating ARSIs can be performed as a search for an accepting terminal
 strongly connected component in the state space graph.
-
 
 \begin{definition}[Terminal Strongly Connected Component]
 A strongly connected component $S$ is \emph{terminal}\footnotemark{} if for each state $v$ in $S$ all successors of $v$ are in $S$ (there are no edges out of $S$).
