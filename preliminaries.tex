@@ -1,4 +1,36 @@
-\section{Theoretical Model of Programs}
+\section{Basic Features of Realistic Programs}
+
+When it comes to the program analysis of programs written in high-level programming languages (such as C++, C\#, Java, Haskell), it is often necessary to choose a level on which the program will be analysed.
+We can choose to analyse the high-level code directly -- in this case the analysis can be both precise and make use of high-level concepts (such as cycles or declarative description of certain thereading concepts e.g., using Open MP\footnotemark{}).
+However, the direct analysis comes at high cost as programming languages often have rich and complex syntax and complicated semantics which is designed to aid programming, not verification.
+For example, if we choose to handle in this way programs written in C++, we would need to concern ourselves with object hierarchies, exception handling, templates and many more.
+\footnotetext{\TODO{Open MP}}
+
+The on the other side of the spectrum, we can analyse a compiled program i.e., analyse machine code or assembly of given platform.
+This approach can then be applied regardless of programming language and it works even on programs for which we have no source code available.
+Nevertheless, there are serious disadvantages -- the analysis is required to support each hardware platform separately, and the machine code looses a lot of information present on the higher level.
+For example, it is not possible to recover the bounds of stack variables from the x86 machine code directly (it might be recoverable using debugging information or exception-handling metadata, but these might not be available).
+
+Finally, we can analyse some sort of intermediate or specialized representation, either a low-level language which still presents the information necessary for the analysis, or a specialized language designed for verification.
+In either case, it is first necessary to translate the code in the programming language to the language used for verification and this can share many problems with the direct approach of verification of the high-level programming language.
+However, if an existing intermediate representation accompanied with a translator from the high-level programming language is suitable for verification, this can side-step many of the problems described here.
+
+\subsection{Minimal Requirements for Programs}
+
+To make our considerations mostly independent of the choice of the verified formalism, we will now define minimal requirements for such a formalism.
+
+\begin{description}
+    \item[Function Calls and Recursion]
+    \item[Indirect Function Calls]
+    \item[Threads] The verified formalism should have ability to spawn threads dynamically and to wait for end of a thread.
+        Therefore, the number of threads which will run at any point in the program might not be known before the program is executed.
+    \item[Shared Memory] There should be memory locations accessible by any thread. This memory can be used to share data between threads.
+    \item[Synchronization Primitives] Primitives which allow safe synchronization of data between threads (such as mutexes and condition variables) should be available.
+    \item[Atomic Operations] It has to be possible to read and modify designated memory locations with atomic operations which are safe to be executed in parallel (e.g., atomic increment, atomic compare and swap).
+    \item[Pointers and Pointer Arithmetic]
+\end{description}
+
+\section{Basic Verification Concepts}
 
 \subsection{State Space}
 
@@ -20,6 +52,20 @@ However, in \divine, we are primarily concerned with programs which have finite 
 If the state space is infinite, \divine might find an error if it is present
 there, or it might compute until its resources are exhausted.
 Please note that programs with finite state space can have infinite behaviour as they can loop through the same set of states indefinitely.
+
+\section{Program Properties}
+
+\subsection{Safety Properties}
+
+example: leak checking -> is it safety or LTL?
+
+\subsection{Temporal Logics}
+
+CTL* -> LTL
+
+\subsection{Fairness}
+
+\subsection{Termination Properties}
 
 \section{Realistic Programs}
 
@@ -179,5 +225,24 @@ which all the atomic operations share a single global lock.
 
 \subsection{Stateless Model Checking}
 
-\section{LLVM}
+\section{LLVM \& LLVM Intermediate Representation}
 
+LLVM is a compilation infrastructure which can be used to build optimizing compilers.
+The entire compiler build on LLVM consists of a language-specific frontend (which processes the source code and produces a language independent LLVM intermediate representation), an optimizer build which runs on the LLVM intermediate representation, and a code generator which produces assembly for the given platform.
+LLVM intermediate representation (LLVM IR, LLVM code, or just LLVM), is a low-level programming language which is both mostly independent of the high-level language of the original program and the assembly language of the given hardware platform.
+\TODO{...}
+
+- memory manipulation
+- atomic instructions, memory model
+- thereads
+- exceptions
+
+\section{C++}
+
+The examples of code in high-level programming languages in this thesis will be given in C++.
+Therefore we will now shortly discuss some basic concepts of this programming language which are necessary for understanding of the examples.
+
+- atomic variables
+- mutexes
+- threads
+- scoped variables \& RAII
