@@ -1,3 +1,5 @@
+As we have already outlined in \TODO{??}, termination checking is important for verification of parallel programs, as complex thread interaction can lead to hard to discover nontermination.
+Moreover, it is desirable to be able to detect not only termination of the whole program, but also termination of a certain action of the program -- programs such as system services or daemons (e.g., a web server) are nontermination, but we still require that certain actions they perform terminate (e.g., a request is handled in a finite time).
 
 \subsection{Resource Sections}
 
