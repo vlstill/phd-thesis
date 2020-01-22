@@ -23,6 +23,8 @@ before_script:
 
 addons:
   apt:
+    packages:
+      - python-pygments
     update: true
 
 script:
