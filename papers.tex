@@ -1,15 +1,77 @@
-\begin{itemize}
-\item \fcite{SB2019}
-\item \fcite{RSCB2018}
-\item \fcite{SB2018x86tso}
-\item \fcite{DIVINEToolPaper2017}
-\item \fcite{MJSLB2017}
-\item \fcite{SRB2017}
-\item \fcite{SRB16SVC}
-\item \fcite{BCRSZ16Prob}
-\item \fcite{SRB15weakmem}
-\item \fcite{BRSW15HS}
-\item \fcite{RSB15TC}
-\item \fcite{SRB14CSDR}
-\item \fcite{BBH+13DIVINE}
-\end{itemize}
+\section{Most Significant Papers}
+
+\subsection*{Local Nontermination Detection for Parallel C++ Programs}
+
+In this paper, we present our approach to ensuring that parallel programs do not hang or wait indefinitely – i.e., there are no deadlocks, livelocks and the program proceeds towards its goals.
+The paper contains the theoretical description of our approach and evaluation of our publicly available implementation.
+
+The algorithm design, implementation and writing of the paper was done by me, my advisor Jiří Barnat helped by consulting the theory with me and proofreading the paper.
+I have presented this paper on the SEFM 2019 conference.
+
+\bigskip\noindent\fcite{SB2019}
+
+\subsection*{Model Checking of C++ Programs Under the x86-TSO Memory Model}
+
+Here we present a novel approach to verification of parallel programs with respect to the memory model of Intel processors.
+The approach is intended to allow more efficient explicit-state model checking by decreasing amount on nondeterminism in the program.
+The paper contains an evaluation and is accompanied by a publicly available implementation.
+
+The algorithm design, implementation and writing of the paper was done by me, Jiří Barnat helped by consulting the theory with me and proofreading the paper.
+I have presented this paper on the ICFEM 2018 conference.
+
+\bigskip\noindent\fcite{SB2018x86tso}
+
+\subsection*{Using Off-the-Shelf Exception Support Components in C++ Verification}
+
+In this paper we present an extension of DIVINE which allows it to verify programs which contain C++ exceptions and C programs with non-local transfer of control flow (\texttt{setjmp}/\texttt{longjmp}).
+We show that with a careful design we can successfully reuse exception handling code from the standard C++ library.
+The result is that virtually any exception handling constructs working in standard C++ are now available in DIVINE.
+
+I have designed the exception support for DIVINE 4, implemented it and performed the evaluation for this paper.
+I have also written most of the text for the paper.
+Petr Ročkai and Jiří Barnat helped by consulting the design and implementation and proofreading the paper.
+I have presented this paper on the QRS 2017 conference.
+The paper and its presentation was awarded best paper award.
+
+\bigskip\noindent\fcite{SRB2017}
+
+\subsection*{Model Checking of C and C++ with DIVINE 4}
+
+In this tool paper we describe overall architecture of DIVINE 4 and changes in the tool compared to DIVINE 3.
+Most significantly, this paper describes the modular nature of DIVINE: DIVINE 4 is built around an efficient interpreter which, together with a small, verification-oriented operating system and a set of runtime libraries, enables verification of real-world code written in C and C++.
+
+The text of the paper is written mostly by me, with additions and proofreading by Petr Ročkai and Jiří Barnat.
+The architecture design was mostly due to Petr Ročkai, with additions by me and Jan Mrázek.
+The implementation includes code by all the co-authors with most significant contributions by (in the order of significance) Petr Ročkai, me, and Jan Mrázek.
+
+\bigskip\noindent\fcite{DIVINEToolPaper2017}
+
+\subsection*{DiVM: Model Checking with LLVM and Graph Memory}
+
+This paper introduces the concept of virtual machine with graph memory as a core component for explicit-state and abstraction-based verification of software.
+The paper is accompanied by an implementation of the virtual machine which runs LLVM IR (which can be obtained from C or C++ using the clang compiler) and an evaluation which compares the new approach to a more traditional design of an LLVM-based model checker as well as a symbolic model checker.
+
+The primary author of this paper is Petr Ročkai.
+My contribution concerned mostly the C++ support (including program compilation and libraries) and the evaluation and comparison of the new approach with DIVINE 3 and ESBMC.
+
+\bigskip\noindent\fcite{RSCB2018}
+
+
+
+\section{Other Papers}
+
+\bigskip\noindent\fcite{MJSLB2017}
+
+\bigskip\noindent\fcite{SRB16SVC}
+
+\bigskip\noindent\fcite{BCRSZ16Prob}
+
+\bigskip\noindent\fcite{SRB15weakmem}
+
+\bigskip\noindent\fcite{BRSW15HS}
+
+\bigskip\noindent\fcite{RSB15TC}
+
+\bigskip\noindent\fcite{SRB14CSDR}
+
+\bigskip\noindent\fcite{BBH+13DIVINE}

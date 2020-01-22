@@ -1,0 +1,58 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[shorthands=off,english]{babel} % package for multilingual support
+
+\usepackage[utf8]{inputenc} 
+\usepackage[T1]{fontenc}
+\usepackage{csquotes}
+
+\usepackage[ backend=biber
+           , style=alphabetic % numeric
+           , sortlocale=en_US
+           , bibencoding=UTF8
+           , maxnames=100
+           ]{biblatex}
+\DeclareSourcemap{
+    \maps[datatype=bibtex, overwrite]{
+        \map{
+            \step[fieldset=editor, null]
+            \step[fieldset=language, null]
+            \step[fieldset=url, null]
+            \step[fieldset=note, null]
+        }
+    }
+}
+\usepackage{xcolor}
+\definecolor{dark-red}{rgb}{0.6,0.15,0.15}
+\definecolor{dark-green}{rgb}{0.15,0.4,0.15}
+\definecolor{medium-blue}{rgb}{0,0,0.5}
+\usepackage[ pdfauthor={Vladimir Still}
+           , pdftitle={Analysis of Parallel C++ Programs},
+           , pdfsubject={PHD Thesis Proposal},
+           , plainpages=false
+           , pdfpagelabels
+           , unicode
+           , draft=false
+           , colorlinks=true
+           , linkcolor={dark-red}
+           , citecolor={dark-green}
+           , urlcolor={medium-blue}
+           , unicode=true
+           ]{hyperref}
+
+\usepackage{microtype}
+
+\newcommand{\fcite}[1]{\emergencystretch 3em\fullcite{#1}}
+\addbibresource{my.bib}
+
+\usepackage[pass]{geometry}
+\usepackage{setspace}
+
+\setcounter{secnumdepth}{0}
+
+\begin{document}
+\section{Publications: Vladimír Štill}
+\let\section=\subsection
+\let\subsection=\subsubsection
+\input{papers}
+
+\end{document}
