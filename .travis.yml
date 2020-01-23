@@ -7,7 +7,6 @@ dist: bionic
 #before_install:
 # - sudo apt-get install python-pygments
 install:
-  - sudo apt-get install -yy biber
   - source ./texlive/texlive_install.sh
   - mkdir -p ~/.ssh
   - echo '-----BEGIN OPENSSH PRIVATE KEY-----' > ~/.ssh/id_rsa
