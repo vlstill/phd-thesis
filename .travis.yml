@@ -1,6 +1,7 @@
 # from https://github.com/PHPirates/travis-ci-latex-pdf/blob/master/4-texlive/.travis.yml
 language: minimal
 sudo: true
+dist: bionic
 
 # Dependency of the minted package
 #before_install:
