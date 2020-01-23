@@ -29,7 +29,7 @@ addons:
 
 script:
   # Texliveonfly will download packages automatically
-  - texliveonfly thesis.tex
+  - texliveonfly thesis.tex || true
   - make -B
 
   - git remote -v
