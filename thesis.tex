@@ -33,7 +33,7 @@
 \definecolor{medium-blue}{rgb}{0,0,0.5}
 \usepackage[ pdfauthor={Vladimir Still}
            , pdftitle={Analysis of Parallel C++ Programs},
-           , pdfsubject={PHD Thesis Proposal},
+           , pdfsubject={PHD Thesis},
            , plainpages=false
            , pdfpagelabels
            , unicode
@@ -51,8 +51,13 @@
 % use upquote for straight quotes in verbatim environments
 \usepackage{upquote}
 \usepackage{minted}
+
 \newminted[cppcode]{cpp}{autogobble,breaklines}
 \newmintinline[cpp]{cpp}{}
+
+\newmintinline[llvmcode]{llvm}{autogobble,breaklines}
+\newmintedfile[llvminput]{llvm}{breaklines}
+\newmintinline[li]{llvm}{}
 
 \usepackage{xspace}
 \usepackage{pgf}
@@ -283,7 +288,7 @@ LLVM, C++, DIVINE, implementation
 \input{papers}
 
 \chapter{Bibliography}
-\addcontentsline{toc}{chapter}{Bibliography}
+% \addcontentsline{toc}{chapter}{Bibliography}
 
 {
     \emergencystretch 3em % there is little other fixing possible for bibio

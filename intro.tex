@@ -1,0 +1,19 @@
+Correctness of software is a worthy goal pursued by software developers and testers, as well as researchers.
+There are many techniques which provide asistance to both developers and testers, with a wide range of capabilities and ease of use.
+\TODO{...}
+% For example, static analysis tools (such as \TODO{…}) are usually simple to use (it is often sufficient to just point them to the source code of the program) and can discover a wide range of potential problems.
+% However, problems arising from complex interactios are often hard to discover by static analysis
+starting from relativelly simple tools which highlight syntax errors, continuing with static analysis tools which can detect potential problems in code fragments
+With parallel programs, the problem of correctness is often much harder to tackle then for sequential programs -- thread interactions are usually not directly visible from the source code, and it is hard to find which parts of code might run in parallel.
+Furthermore, the concrete thread interactions differ between different runs of the program, becouse they depends on the resources available for the program at any given time.
+For this reason, a parallel program can produce different results in different runs, and it is possible that errors occurr only sometimes, and are therefore hard to detect by conventional tests.
+
+To further complicate the problem, modern processors can reorder program instructions and use caches which can delay visibility of memory changes to other threads.
+While these optimizations are designed to be correct for sequential prograsm, they can change behaviour of parallel programs and can lead to very peculiar behavior which can depend on the hardware on which the program is executed.
+
+There are many techniques which aim at testing and verification of parallel programs, including \TODO{static analysis, race detectors, shceduler manipulation, bounded/stateless/explicit-state MC}.
+In this work, we will describe several techniques which improve analysis of realistic parallel programs in the DIVINE model checker and we compare them to many other techniques which aim at testing parallel programs.
+
+In our analysis we will focus primaryly on programs written in C and C++.
+Nevertheless, analysis of other real-world high-level imperative programming languages (such as Java, C\#, Rust, …) should follow similar principles.
+

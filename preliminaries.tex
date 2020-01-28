@@ -1,9 +1,31 @@
-\section{Basic Features of Realistic Programs}
+In this chapter we define problems we will be focusing on, and give elementary goals for the analysis tool -- what it needs to be able to handle to be considered useful.
+We will also present concepts which we will use later in the work and introduce programming languages used in the examples.
 
-When it comes to the program analysis of programs written in high-level programming languages (such as C++, C\#, Java, Haskell), it is often necessary to choose a level on which the program will be analysed.
+\section{Realistic Programs}
+
+In order for a program analysis tool to be useful to programmers, it should be able to process the code they are creating with a minimal extra effort.
+For this reason, program analysis tools should be able to process some of the mainstream high-level programming languages preferably without limitations to the features of these languages which can be understood by the program analyser.
+For example a tools which understands basics of the C language, but does not allow dynamic memory allocation, is not very useful for a programmer, as they will probably not be able to  use it to analyse their usual programs which contain dynamic memory allocation.
+
+On the other hand, if the language support is good enough, it enables the programmer to use the analysis tool directly on their program or its fragments, both during the development, and for older code as the programmer is not forced to simplify, rewrite or model their code in order to get usable analysis results.
+
+\subsection{High-Level Programming Languages}
+
+\subsection{Libraries \& Environment}
+
+\subsection{Hardware-Related Considerations}
+
+- word size, required alignment, memory model
+
+\section{Basic Features of Programs}
+
+When it comes to the program analysis of programs written in high-level programming languages (such as C, C++, C\#, Java, Haskell),\footnotemark{} it is often necessary to choose a level on which the program will be analysed.
 We can choose to analyse the high-level code directly -- in this case the analysis can be both precise and make use of high-level concepts (such as cycles or declarative description of certain thereading concepts e.g., using Open MP\footnotemark{}).
 However, the direct analysis comes at high cost as programming languages often have rich and complex syntax and complicated semantics which is designed to aid programming, not verification.
 For example, if we choose to handle in this way programs written in C++, we would need to concern ourselves with object hierarchies, exception handling, templates and many more.
+This approach is also specific for the given programming language.
+
+\footnotetext{Some readers might find it peculiar to consider C to be a high-level programming language; however, for our purposes the defining characteristic of a high-level language is that it is intended to be written by the programmer and allows them to use and define abstractions -- at the very least functions and data structures. In this way C is a high-level programming language, while assembly languages (such as x86-64 assembly) are low-level.}
 \footnotetext{\TODO{Open MP}}
 
 The on the other side of the spectrum, we can analyse a compiled program i.e., analyse machine code or assembly of given platform.
@@ -14,6 +36,73 @@ For example, it is not possible to recover the bounds of stack variables from th
 Finally, we can analyse some sort of intermediate or specialized representation, either a low-level language which still presents the information necessary for the analysis, or a specialized language designed for verification.
 In either case, it is first necessary to translate the code in the programming language to the language used for verification and this can share many problems with the direct approach of verification of the high-level programming language.
 However, if an existing intermediate representation accompanied with a translator from the high-level programming language is suitable for verification, this can side-step many of the problems described here.
+Another advantage of using an intermediate representation is that the same representation can be used for multiple programming languages and multiple platforms -- this can make adaptation to new languages or platforms easier.
+See \autoref{fig:prel:verif-levels}.
+
+\begin{figure}
+\center
+\begin{tikzpicture}[->, >=stealth']
+
+    \tikzstyle{box}=[rectangle, thick, draw]
+
+    \begin{scope}
+      \matrix[nodes=box, column sep = 0.5cm]{
+        \node (c) {C}; &
+        \node (cpp) {C++}; &
+        \node (rust) {Rust}; &
+        \node (hs) {Haskell}; &
+        \node (cs) {C\#}; &
+        \node (fs) {F\#}; &
+        \node (java) {Java}; &
+        \node (scala) {Scala}; \\
+      };
+    \end{scope}
+
+    \begin{scope}[yshift=-2cm]
+      \matrix[nodes={box, minimum width = 2cm}, column sep = 0.5cm]{
+        \node (llvm) {LLVM IR}; &
+        \node (net) {???}; &
+        \node (jvm) {???}; \\
+      };
+    \end{scope}
+
+    \begin{scope}[yshift=-4cm]
+      \matrix[nodes={box, minimum width = 2cm}, column sep = 0.5cm]{
+        \node (x86) {x86}; &
+        \node (x86-64) {x86-64}; &
+        \node (arm7) {ARMv7}; &
+        \node (arm8) {ARMv8}; \\
+      };
+    \end{scope}
+
+    \draw (c.south) edge (llvm)
+          (cpp.south) edge (llvm)
+          (rust.south) edge (llvm)
+          (hs.south) edge (llvm);
+    \draw (cs.south) edge (net)
+          (fs.south) edge (net);
+    \draw (java.south) edge (jvm)
+          (scala.south) edge (jvm);
+
+    \draw (llvm) edge (x86)
+                 edge (x86-64)
+                 edge (arm7)
+                 edge (arm8);
+
+    \draw (net) edge (x86)
+                 edge (x86-64)
+                 edge (arm7)
+                 edge (arm8);
+
+    \draw (jvm) edge (x86)
+                 edge (x86-64)
+                 edge (arm7)
+                 edge (arm8);
+%        edge [pre, draw=red] node[yshift=-1mm] {\texttt{0: lock(m)}} (i);
+
+\end{tikzpicture}
+\caption{}\label{fig:prel:verif-levels}
+\end{figure}
 
 \subsection{Minimal Requirements for Programs}
 
@@ -28,6 +117,16 @@ To make our considerations mostly independent of the choice of the verified form
     \item[Synchronization Primitives] Primitives which allow safe synchronization of data between threads (such as mutexes and condition variables) should be available.
     \item[Atomic Operations] It has to be possible to read and modify designated memory locations with atomic operations which are safe to be executed in parallel (e.g., atomic increment, atomic compare and swap).
     \item[Pointers and Pointer Arithmetic]
+    \item[Assertions]
+\end{description}
+
+\subsection{Additional Requirements for Programs}
+
+Sometimes we will also consider additional features which many programming languages share, but which we do not consider to be critical in a programming language used for concurrent software.
+
+\begin{description}
+    \item[Exception Handling]
+    \item[Run-Time Type Support \& Dynamic Dispatch]
 \end{description}
 
 \section{Basic Verification Concepts}
@@ -35,6 +134,7 @@ To make our considerations mostly independent of the choice of the verified form
 \subsection{State Space}
 
 - finite-state programs, finite-state threads
+- run
 
 The \emph{state space} of a program is a directed multigraph with labelled edges.
 The vertices of the state space multigraph are called \emph{states} (of the program).
@@ -55,27 +155,42 @@ Please note that programs with finite state space can have infinite behaviour as
 
 \section{Program Properties}
 
+In order to be able to find errors in programs an analysis tool has to have some specification of program correctness -- a \emph{property} which should be checked.
+In this section, we will introduce several categories of program properties together with examples of particular properties.
+
 \subsection{Safety Properties}
+
+\emph{Safety properties} are properties which can be checked locally -- for each state of the program, we are able to determine if the state satisfies or violates given property.
+Therefore, to conclude the program is error-free it suffices to show that there is no state which violates given safety property.
+
+Examples of safety property include \emph{memory safety} (stating that every time we access a certain part of memory, this memory is in fact allocated and accessible to the program, see also \autoref{fig:pre:memsafe}), \emph{assertion safety} (stating that a program does not violate any of the assertions in the source code, see also \autoref{fig:pre:assert}), and \emph{control-flow definedness} (stating that every time a conditional jump is performed, the values the jump is based on must have well-defined value, see also \autoref{fig:pre:definedness}).
 
 example: leak checking -> is it safety or LTL?
 
-\subsection{Temporal Logics}
+\subsection{Temporal Properties}
 
-CTL* -> LTL
+Not all properties can be directly described as safety properties.
+For example, we can have a property stating ,,every time a button is pressed, the elevator will eventually drive to the floor the button was pressed on'' -- such a property cannot be checked directly in one state of the program, but instead needs to be checked on a \emph{run} of the program.
+
+For specification of temporal properties, we will use temporal logic CTL*~\cite{todo}, and its linear fragment, LTL (Linear Time Logic)~\cite{TODO}.
+
+\begin{definition}[CTL*]
+
+\end{definition}
+
+\begin{definition}[LTL]
+\end{definition}
+
+- more expressive temporal logics…
 
 \subsection{Fairness}
 
 \subsection{Termination Properties}
 
-\section{Realistic Programs}
+A distinguished form of temporal properties are termination properties, which are properties which allow us to specify that a program must (or must not) terminate, or that some of its part must (or must not) terminate.
+An example of a termination property concerning a part of the program can be found in \autoref{fig:pre:term}.
 
-\subsection{High-Level Programming Languages}
-
-\subsection{Libraries \& Environment}
-
-\subsection{Hardware-Related Considerations}
-
-- word size, required alignment, memory model
+\subsection{Other Properties}
 
 \section{Parallelism \& Threading Model}
 
@@ -228,14 +343,64 @@ which all the atomic operations share a single global lock.
 \section{LLVM \& LLVM Intermediate Representation}
 
 LLVM is a compilation infrastructure which can be used to build optimizing compilers.
-The entire compiler build on LLVM consists of a language-specific frontend (which processes the source code and produces a language independent LLVM intermediate representation), an optimizer build which runs on the LLVM intermediate representation, and a code generator which produces assembly for the given platform.
-LLVM intermediate representation (LLVM IR, LLVM code, or just LLVM), is a low-level programming language which is both mostly independent of the high-level language of the original program and the assembly language of the given hardware platform.
-\TODO{...}
+The compiler build on LLVM consists of a language-specific frontend (which processes the source code and produces a language independent LLVM intermediate representation), an optimizer which runs on the LLVM intermediate representation, and a code generator which produces assembly for the given platform.
+LLVM intermediate representation (LLVM IR, LLVM code, or just LLVM), is a low-level programming language which is both mostly independent of the high-level language of the original program and the assembly language of the given hardware platform, which makes it a good basis for program analysis.
 
-- memory manipulation
-- atomic instructions, memory model
-- thereads
-- exceptions
+\subsection{Introduction to LLVM IR}
+
+LLVM IR is a type-safe assembly-like language.
+Its basic operations are \emph{instructions} which take inputs of specific type and produce output of (possibly different) type.
+Values can be stored either in registers (each register is only assigned at one place in the code -- the code is static single assignment) or in memory.
+Memory can be further divided into global variables, which exist for the entire run of the program, and dynamically allocated memory, which is obtained by a call to an allocation function provided by the platform (i.e., the allocation function is expected to be externally provided, memory allocation is not a part of LLVM).
+
+\paragraph{Memory Manipulation in LLVM}
+Unlike for example the x86 machine code, most LLVM instruction do not modify memory directly, but work with registers only.
+Therefore, to change a value in memory, it is first necessary to load it, using the \li{load} instruction, then modify it, and finally store it using the \li{store} instruction.
+There are two more instructions which can access memory, and these are used for \emph{atomic compound operations}.
+The \li{atomicrmw} instruction (atomic read-modify-write) can atomically perform a load, arithmetic or logic operation, and a store or atomically replace a value in the memory with another value, and in all cases it returns the old value of the memory.
+The \li{cmpxchg} (compare exchange) can atomically check if the value in memory is the same as expected, and if so, replace it with a new value.
+The atomic compound operations are often used to implement \emph{lock-free} algorithms and data structures.
+
+\paragraph{Threads in LLVM}
+
+LLVM has no primitives for starting and handling threads.
+This matches well with the programming languages often translated to LLVM, which usually implement threading using a library of thread-manipulation and synchronization primitives.
+Nevertheless, LLVM has a notion of thread-local variables; i.e., variables which exist in a separate copy in each thread.
+
+\paragraph{Memory Model}
+
+
+
+\paragraph{Exceptions}
+
+\paragraph{Syntax of LLVM IR}
+
+In some of the examples in this work, we will use the human-readable version of LLVM IR to present a low-level code.
+Here, we will demonstrate basics of LLVM IR syntax on an example.
+
+\llvminput[lastline=4]{llexample.ll}
+
+\noindent
+At its beginning an LLVM module contains information about the source from which it was created and about the platform for which it is compiled (these information include sizes of various data types).
+
+\llvminput[firstline=6, lastline=6]{llexample.ll}
+
+\noindent
+Named types can be declared in LLVM, their name always starts with the \texttt{\%} sigil.
+The content of the type is given in the braces, in this case it is a data structure containing a 32 bit integer, a 64 bit integer, and a float.
+This code snipped can be obtained by compiling the following C/C++ declaration on a 64 bit Linux system: \cpp{struct Foo { int x; long y; float z; }}.
+
+\llvminput[firstline=8, lastline=8]{llexample.ll}
+
+\noindent
+Global variables (as well as functions) have names starting with the \texttt{@} sigil.
+Global variables are defined with their type (\li{i32} or a 32 bit integer in this case), alignment and linking options (which are largely irrelevant for this work).
+The type used in the declaration of a global variable is a type of its value, however, the type of the corresponding name expression (\li{@g} in this case) is a pointer to this type (\li{i32*}) as global variables has to be accessed using the memory manipulation instructions.
+
+
+\llvminput[linenos, firstline=10]{llexample.ll}
+
+\TODO{...}
 
 \section{C++}
 

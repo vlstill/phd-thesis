@@ -1,5 +1,11 @@
 As we have already outlined in \TODO{??}, termination checking is important for verification of parallel programs, as complex thread interaction can lead to hard to discover nontermination.
 Moreover, it is desirable to be able to detect not only termination of the whole program, but also termination of a certain action of the program -- programs such as system services or daemons (e.g., a web server) are nontermination, but we still require that certain actions they perform terminate (e.g., a request is handled in a finite time).
+Similarly, for many concurrent algorithms or data structures it is natural to require that a certain operation always terminates -- e.g., that taking an element from a concurrency-safe queue does not block infinitely (provided there always will be en element available).
+
+In this chapter, we describe how parts of program which do not terminate can be detected using an explicit-state model checker.
+We also show how our method relates to analysis under temporal logics such as CTL* (or its fragment LTL) and to fairness.
+
+\section{Preliminaries}
 
 \subsection{Resource Sections}
 
