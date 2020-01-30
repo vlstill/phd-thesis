@@ -1,5 +1,77 @@
 In this chapter we define problems we will be focusing on, and give elementary goals for the analysis tool -- what it needs to be able to handle to be considered useful.
 We will also present concepts which we will use later in the work and introduce programming languages used in the examples.
+\section{Program Analysis}
+
+\subsection{State Space}
+
+- finite-state programs, finite-state threads
+- run
+
+The \emph{state space} of a program is a directed multigraph with labelled edges.
+The vertices of the state space multigraph are called \emph{states} (of the program).
+Each state represents a snapshot of the program (its memory, program counters and stacks of all its threads, …).
+% However, for our purposes, we will consider states to be opaque and will only require the ability to determine the successors of a state from it.
+States $v_1, v_2$ are connected by an edge in the state space if $v_2$ can be reached from $v_1$ in an atomic step, which is a sequence of instructions that executes at most one action which can interfere with any action executed in parallel with it.
+In \divine, the state space generator attempts to make the longest possible atomic step while ensuring that the generation of the edge terminates.
+Edges are labelled, and the labels can be used to indicate accepting edges and error edges.
+Error edges are edges on which safety violation occurs (e.g., an assertion violation or memory error).
+The notion of accepting edges was taken initially from transition-based Büchi automata and used for LTL model checking, but in general, it is a way to mark an edge as interesting for the verification algorithm, but not erroneous.
+These labels are set by the verified program, which can be instrumented to influence edge labelling or by \divine when it detects an error.
+
+The state space of a program can be an infinite graph.
+However, in \divine, we are primarily concerned with programs which have finite state space.
+If the state space is infinite, \divine might find an error if it is present
+there, or it might compute until its resources are exhausted.
+Please note that programs with finite state space can have infinite behaviour as they can loop through the same set of states indefinitely.
+
+
+\subsection{Program Properties}
+
+In order to be able to find errors in programs an analysis tool has to have some specification of program correctness -- a \emph{property} which should be checked.
+In this section, we will introduce several categories of program properties together with examples of particular properties.
+
+\subsubsection{Safety Properties}
+
+\emph{Safety properties} are properties which can be checked locally -- for each state of the program, we are able to determine if the state satisfies or violates given property.
+Therefore, to conclude the program is error-free it suffices to show that there is no state which violates given safety property.
+
+Examples of safety property include \emph{memory safety} (stating that every time we access a certain part of memory, this memory is in fact allocated and accessible to the program, see also \autoref{fig:pre:memsafe}), \emph{assertion safety} (stating that a program does not violate any of the assertions in the source code, see also \autoref{fig:pre:assert}), and \emph{control-flow definedness} (stating that every time a conditional jump is performed, the values the jump is based on must have well-defined value, see also \autoref{fig:pre:definedness}).
+
+example: leak checking -> is it safety or LTL?
+
+\subsubsection{Temporal Properties}
+
+Not all properties can be directly described as safety properties.
+For example, we can have a property stating ,,every time a button is pressed, the elevator will eventually drive to the floor the button was pressed on'' -- such a property cannot be checked directly in one state of the program, but instead needs to be checked on a \emph{run} of the program.
+
+For specification of temporal properties, we will use temporal logic CTL*~\cite{todo}, and its linear fragment, LTL (Linear Time Logic)~\cite{TODO}.
+
+\begin{definition}[CTL*]
+
+\end{definition}
+
+\begin{definition}[LTL]
+\end{definition}
+
+- more expressive temporal logics…
+
+\subsubsection{Fairness}
+
+\subsubsection{Termination Properties}
+
+A distinguished form of temporal properties are termination properties, which are properties which allow us to specify that a program must (or must not) terminate, or that some of its part must (or must not) terminate.
+An example of a termination property concerning a part of the program can be found in \autoref{fig:pre:term}.
+
+\subsubsection{Other Properties}
+
+\subsection{Analysis Techniques}
+
+\subsubsection{Explicit-State Model Checking}
+
+\subsubsection{Bounded Model Checking}
+
+\subsubsection{Stateless Model Checking}
+
 
 \section{Realistic Programs}
 
@@ -17,7 +89,7 @@ On the other hand, if the language support is good enough, it enables the progra
 
 - word size, required alignment, memory model
 
-\section{Basic Features of Programs}
+\subsection{Basic Program Features}
 
 When it comes to the program analysis of programs written in high-level programming languages (such as C, C++, C\#, Java, Haskell),\footnotemark{} it is often necessary to choose a level on which the program will be analysed.
 We can choose to analyse the high-level code directly -- in this case the analysis can be both precise and make use of high-level concepts (such as cycles or declarative description of certain thereading concepts e.g., using Open MP\footnotemark{}).
@@ -104,7 +176,7 @@ See \autoref{fig:prel:verif-levels}.
 \caption{}\label{fig:prel:verif-levels}
 \end{figure}
 
-\subsection{Minimal Requirements for Programs}
+\subsubsection{Minimal Requirements for Programs}
 
 To make our considerations mostly independent of the choice of the verified formalism, we will now define minimal requirements for such a formalism.
 
@@ -120,7 +192,7 @@ To make our considerations mostly independent of the choice of the verified form
     \item[Assertions]
 \end{description}
 
-\subsection{Additional Requirements for Programs}
+\subsubsection{Additional Requirements for Programs}
 
 Sometimes we will also consider additional features which many programming languages share, but which we do not consider to be critical in a programming language used for concurrent software.
 
@@ -129,72 +201,9 @@ Sometimes we will also consider additional features which many programming langu
     \item[Run-Time Type Support \& Dynamic Dispatch]
 \end{description}
 
-\section{Basic Verification Concepts}
+\subsection{Parallelism \& Threading Model}
 
-\subsection{State Space}
-
-- finite-state programs, finite-state threads
-- run
-
-The \emph{state space} of a program is a directed multigraph with labelled edges.
-The vertices of the state space multigraph are called \emph{states} (of the program).
-Each state represents a snapshot of the program (its memory, program counters and stacks of all its threads, …).
-% However, for our purposes, we will consider states to be opaque and will only require the ability to determine the successors of a state from it.
-States $v_1, v_2$ are connected by an edge in the state space if $v_2$ can be reached from $v_1$ in an atomic step, which is a sequence of instructions that executes at most one action which can interfere with any action executed in parallel with it.
-In \divine, the state space generator attempts to make the longest possible atomic step while ensuring that the generation of the edge terminates.
-Edges are labelled, and the labels can be used to indicate accepting edges and error edges.
-Error edges are edges on which safety violation occurs (e.g., an assertion violation or memory error).
-The notion of accepting edges was taken initially from transition-based Büchi automata and used for LTL model checking, but in general, it is a way to mark an edge as interesting for the verification algorithm, but not erroneous.
-These labels are set by the verified program, which can be instrumented to influence edge labelling or by \divine when it detects an error.
-
-The state space of a program can be an infinite graph.
-However, in \divine, we are primarily concerned with programs which have finite state space.
-If the state space is infinite, \divine might find an error if it is present
-there, or it might compute until its resources are exhausted.
-Please note that programs with finite state space can have infinite behaviour as they can loop through the same set of states indefinitely.
-
-\section{Program Properties}
-
-In order to be able to find errors in programs an analysis tool has to have some specification of program correctness -- a \emph{property} which should be checked.
-In this section, we will introduce several categories of program properties together with examples of particular properties.
-
-\subsection{Safety Properties}
-
-\emph{Safety properties} are properties which can be checked locally -- for each state of the program, we are able to determine if the state satisfies or violates given property.
-Therefore, to conclude the program is error-free it suffices to show that there is no state which violates given safety property.
-
-Examples of safety property include \emph{memory safety} (stating that every time we access a certain part of memory, this memory is in fact allocated and accessible to the program, see also \autoref{fig:pre:memsafe}), \emph{assertion safety} (stating that a program does not violate any of the assertions in the source code, see also \autoref{fig:pre:assert}), and \emph{control-flow definedness} (stating that every time a conditional jump is performed, the values the jump is based on must have well-defined value, see also \autoref{fig:pre:definedness}).
-
-example: leak checking -> is it safety or LTL?
-
-\subsection{Temporal Properties}
-
-Not all properties can be directly described as safety properties.
-For example, we can have a property stating ,,every time a button is pressed, the elevator will eventually drive to the floor the button was pressed on'' -- such a property cannot be checked directly in one state of the program, but instead needs to be checked on a \emph{run} of the program.
-
-For specification of temporal properties, we will use temporal logic CTL*~\cite{todo}, and its linear fragment, LTL (Linear Time Logic)~\cite{TODO}.
-
-\begin{definition}[CTL*]
-
-\end{definition}
-
-\begin{definition}[LTL]
-\end{definition}
-
-- more expressive temporal logics…
-
-\subsection{Fairness}
-
-\subsection{Termination Properties}
-
-A distinguished form of temporal properties are termination properties, which are properties which allow us to specify that a program must (or must not) terminate, or that some of its part must (or must not) terminate.
-An example of a termination property concerning a part of the program can be found in \autoref{fig:pre:term}.
-
-\subsection{Other Properties}
-
-\section{Parallelism \& Threading Model}
-
-\subsection{Relaxed Memory Models}
+\subsubsection{Relaxed Memory Models}
 
 The relaxed behavior of processors arises from optimizations in cache consistency protocols and observable effects of instructions reordering and speculation.
 The effect of this behavior is that memory-manipulating instructions can appear to be executed in a different order than the order in which they appear in the binary, and their effect can even appear to be in different order on different threads.
@@ -207,7 +216,7 @@ Examples of relaxed memory models of modern processors are the memory model of x
 For the description of a memory model, it is sufficient to consider operations which affect the memory.
 These operations include loads (reading of data from the memory to a register in the processor), stores (writing of data from a register to the memory), memory barriers (which constrain memory relaxation), and atomic compound operations (read-modify-write operations and compare-and-swap operation).
 
-\subsection{The \xtso Memory Model}
+\subsubsection{The \xtso Memory Model}
 
 The \xtso is very similar to the SPARC Total Store Order (TSO) memory model~\cite{SPARC94}.
 It does not reorder stores with each other, and it also does not reorder loads with other loads.
@@ -331,22 +340,25 @@ are not only fully supported, but they are also correctly synchronized if atomic
 This is in agreement with the aforementioned operational semantics of \xtso in
 which all the atomic operations share a single global lock.
 
+\section{Programming Languages Used in this Thesis}
 
-\section{Verification Techniqes}
+\subsection{C++}
 
-\subsection{Explicit-State Model Checking}
+The examples of code in high-level programming languages in this thesis will be given in C++.
+Therefore we will now shortly discuss some basic concepts of this programming language which are necessary for understanding of the examples.
 
-\subsection{Bounded Model Checking}
+- atomic variables
+- mutexes
+- threads
+- scoped variables \& RAII
 
-\subsection{Stateless Model Checking}
-
-\section{LLVM \& LLVM Intermediate Representation}
+\subsection{LLVM \& LLVM Intermediate Representation}
 
 LLVM is a compilation infrastructure which can be used to build optimizing compilers.
 The compiler build on LLVM consists of a language-specific frontend (which processes the source code and produces a language independent LLVM intermediate representation), an optimizer which runs on the LLVM intermediate representation, and a code generator which produces assembly for the given platform.
 LLVM intermediate representation (LLVM IR, LLVM code, or just LLVM), is a low-level programming language which is both mostly independent of the high-level language of the original program and the assembly language of the given hardware platform, which makes it a good basis for program analysis.
 
-\subsection{Introduction to LLVM IR}
+\subsubsection{Introduction to LLVM IR}
 
 LLVM IR is a type-safe assembly-like language.
 Its basic operations are \emph{instructions} which take inputs of specific type and produce output of (possibly different) type.
@@ -401,13 +413,3 @@ The type used in the declaration of a global variable is a type of its value, ho
 \llvminput[linenos, firstline=10]{llexample.ll}
 
 \TODO{...}
-
-\section{C++}
-
-The examples of code in high-level programming languages in this thesis will be given in C++.
-Therefore we will now shortly discuss some basic concepts of this programming language which are necessary for understanding of the examples.
-
-- atomic variables
-- mutexes
-- threads
-- scoped variables \& RAII
