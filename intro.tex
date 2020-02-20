@@ -26,6 +26,14 @@ However, for these methods to be useful to programmers, they must not only be th
 For example, it is highly desirable that the program analysis tool can analyze the program directly, without the need to create a model of the program which is to be analysed (which is what many, especially older, techniques for analysis of parallel programs require).
 For this reason, we will focus on analysis tools which work with \emph{realistic programs} -- i.e., programs written in high-level programming languages which can be both executed on the desired platform, and analysed without a separate modelling step.
 
+\paragraph{DIVINE}
+
+Our work is done in the context of the DIVINE model checker.
+DIVINE is an open-source verfication environment which aims at discovery of hard to find bugs in programs written in C and C++.
+At its core, there is an explicit-state model checkecking engine, extended with data abstraction capablilities.
+DIVINE can be used to discover large classes of bugs, inclusing assertion vionaltions, use of uninitialized memory, bad memory accesses, memory leaks, and concurrency related bugs such as deadlocks.
+
+
 \TODO{SV-COMP?}.
 
 \section{Thesis Contributions}
@@ -34,13 +42,28 @@ In this work, we will describe several techniques which improve analysis of real
 In our analysis we will focus primaryly on programs written in C and C++.
 Nevertheless, analysis of other real-world high-level imperative programming languages (such as Java, C\#, Rust, …) should follow similar principles.
 
-\TODO{thesis areas}
+The main contributions of this work are in the following areas.
+All contributions include open-source implementation and evaluation.
 
-\section{DIVINE}
+\paragraph{Improving Analysis of Realistic Programs}
 
-Our work is done in the context of the DIVINE model checker.
-DIVINE is an open-source verfication environment which aims at discovery of hard to find bugs in programs written in C and C++.
-At its core, there is an explicit-state model checkecking engine, extended with data abstraction capablilities.
-DIVINE can be used to discover large classes of bugs, inclusing assertion vionaltions, use of uninitialized memory, bad memory accesses, memory leaks, and concurrency related bugs such as deadlocks.
+This area includes extensions of DIVINE which aim at general usability for analysis of realistic software.
+It includes support for standard libraries and thread libraries, \TODO{?compilation?}, and exceptions.
+\TODO{...}
+
+\paragraph{Relaxed Memory Models}
+
+Modern processors often trade speed for simplicity of their memory behaviour -- for example a processor can delay a memory store and continue execution before the change is committed to the main memory.
+While this behaviour is correct for sequential programs, it complicates design of parallel programs and is often hard to understand by programmers and it is even harder to keep track of all the subtle problems it can introduce.
+In our work, we present an efficient extension to DIVINE which allows it to analyse programs under the memory model of Intel (and AMD) x86-64 processors.
+
+\paragraph{Termination Analysis for Parallel Programs}
+
+Termination of parallel programs often depends on communication between threads.
+For example if a consumer thread expects some work to be eventually availabe, but it never becomes available, it might hang.
+Similarly, a circular waiting for a resource can cause a deadlock.
+In the third contribution of this work, we introduce a generic method for detection of nontermination caused by communication between threads.
+Or method uses lightweight annotations in the code to mark parts of the program which must terminate, together with a set of pre-defined parts of program which must terminate which allow it to be used with common synchronization primitives out of the box.
+Furthermore, our method can be also applied tp deliberatelly nonterminatings programs (i.e., deamons, services) in which it can detect parts which should terminate but do not terminate.
 
 \section{Thesis Structure}
