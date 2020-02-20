@@ -1,19 +1,46 @@
-Correctness of software is a worthy goal pursued by software developers and testers, as well as researchers.
+Our modern world depends on software in many aspects.
+In the morning, software in our mobile phone can wake us up.
+Then we probably travel to work either by car or by public transport -- in either case, there is probably software in the vehicle, including life-critical software in engine control and safety systems such as ABS (brakes anting-blocking system).
+In the work, many people use computers to do their work and to communicate with coworkers and the rest of the world.
+In the meanwhile, our mobile phone accopanies us on almost every step.
+We also use much infrastructure which can have important software component in its control system -- including energy grids, smart traffic signs, and flight control.
+
+Any of this plethora of software system can contain bugs.
+These bugs can range from minor ones which cause inconvenience only, to safety critical problems which can cause deaths of many people.
+For this reason, ensuring software correctness is a desirable goal pursued by software developers and testers, as well as researchers.
 There are many techniques which provide asistance to both developers and testers, with a wide range of capabilities and ease of use.
-\TODO{...}
-% For example, static analysis tools (such as \TODO{…}) are usually simple to use (it is often sufficient to just point them to the source code of the program) and can discover a wide range of potential problems.
-% However, problems arising from complex interactios are often hard to discover by static analysis
-starting from relativelly simple tools which highlight syntax errors, continuing with static analysis tools which can detect potential problems in code fragments
-With parallel programs, the problem of correctness is often much harder to tackle then for sequential programs -- thread interactions are usually not directly visible from the source code, and it is hard to find which parts of code might run in parallel.
-Furthermore, the concrete thread interactions differ between different runs of the program, becouse they depends on the resources available for the program at any given time.
-For this reason, a parallel program can produce different results in different runs, and it is possible that errors occurr only sometimes, and are therefore hard to detect by conventional tests.
+At the basic level, developers can levage type system, especially if they use strongly statically typed programming language, and they can use compiler warnings and linters \TODO{?maybe explain?} to check for mistakes and pontential problems in the code.
+Code is also routinelly tested with a large variety of test types, starting from unit tests which test small parts of the program in isolation and continuing to tests of functionality of the whole system.
 
-To further complicate the problem, modern processors can reorder program instructions and use caches which can delay visibility of memory changes to other threads.
-While these optimizations are designed to be correct for sequential prograsm, they can change behaviour of parallel programs and can lead to very peculiar behavior which can depend on the hardware on which the program is executed.
+These testing and code analysis technique are wide-spread, can discover large amounts of bugs, and are often reasonably easy to use for developers.
+However, these techniques cannot prove absence of bugs, and certain types of bugs are notoriously hard to discover by these testing techniques.
+For example, testing parallel software is inherently hard due to thread interactions which can cause different executions of the same program (or function) to produce different results -- the program can run right in almost all cases, but can ocassionally fail, maybe once a few minutes, maybe once a few months.
+A conventional approach to this problem is using stress testing -- for example a concurrent-safe data structure might be stress tested by performing millions of operations with it from many threads.
+Such stress tests are designed to increase likelyhood of triggering a bug in the test, but they still cannot show its absence.
+Even worse, tests of parallel software can be nondeterministic, i.e., the same test of the same software version can sometimes succeed and sometimes fail due to different interleaving of threads in different executions.
+This behaviour might make bug fixing extremelly difficults: for exampele it can happen that a test fails in a nightly automatic build, and therefore the developer knows there is a bug in the program, but they are unable to reproduce the bug and the test result might not be sufficient to find what the bug is without reproducing it.
+Similarly, it is hard to ensure by testing that (parallel) program terminates in all cases, or that it works correctly even on hardware with relaxed memory (which can, for example, delay stores to the main memory).
 
-There are many techniques which aim at testing and verification of parallel programs, including \TODO{static analysis, race detectors, shceduler manipulation, bounded/stateless/explicit-state MC}.
+In order to make discovery of hard to find bugs easier, many techniques were proposed -- both testing based methods, such as \TODO{race detectors, shceduler manipulation, ...} and methods based on \emph{formal verification} (i.e., methods which can actually prove correctness), including \TODO{static analysis, theorem proving, bounded/stateless/explicit-state MC}.
+However, for these methods to be useful to programmers, they must not only be theoretically capable of bug discovery, they must also be reasonably convenient to use.
+For example, it is highly desirable that the program analysis tool can analyze the program directly, without the need to create a model of the program which is to be analysed (which is what many, especially older, techniques for analysis of parallel programs require).
+For this reason, we will focus on analysis tools which work with \emph{realistic programs} -- i.e., programs written in high-level programming languages which can be both executed on the desired platform, and analysed without a separate modelling step.
+
+\TODO{SV-COMP?}.
+
+\section{Thesis Contributions}
+
 In this work, we will describe several techniques which improve analysis of realistic parallel programs in the DIVINE model checker and we compare them to many other techniques which aim at testing parallel programs.
-
 In our analysis we will focus primaryly on programs written in C and C++.
 Nevertheless, analysis of other real-world high-level imperative programming languages (such as Java, C\#, Rust, …) should follow similar principles.
 
+\TODO{thesis areas}
+
+\section{DIVINE}
+
+Our work is done in the context of the DIVINE model checker.
+DIVINE is an open-source verfication environment which aims at discovery of hard to find bugs in programs written in C and C++.
+At its core, there is an explicit-state model checkecking engine, extended with data abstraction capablilities.
+DIVINE can be used to discover large classes of bugs, inclusing assertion vionaltions, use of uninitialized memory, bad memory accesses, memory leaks, and concurrency related bugs such as deadlocks.
+
+\section{Thesis Structure}
