@@ -302,26 +302,80 @@ drastically depending on the platform on which it is executed.
 Similarly, the execution of a parallel program depends on the memory model of
 the used processor.
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Parallelism \& Threading Model} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Parallelism is an important part in programming high-performance software which
+can fully take advantage of the current hardware.
+However, parallelism comes with additional problems not present in development
+of sequential software, namely it is significantly harder to create correct
+parallel software compare to development of sequential software, and it is also
+hard to create parallel software which scales well with the number of processors
+(or processor cores) available.
+Furthermore, improving scalability usually makes the problem of correctness even
+harder -- improving scalability usually requires more more fine-grained (and
+therefore error-prone) synchronization.
+
+In this section, we describe the basic model of parallelism we assume for our
+programs and follow some of its implications.
+We also outline the problematics of memory models and relaxed memory behaviour
+manifested by modern processors.
+
+A basic threading model assumes that execution of threads has \emph{interleaving
+semantics}.
+
+\begin{definition}[Interleaving Semantics of Threads]
+    \TODO{
+    With the \emph{interleaving semantics} we assume that all possible
+    executions of parallel program can be obtained by interleaving.
+    That is, …
+    }
+\end{definition}
+
+However, interleaving is not a sufficient abstraction in presence of relaxed
+memory behaviour, which is manifested by modern processors.
+The relaxed behavior of processors arises from optimizations in cache
+consistency protocols and observable effects of instructions reordering and
+speculation.
+The effect of this behavior is that memory-manipulating instructions can appear
+to be executed in a different order than the order in which they appear in the
+thread, and their effect can even appear to be in different order on different
+threads.
+For efficiency reasons, virtually all modern processors (except for very simple
+ones in embedded microcontroller) exhibit relaxed behavior.
+The extent of this relaxation is dependent on the processor architecture (e.g.,
+x86, ARM, POWER) but also on the concrete processor model.
+Furthermore, the actual behavior of the processor is often not precisely
+described by the processor vendor \cite{x86tso}.
+To abstract from the details of particular processor models, \emph{relaxed
+memory models} are used to describe (often formally) behavior of processor
+architectures.
+Examples of relaxed memory models of modern processors are the memory model of
+x86 and x86\_64 CPUs described formally as \xtso~\cite{x86tso} and the multiple
+variants of POWER~\cite{Sarkar2011,Mador-Haim2012} and
+ARM~\cite{Flur2016,Alglave2014,Pulte2017} memory models.
+
+\begin{definition}[Sequnetial Consistency]
+    \emph{Sequential consistency} is the memory model which corresponds to the
+    interleaving semantics of threads.
+    Under sequential consistency, all effects of memory manipulating
+    instructions are visible to all threads immediately and no instruction
+    reordering is observable.
+\end{definition}
+
+For the description of a memory model, it is sufficient to consider operations
+which affect the memory.
+These operations include loads (reading of data from the memory to a register
+in the processor), stores (writing of data from a register to the memory),
+memory barriers (which constrain memory relaxation), and \emph{atomic compound
+operations} (read-modify-write operations and compare-and-swap operation).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Parallelism \& Threading Model}
-
-\subsubsection{Relaxed Memory Models}
-
-The relaxed behavior of processors arises from optimizations in cache consistency protocols and observable effects of instructions reordering and speculation.
-The effect of this behavior is that memory-manipulating instructions can appear to be executed in a different order than the order in which they appear in the binary, and their effect can even appear to be in different order on different threads.
-For efficiency reasons, virtually all modern processors (except for very simple ones in microcontrollers) exhibit relaxed behavior.
-The extent of this relaxation is dependent on the processor architecture (e.g., x86, ARM, POWER) but also on the concrete processor model.
-Furthermore, the actual behavior of the processor is often not precisely described by the processor vendor \cite{x86tso}.
-To abstract from the details of particular processor models, \emph{relaxed memory models} are used to describe (often formally) behavior of processor architectures.
-Examples of relaxed memory models of modern processors are the memory model of x86 and x86\_64 CPUs described formally as \xtso~\cite{x86tso} and the multiple variants of POWER~\cite{Sarkar2011,Mador-Haim2012} and ARM~\cite{Flur2016,Alglave2014,Pulte2017} memory models.
-
-For the description of a memory model, it is sufficient to consider operations which affect the memory.
-These operations include loads (reading of data from the memory to a register in the processor), stores (writing of data from a register to the memory), memory barriers (which constrain memory relaxation), and atomic compound operations (read-modify-write operations and compare-and-swap operation).
-
-\subsubsection{The \xtso Memory Model}
+\subsection{The \xtso Memory Model}
 
 The \xtso is very similar to the SPARC Total Store Order (TSO) memory model~\cite{SPARC94}.
 It does not reorder stores with each other, and it also does not reorder loads with other loads.
