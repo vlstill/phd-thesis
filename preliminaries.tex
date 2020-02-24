@@ -1,45 +1,94 @@
 In this chapter we define problems we will be focusing on, and give elementary goals for the analysis tool -- what it needs to be able to handle to be considered useful.
 We will also present concepts which we will use later in the work and introduce programming languages used in the examples.
-\section{Program Analysis}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Program Analysis} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In this work, we will not be concerned with simple program analysis techniques like type-checkers, linters.
+Instead, we will focus on techniques based on formal verification, that is techniques which can provide some formally described guarantees about the program if the succeed.
+These techniques usually require a program and some specification which the program should adhere to, and can check if that is really the case.
+We will also focus mostly on techniques which can be directly applied to programs written in some mainstream programming language (i.e., techniques which do not require special verification-oriented languages as their inputs).
+
+Program analysis techniques can be broadly divided into two different areas, \emph{automatic techniques} which, provided a program and its specification, should produce a result automatically without further assistance, and \emph{human-asisted techniques} which require a substantial human effort during the analysis.
+Examples of the first area are symbolic analysis and various model checking techniques, while theorem proves are example of the latter kind.
+As we focus on techniques which should be usable by programmers without a substantial background in logic and programming, we will focus primarily on the automatic tools.
+
 
 \subsection{State Space}
 
-- finite-state programs, finite-state threads
-- run
+In order to be able to define program properties which should be checked and to describe various analysis methods, we first need to define the \emph{state space of the program}.
 
-The \emph{state space} of a program is a directed multigraph with labelled edges.
+\TODO{finite-state threads}
+
+\begin{definition}[State Space]
+The \emph{state space} of a program is a directed multigraph with (optionally) labelled edges which describes all the ways in which the program can be executed.
 The vertices of the state space multigraph are called \emph{states} (of the program).
-Each state represents a snapshot of the program (its memory, program counters and stacks of all its threads, …).
-% However, for our purposes, we will consider states to be opaque and will only require the ability to determine the successors of a state from it.
-States $v_1, v_2$ are connected by an edge in the state space if $v_2$ can be reached from $v_1$ in an atomic step, which is a sequence of instructions that executes at most one action which can interfere with any action executed in parallel with it.
-In \divine, the state space generator attempts to make the longest possible atomic step while ensuring that the generation of the edge terminates.
-Edges are labelled, and the labels can be used to indicate accepting edges and error edges.
-Error edges are edges on which safety violation occurs (e.g., an assertion violation or memory error).
-The notion of accepting edges was taken initially from transition-based Büchi automata and used for LTL model checking, but in general, it is a way to mark an edge as interesting for the verification algorithm, but not erroneous.
-These labels are set by the verified program, which can be instrumented to influence edge labelling or by \divine when it detects an error.
+Each state represents a certain point in the execution of the program -- it can be described by a snapshot of the program (its memory, program counters and stacks of all its threads, …).
+States $v_1, v_2$ are connected by an edge in the state space if $v_2$ can be reached from $v_1$ by a single step of the program.
+The edge can be optionally labelled, for example by the statements executed in each step, or by a selected actions specified by the program.
+The state space contains all the states of the program which are reachable from a certain initial state, i.e., an initial configuration of the program.
+\end{definition}
 
-The state space of a program can be an infinite graph.
-However, in \divine, we are primarily concerned with programs which have finite state space.
-If the state space is infinite, \divine might find an error if it is present
-there, or it might compute until its resources are exhausted.
-Please note that programs with finite state space can have infinite behaviour as they can loop through the same set of states indefinitely.
+The state space is usually given not as a graph, instead it is specified by its
+implicit representation -- the program code, or possibly a function which
+describes the initial states and how to get from one state to its successors.
+In practice, the state space of a program can be very large or infinite and it
+is useful to be able to consider only a representative part of the state space.
+
+\begin{definition}[Reduced State Space]
+A \emph{reduced state space} of a program is a subset of the state space (\TODO{grafový pojem?}) in which states are subset of the original state space and edges connect states between which there is a directed path in the original state space such that all the internal states of this path are not contained in the reduced state space.
+\end{definition}
+
+There are several techniques which can be used to construct reduced state space in such a way that a given property (or a class of properties) holds in the reduced state space if and only if it holds in the original state space.
+
+Finally, we will need the following state-space-related definitions.
+
+\begin{definition}[Finite State Space]
+We say that a program has a \emph{finite state space} if the number of vertices in the state space is multigraph is finite.
+Otherwise, we say the program has an \emph{infinite state space}.
+\end{definition}
+
+\begin{definition}[Run]
+A \emph{run} in the state space is a (possibly infinite) path in the state space (or reduced state space) which starts in the initial state.
+That is, a run is a sequence of states $\sigma = s_0, s_1, …$ such that $s_0$ is the initial state and for each consecutive pair of states $s_i, s_{i+1}$ there is an edge from $s_i$ to $s_{i + 1}$ in the corresponding (reduced) state space.
+Please note that states can be repeated in the run.
+\end{definition}
 
 
 \subsection{Program Properties}
 
-In order to be able to find errors in programs an analysis tool has to have some specification of program correctness -- a \emph{property} which should be checked.
-In this section, we will introduce several categories of program properties together with examples of particular properties.
+In order to be able to find errors in programs an analysis tool has to have
+some specification of program correctness -- a \emph{property} which should be
+checked.
+In this section, we will introduce several categories of program properties
+together with examples of particular properties.
 
-\subsubsection{Safety Properties}
+\begin{definition}[Safety Properties]
+\emph{Safety properties} are properties which can be checked locally -- for
+each state of the program, we are able to determine if the state satisfies or
+violates given property.
+\end{definition}
 
-\emph{Safety properties} are properties which can be checked locally -- for each state of the program, we are able to determine if the state satisfies or violates given property.
-Therefore, to conclude the program is error-free it suffices to show that there is no state which violates given safety property.
+Therefore, to conclude the program is error-free under given safety property it
+suffices to show that there is no state which violates given safety property.
 
-Examples of safety property include \emph{memory safety} (stating that every time we access a certain part of memory, this memory is in fact allocated and accessible to the program, see also \autoref{fig:pre:memsafe}), \emph{assertion safety} (stating that a program does not violate any of the assertions in the source code, see also \autoref{fig:pre:assert}), and \emph{control-flow definedness} (stating that every time a conditional jump is performed, the values the jump is based on must have well-defined value, see also \autoref{fig:pre:definedness}).
+Examples of safety property include \emph{memory safety} (stating that every
+time we access a certain part of memory, this memory is in fact allocated and
+accessible to the program, see also \autoref{fig:pre:memsafe}), \emph{assertion
+safety} (stating that a program does not violate any of the assertions in the
+source code, see also \autoref{fig:pre:assert}), and \emph{control-flow
+definedness} (stating that every time a conditional jump is performed, the
+values the jump is based on must have well-defined value, see also
+\autoref{fig:pre:definedness}).
+Some program properties can be checked locally only if sufficient information
+is kept in the program state.
+For example checking \emph{absence of memory leaks} requires that it is
+possible to enumerate all allocated objects and all objects to which there are
+usable pointers.
 
-example: leak checking -> is it safety or LTL?
+\bigskip
 
-\subsubsection{Temporal Properties}
+\TODO{Temporal properties
 
 Not all properties can be directly described as safety properties.
 For example, we can have a property stating ,,every time a button is pressed, the elevator will eventually drive to the floor the button was pressed on'' -- such a property cannot be checked directly in one state of the program, but instead needs to be checked on a \emph{run} of the program.
@@ -63,17 +112,27 @@ A distinguished form of temporal properties are termination properties, which ar
 An example of a termination property concerning a part of the program can be found in \autoref{fig:pre:term}.
 
 \subsubsection{Other Properties}
+}
+
+
 
 \subsection{Analysis Techniques}
 
-\subsubsection{Explicit-State Model Checking}
+\subsubsection{Symbolic Execution}
 
-\subsubsection{Bounded Model Checking}
+\subsubsection{Model Checking}
 
-\subsubsection{Stateless Model Checking}
+\paragraph{Explicit-State Model Checking}
+
+\paragraph{Stateless Model Checking}
+
+\paragraph{SAT/SMT-Based Model Checking}
+
+- bounded, IC3, K-induction
 
 
-\section{Realistic Programs}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Realistic Programs} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In order for a program analysis tool to be useful to programmers, it should be able to process the code they are creating with a minimal extra effort.
 For this reason, program analysis tools should be able to process some of the mainstream high-level programming languages preferably without limitations to the features of these languages which can be understood by the program analyser.
@@ -81,125 +140,171 @@ For example a tools which understands basics of the C language, but does not all
 
 On the other hand, if the language support is good enough, it enables the programmer to use the analysis tool directly on their program or its fragments, both during the development, and for older code as the programmer is not forced to simplify, rewrite or model their code in order to get usable analysis results.
 
-\subsection{High-Level Programming Languages}
+\subsection{Minimal Requirements for Realistic Programs}
+
+To make our considerations mostly independent of the choice of the verified
+formalism (programming language), we will now define minimal requirements for
+such a formalism in order to be considered realistic.
+
+\begin{description}
+    \item[Function Calls and Recursion] It must be possible to structure the
+        program into functions, with possibility to define recursive functions.
+
+    \item[Dynamic Memory Allocation] It must be possible to allocate (and
+        deallocate) memory at the runtime of the program, with amount of the
+        allocated memory determined at runtime.
+
+    \item[Arrays and indexing] The program must be able to use arrays and index
+        them by runtime values.
+
+    \item[Threads] The verified formalism should have ability to spawn threads
+        dynamically and to wait for end of a thread.
+        It must be possible for any thread to spawn additional threads (i.e.,
+        it is not sufficient to have all threads spawn by the first thread).
+        Therefore, the number of threads which will run at any point in the
+        program might not be known before the program is executed.
+
+    \item[Shared Memory] There should be memory locations accessible by any
+        thread.
+        This memory can be used to share data between threads.
+
+    \item[Synchronization Primitives] Primitives which allow safe
+        synchronization of data between threads (such as mutexes and condition
+        variables) should be available.
+
+    \item[Atomic Operations] It has to be possible to read and modify
+        designated memory locations with atomic operations which are safe to be
+        executed in parallel (e.g., atomic increment, atomic compare and swap).
+
+    \item[Indirect Function Calls] It must be possible to pass functions (or
+        pointers to functions) as arguments to functions and to store them into
+        data types.
+        It must be possible to later call these functions (indirect function
+        calls).
+        Indirect function calls are used for example to implement dynamic
+        dispatch in object oriented programming, when staring threads, and for
+        higher-order functions (functions which take other functions as
+        arguments, e.g., a \texttt{sort} function can take a function used to
+        compare elements of the given array.
+
+    \item[Assertions] It must be possible to express assertions (i.e.,
+        conditions which must hold at given point in the program) in the
+        analysed formalism.
+        Assertions are used as a basic form of correctness specification.
+
+    \item[Pointers and Pointer Arithmetic] Since we are concerned with C and
+        C++, we will consider pointers to be a basic feature (if we were to
+        primarily focus to languages with no direct access to pointers (such as
+        Java, C\# or Python), this would not be the case).
+
+        With pointers and pointer arithmetic, it is possible to have pointers
+        pointing inside of objects (not at their beginning), or even pointers
+        whose type does not match the type of the object they point to (e.g.,
+        a~pointer to an integer might be converted to a pointer to a
+        floating-point number and then dereferenced).
+\end{description}
+
+\subsection{Additional Requirements for Programs}
+
+Sometimes we will also consider additional features which many programming
+languages share, but which might not be considered to be critical in a
+programming language used for concurrent software.
+
+\begin{description}
+    \item[Exception Handling] Exceptions are widely used form of error handling.
+        They allow the error to be reported at the point where it is
+        encountered, but to be handled by some of the callers of the current
+        function.
+        This mitigates the problem of manual propagation of error codes from
+        functions and therefore might lead to cleaner code.
+        Exceptions are often used in higher-level programming languages.
+        Sadly, exceptions introduce another way in which functions can end, and
+        therefore can be hard to include in a program analysis tool.
+
+    \item[Run-Time Type Support \& Dynamic Dispatch] In object-oriented
+        languages (and in dynamically typed languages), it is sometimes
+        necessary to be able to determine type of a given object at runtime,
+        and to execute different implementations of object's member functions
+        based on its type.
+        Depending on the way in which the program analysis is implemented, the
+        analysis tool might need to be able to understand type informations
+        and relation between types.
+\end{description}
 
 \subsection{Libraries \& Environment}
 
+Apart from the programming language features mentioned in the previous section,
+programs usually do not build everything from scratch but use various libraries
+instead.
+Usually, basic functionality is provided by the library shipped with the
+compiler (\emph{standard library} in case of C and C++), and more advanced
+features are provided by various third-party libraries or libraries which
+developed alongside the program in question.
+
+Therefore a reasonable program analysis tool must have support for (i) the
+languages' standard library and (ii) ability to handle programs which use other
+libraries.
+
+In either case, it is possible to either provide a verification-specific
+abstraction of the given library, or to analyse the library directly (re-use
+the library in the program-analysis environment).
+In practice, in order to reuse a library for program analysis, the program
+analysis tool has to be able to understand all the features used in
+implementation of the given library.
+Furthermore, low-level libraries (such as the C standard library) rely on
+operating system APIs to provide some of its functionality -- for example, when
+a program requires memory to be allocated using the \texttt{malloc} function,
+the standard C library will request the memory to be allocated by the operating
+system.
+This means that if a library which relies on these APIs is reused, either the
+verification tool must closely replicate API of some of the operating system
+the library can work on, or the library has to be ported for the given
+verification tool.
+
+\paragraph{Environment and Operating System} As we have already mentioned in
+the case of memory allocation, programs often do not run in isolation.
+Instead they can interact with other programs and the operating system using
+the filesystem, network, or various inter-process communication protocols.
+In order to analyse programs which do such interactions, a verification tool
+has to be able to understand these interactions.
+
 \subsection{Hardware-Related Considerations}
 
-- word size, required alignment, memory model
+When a program is executed on a given hardware, some of its behaviour might
+depend on the concrete features of the hardware.
+Therefore, in order for the program analysis to be usable, one must know what
+hardware model(s) the program analysis tool adheres to and what is their
+relation to the real hardware the program will be executed on.
+In pracitce, it is often hard to prove that a program will be correct on
+\emph{any} hardware on which it will be possible to compile it.
 
-\subsection{Basic Program Features}
+For example, the size (and therefore precision) of the standard C/C++ type
+\cpp{int} might depend on the hardware the program is using: on an 8-bit or
+16-bit embedded microprocessor, \cpp{int} will likely be a 16-bit type with a
+maximum value of $2^{15} - 1$, while on a common 64-bit (or 32-bit) computer it
+will be a 32-bit number with maximum value of $2^{31}-1$.
+This means a code which causes a bug due to integral overflow on a 16-bit
+embedded microprocessor might be correct on a 64 -bit machine.
 
-When it comes to the program analysis of programs written in high-level programming languages (such as C, C++, C\#, Java, Haskell),\footnotemark{} it is often necessary to choose a level on which the program will be analysed.
-We can choose to analyse the high-level code directly -- in this case the analysis can be both precise and make use of high-level concepts (such as cycles or declarative description of certain thereading concepts e.g., using Open MP\footnotemark{}).
-However, the direct analysis comes at high cost as programming languages often have rich and complex syntax and complicated semantics which is designed to aid programming, not verification.
-For example, if we choose to handle in this way programs written in C++, we would need to concern ourselves with object hierarchies, exception handling, templates and many more.
-This approach is also specific for the given programming language.
+Another example concerns alignment of values in the memory -- often it is
+possible to address single bytes in the memory, but certain data types (which
+are larger that a byte) are only allowed to exist on adresses divisible by a
+given \emph{alignment}.
+For example, an alignment of a 32-bit \cpp{int} type might be 4 bytes (32
+-bits).
+Depending on the hardware platform, reading and writting unaligned values might
+work (e.g., on x86 and x86-64), might trigger an error (e.g., on certain ARM
+processors \cite{??}) or the address might be silently rounded to the nearest
+aligned address (e.g., on some embedded ARM processors \cite{??}).
+Therefore, behaviour of the same program with an unaligned read can differ
+drastically depending on the platform on which it is executed.
 
-\footnotetext{Some readers might find it peculiar to consider C to be a high-level programming language; however, for our purposes the defining characteristic of a high-level language is that it is intended to be written by the programmer and allows them to use and define abstractions -- at the very least functions and data structures. In this way C is a high-level programming language, while assembly languages (such as x86-64 assembly) are low-level.}
-\footnotetext{\TODO{Open MP}}
+Similarly, the execution of a parallel program depends on the memory model of
+the used processor.
 
-The on the other side of the spectrum, we can analyse a compiled program i.e., analyse machine code or assembly of given platform.
-This approach can then be applied regardless of programming language and it works even on programs for which we have no source code available.
-Nevertheless, there are serious disadvantages -- the analysis is required to support each hardware platform separately, and the machine code looses a lot of information present on the higher level.
-For example, it is not possible to recover the bounds of stack variables from the x86 machine code directly (it might be recoverable using debugging information or exception-handling metadata, but these might not be available).
-
-Finally, we can analyse some sort of intermediate or specialized representation, either a low-level language which still presents the information necessary for the analysis, or a specialized language designed for verification.
-In either case, it is first necessary to translate the code in the programming language to the language used for verification and this can share many problems with the direct approach of verification of the high-level programming language.
-However, if an existing intermediate representation accompanied with a translator from the high-level programming language is suitable for verification, this can side-step many of the problems described here.
-Another advantage of using an intermediate representation is that the same representation can be used for multiple programming languages and multiple platforms -- this can make adaptation to new languages or platforms easier.
-See \autoref{fig:prel:verif-levels}.
-
-\begin{figure}
-\center
-\begin{tikzpicture}[->, >=stealth']
-
-    \tikzstyle{box}=[rectangle, thick, draw]
-
-    \begin{scope}
-      \matrix[nodes=box, column sep = 0.5cm]{
-        \node (c) {C}; &
-        \node (cpp) {C++}; &
-        \node (rust) {Rust}; &
-        \node (hs) {Haskell}; &
-        \node (cs) {C\#}; &
-        \node (fs) {F\#}; &
-        \node (java) {Java}; &
-        \node (scala) {Scala}; \\
-      };
-    \end{scope}
-
-    \begin{scope}[yshift=-2cm]
-      \matrix[nodes={box, minimum width = 2cm}, column sep = 0.5cm]{
-        \node (llvm) {LLVM IR}; &
-        \node (net) {???}; &
-        \node (jvm) {???}; \\
-      };
-    \end{scope}
-
-    \begin{scope}[yshift=-4cm]
-      \matrix[nodes={box, minimum width = 2cm}, column sep = 0.5cm]{
-        \node (x86) {x86}; &
-        \node (x86-64) {x86-64}; &
-        \node (arm7) {ARMv7}; &
-        \node (arm8) {ARMv8}; \\
-      };
-    \end{scope}
-
-    \draw (c.south) edge (llvm)
-          (cpp.south) edge (llvm)
-          (rust.south) edge (llvm)
-          (hs.south) edge (llvm);
-    \draw (cs.south) edge (net)
-          (fs.south) edge (net);
-    \draw (java.south) edge (jvm)
-          (scala.south) edge (jvm);
-
-    \draw (llvm) edge (x86)
-                 edge (x86-64)
-                 edge (arm7)
-                 edge (arm8);
-
-    \draw (net) edge (x86)
-                 edge (x86-64)
-                 edge (arm7)
-                 edge (arm8);
-
-    \draw (jvm) edge (x86)
-                 edge (x86-64)
-                 edge (arm7)
-                 edge (arm8);
-%        edge [pre, draw=red] node[yshift=-1mm] {\texttt{0: lock(m)}} (i);
-
-\end{tikzpicture}
-\caption{}\label{fig:prel:verif-levels}
-\end{figure}
-
-\subsubsection{Minimal Requirements for Programs}
-
-To make our considerations mostly independent of the choice of the verified formalism, we will now define minimal requirements for such a formalism.
-
-\begin{description}
-    \item[Function Calls and Recursion]
-    \item[Indirect Function Calls]
-    \item[Threads] The verified formalism should have ability to spawn threads dynamically and to wait for end of a thread.
-        Therefore, the number of threads which will run at any point in the program might not be known before the program is executed.
-    \item[Shared Memory] There should be memory locations accessible by any thread. This memory can be used to share data between threads.
-    \item[Synchronization Primitives] Primitives which allow safe synchronization of data between threads (such as mutexes and condition variables) should be available.
-    \item[Atomic Operations] It has to be possible to read and modify designated memory locations with atomic operations which are safe to be executed in parallel (e.g., atomic increment, atomic compare and swap).
-    \item[Pointers and Pointer Arithmetic]
-    \item[Assertions]
-\end{description}
-
-\subsubsection{Additional Requirements for Programs}
-
-Sometimes we will also consider additional features which many programming languages share, but which we do not consider to be critical in a programming language used for concurrent software.
-
-\begin{description}
-    \item[Exception Handling]
-    \item[Run-Time Type Support \& Dynamic Dispatch]
-\end{description}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Parallelism \& Threading Model}
 
@@ -352,7 +457,7 @@ Therefore we will now shortly discuss some basic concepts of this programming la
 - threads
 - scoped variables \& RAII
 
-\subsection{LLVM \& LLVM Intermediate Representation}
+\subsection{LLVM}
 
 LLVM is a compilation infrastructure which can be used to build optimizing compilers.
 The compiler build on LLVM consists of a language-specific frontend (which processes the source code and produces a language independent LLVM intermediate representation), an optimizer which runs on the LLVM intermediate representation, and a code generator which produces assembly for the given platform.
@@ -413,3 +518,110 @@ The type used in the declaration of a global variable is a type of its value, ho
 \llvminput[linenos, firstline=10]{llexample.ll}
 
 \TODO{...}
+
+\section{DIVINE}
+
+\TODO{MOVE: 
+States $v_1, v_2$ are connected by an edge in the state space if $v_2$ can be reached from $v_1$ in an atomic step, which is a sequence of instructions that executes at most one action which can interfere with any action executed in parallel with it.
+
+In \divine, the state space generator attempts to make the longest possible atomic step while ensuring that the generation of the edge terminates.
+Edges are labelled, and the labels can be used to indicate accepting edges and error edges.
+Error edges are edges on which safety violation occurs (e.g., an assertion violation or memory error).
+The notion of accepting edges was taken initially from transition-based Büchi automata and used for LTL model checking, but in general, it is a way to mark an edge as interesting for the verification algorithm, but not erroneous.
+These labels are set by the verified program, which can be instrumented to influence edge labelling or by \divine when it detects an error.
+
+The state space of a program can be an infinite graph.
+However, in \divine, we are primarily concerned with programs which have finite state space.
+If the state space is infinite, \divine might find an error if it is present
+there, or it might compute until its resources are exhausted.
+Please note that programs with finite state space can have infinite behaviour as they can loop through the same set of states indefinitely.
+}
+
+\subsection{Basic Program Features}
+
+When it comes to the program analysis of programs written in high-level programming languages (such as C, C++, C\#, Java, Haskell),\footnotemark{} it is often necessary to choose a level on which the program will be analysed.
+We can choose to analyse the high-level code directly -- in this case the analysis can be both precise and make use of high-level concepts (such as cycles or declarative description of certain thereading concepts e.g., using Open MP\footnotemark{}).
+However, the direct analysis comes at high cost as programming languages often have rich and complex syntax and complicated semantics which is designed to aid programming, not verification.
+For example, if we choose to handle in this way programs written in C++, we would need to concern ourselves with object hierarchies, exception handling, templates and many more.
+This approach is also specific for the given programming language.
+
+\footnotetext{Some readers might find it peculiar to consider C to be a high-level programming language; however, for our purposes the defining characteristic of a high-level language is that it is intended to be written by the programmer and allows them to use and define abstractions -- at the very least functions and data structures. In this way C is a high-level programming language, while assembly languages (such as x86-64 assembly) are low-level.}
+\footnotetext{\TODO{Open MP}}
+
+The on the other side of the spectrum, we can analyse a compiled program i.e., analyse machine code or assembly of given platform.
+This approach can then be applied regardless of programming language and it works even on programs for which we have no source code available.
+Nevertheless, there are serious disadvantages -- the analysis is required to support each hardware platform separately, and the machine code looses a lot of information present on the higher level.
+For example, it is not possible to recover the bounds of stack variables from the x86 machine code directly (it might be recoverable using debugging information or exception-handling metadata, but these might not be available).
+
+Finally, we can analyse some sort of intermediate or specialized representation, either a low-level language which still presents the information necessary for the analysis, or a specialized language designed for verification.
+In either case, it is first necessary to translate the code in the programming language to the language used for verification and this can share many problems with the direct approach of verification of the high-level programming language.
+However, if an existing intermediate representation accompanied with a translator from the high-level programming language is suitable for verification, this can side-step many of the problems described here.
+Another advantage of using an intermediate representation is that the same representation can be used for multiple programming languages and multiple platforms -- this can make adaptation to new languages or platforms easier.
+See \autoref{fig:prel:verif-levels}.
+
+\begin{figure}
+\center
+\begin{tikzpicture}[->, >=stealth']
+
+    \tikzstyle{box}=[rectangle, thick, draw]
+
+    \begin{scope}
+      \matrix[nodes=box, column sep = 0.5cm]{
+        \node (c) {C}; &
+        \node (cpp) {C++}; &
+        \node (rust) {Rust}; &
+        \node (hs) {Haskell}; &
+        \node (cs) {C\#}; &
+        \node (fs) {F\#}; &
+        \node (java) {Java}; &
+        \node (scala) {Scala}; \\
+      };
+    \end{scope}
+
+    \begin{scope}[yshift=-2cm]
+      \matrix[nodes={box, minimum width = 2cm}, column sep = 0.5cm]{
+        \node (llvm) {LLVM IR}; &
+        \node (net) {???}; &
+        \node (jvm) {???}; \\
+      };
+    \end{scope}
+
+    \begin{scope}[yshift=-4cm]
+      \matrix[nodes={box, minimum width = 2cm}, column sep = 0.5cm]{
+        \node (x86) {x86}; &
+        \node (x86-64) {x86-64}; &
+        \node (arm7) {ARMv7}; &
+        \node (arm8) {ARMv8}; \\
+      };
+    \end{scope}
+
+    \draw (c.south) edge (llvm)
+          (cpp.south) edge (llvm)
+          (rust.south) edge (llvm)
+          (hs.south) edge (llvm);
+    \draw (cs.south) edge (net)
+          (fs.south) edge (net);
+    \draw (java.south) edge (jvm)
+          (scala.south) edge (jvm);
+
+    \draw (llvm) edge (x86)
+                 edge (x86-64)
+                 edge (arm7)
+                 edge (arm8);
+
+    \draw (net) edge (x86)
+                 edge (x86-64)
+                 edge (arm7)
+                 edge (arm8);
+
+    \draw (jvm) edge (x86)
+                 edge (x86-64)
+                 edge (arm7)
+                 edge (arm8);
+%        edge [pre, draw=red] node[yshift=-1mm] {\texttt{0: lock(m)}} (i);
+
+\end{tikzpicture}
+\caption{}\label{fig:prel:verif-levels}
+\end{figure}
+
+% vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en

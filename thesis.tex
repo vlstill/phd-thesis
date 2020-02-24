@@ -145,6 +145,17 @@
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
+
+\newtheoremstyle{mydefstyle}%
+  {\topsep}% space above (default)
+  {\topsep}% space below (default)
+  {}% body font
+  {}% indent amount
+  {\bf}% theorem head font
+  {}% Punctuation after theorem head
+  {\newline}% space after theorem head
+  {\thmname{#1}\thmnumber{ #2}\thmnote{: #3}}% theorem head spec (empty = normal)
+\theoremstyle{mydefstyle}
 \newtheorem{definition}{Definition}
 
 \addbibresource{thesis.bib}
@@ -163,7 +174,7 @@
   \setlength{\topsep}{0pt}%
   \setlength{\partopsep}{0pt}}
 
-\newcommand{\TODO}[1]{\textbf{\color{red}#1}}
+\newcommand{\TODO}[1]{{\bf\color{red}#1}}
 \renewcommand{\comment}[1]{\xspace}
 
 % autoref names
@@ -204,6 +215,7 @@
 \setcounter{tocdepth}{4} % TODO: 2
 
 \usepackage{pdfpages}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -248,6 +260,7 @@ LLVM, C++, DIVINE, implementation}
 % \clearpage
 \thispagestyle{empty}
 
+% HEADINGS
 \pagestyle{headings}
 \tableofcontents % prints table of contents
 \mainmatter
