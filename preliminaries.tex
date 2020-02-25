@@ -302,6 +302,8 @@ drastically depending on the platform on which it is executed.
 Similarly, the execution of a parallel program depends on the memory model of
 the used processor.
 
+\subsection{Level of verification - TODO (C++ x LLVM x ASM)}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Parallelism \& Threading Model} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -349,8 +351,8 @@ x86, ARM, POWER) but also on the concrete processor model.
 Furthermore, the actual behavior of the processor is often not precisely
 described by the processor vendor \cite{x86tso}.
 To abstract from the details of particular processor models, \emph{relaxed
-memory models} are used to describe (often formally) behavior of processor
-architectures.
+memory models} are used to describe (often formally) behavior of a given
+processor architecture.
 Examples of relaxed memory models of modern processors are the memory model of
 x86 and x86\_64 CPUs described formally as \xtso~\cite{x86tso} and the multiple
 variants of POWER~\cite{Sarkar2011,Mador-Haim2012} and
@@ -371,17 +373,22 @@ in the processor), stores (writing of data from a register to the memory),
 memory barriers (which constrain memory relaxation), and \emph{atomic compound
 operations} (read-modify-write operations and compare-and-swap operation).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \subsection{The \xtso Memory Model}
 
-The \xtso is very similar to the SPARC Total Store Order (TSO) memory model~\cite{SPARC94}.
-It does not reorder stores with each other, and it also does not reorder loads with other loads.
-The only relaxation allowed by \xtso is that store can appear to be executed later than a load which succeeds it.
+The \xtso memory model is a formal description of the memory model used in x86
+and x86-64 processors (manufactured by both Intel and AMD).
+It is one of the strongest relaxed memory models -- it is relaxed compared to
+sequential consistency, but not nearly as relaxed as some of the other common
+memory models such as memory models of ARM and POWER processors.
+The \xtso is very similar to the SPARC Total Store Order (TSO) memory
+model~\cite{SPARC94}.
+It does not reorder stores with each other, and it also does not reorder loads
+with other loads.
+The only relaxation allowed by \xtso is that a store can appear to be executed
+later than a load which succeeds it.
 The memory model does not give any limit on how long a store can be delayed.
-An example of non-intuitive execution of a simple program under \xtso can be found in Figure~\ref{fig:xtso}.
+An example of non-intuitive execution of a simple program under \xtso can be
+found in Figure~\ref{fig:xtso}.
 
 \begin{figure}[th] % fig:xtso
     \begin{minipage}[b]{0.25\textwidth}
@@ -469,42 +476,174 @@ An example of non-intuitive execution of a simple program under \xtso can be fou
   \label{fig:xtso}
 \end{figure}
 
-The operational semantics of \xtso is described by Sewell et al. in~\cite{x86tso}.
-The corresponding machine has hardware threads (or cores), each with associated local store buffer, a shared memory subsystem, and a shared memory lock.
-Store buffers are first-in-first-out caches into which store entries are saved before they are propagated to the shared memory.
+The operational semantics of \xtso is described by Sewell et al.
+in~\cite{x86tso}.
+The corresponding machine has hardware threads (or cores), each with associated
+local store buffer, a shared memory subsystem, and a shared memory lock.
+Store buffers are first-in-first-out caches into which store entries are saved
+before they are propagated to the shared memory.
 Load instructions first attempt to read from the store buffer of the given
-thread, and only if they are not succesfull, they read from the shared memory.
+thread, and only if they are not successful, they read from the shared memory.
 Store instructions push a new entry to the local store buffer.
+Entries in the store buffer are not visible to threads other then the one
+owning the store buffer.
 Atomic instructions include various read-modify-write instructions, e.g. atomic
 arithmetic operations (which take memory address and a constant),\footnote{These
   instructions have the \texttt{lock} prefix in the assembly, for example
   \texttt{lock xadd} for atomic addition.}
 or compare-and-swap instruction.\footnote{\texttt{lock cmpxchg}}
-All atomic instructions use the shared memory lock so that only one such instruction can be executed at a given time, regardless of the number of hardware threads in the machine.
-Furthermore, atomic instructions flush the store buffer of their thread before they release the lock.
-This means that effects of atomic operations are immediately visible, i.e., atomics are sequentially consistent on \xtso.
-On top of these instructions, \xtso has a full memory barrier (\texttt{mfence}) which flushes the store buffer of the thread that executed it.\footnote{There are two more fence instructions in the x86 instruction set, but according to~\cite{x86tso} they are not relevant to normal program execution.}
+All atomic instructions use the shared memory lock so that only one such
+instruction can be executed at a given time, regardless of the number of
+hardware threads in the machine.
+Furthermore, atomic instructions flush the store buffer of their thread before
+they release the lock.
+This means that effects of atomic operations are immediately visible, i.e.,
+atomics are sequentially consistent on \xtso.
+On top of these instructions, \xtso has a full memory barrier (\texttt{mfence})
+which flushes the store buffer of the thread that executed it.\footnote{There
+are two more fence instructions in the x86 instruction set, but according
+to~\cite{x86tso} they are not relevant to normal program execution.}
 
-To recover sequential consistency on x86, it is necessary to make memory stores propagate to the main memory before subsequent loads execute.
-This is most commonly done in practice by inserting memory fence after each store.
+To recover sequential consistency on x86, it is necessary to make memory stores
+propagate to the main memory before subsequent loads execute.
+This is most commonly done in practice by inserting memory fence after each
+store.
 An alternative approach would be to use atomic exchange instruction
 (\texttt{lock xchg}) which can atomically swap value between a register and a
 memory slot.
 
-One of the specifics of x86 is that it can handle unaligned memory operations.\footnote{Other architectures, for example ARM, require loaded values to be aligned, usually so that the address is divisible by the value size.}
+One of the specifics of x86 is that it can handle unaligned memory
+operations.\footnote{Other architectures, for example ARM, require loaded
+values to be aligned, usually so that the address is divisible by the value
+size.}
 While the \xtso paper does not give any specifics about handling unaligned and
 mixed memory operations (e.g., writing a 64-bit value and then reading a 16-bit
-value from inside it) it seems from our own experiments that such the operations
-are not only fully supported, but they are also correctly synchronized if atomic instructions are used.
+value from inside it) it seems from our own experiments that such the
+operations are not only fully supported, but they are also correctly
+synchronized if atomic instructions are used.
 This is in agreement with the aforementioned operational semantics of \xtso in
 which all the atomic operations share a single global lock.
 
+\section{??? Lock Free Programming ???}
+
 \section{Programming Languages Used in this Thesis}
+
+In this work, we often use example codes in figures.
+We will mainly use C++ for examples of high-level code written by programmers,
+and LLVM IR for example of low-level code more suitable for direct analysis.
 
 \subsection{C++}
 
-The examples of code in high-level programming languages in this thesis will be given in C++.
-Therefore we will now shortly discuss some basic concepts of this programming language which are necessary for understanding of the examples.
+C++ is a high-level language well suited for wide variety of projects, from
+code which directly interacts with hardware to GUI applications.
+It can be high-performance and has good support for building of abstractions.
+Since the C++11 version of the C++ standard, C++ also has native support for
+threads and atomic variables with varying levels of atomicity guarantees.
+
+We will now show some of the C++ basics which will be used in this thesis.
+
+\paragraph{Threads}
+
+In C++ a thread is executed by creation of an object of type \cpp{std::thread}
+(\cpp{std::} is a namespace which indicates this type belongs to the C++
+standard library).
+This object is created with a callable (a function, a member function, or an
+object which can be called) and its arguments.
+It then starts a new thread which executes the given callable.
+Later, the thread can be waited-for by calling the \cpp{join} method of the
+\cpp{std::thread} object.
+Joining will block until the thread we are joining finishes.
+An example can be seen in \autoref{fig:prelim:cppthread}.
+
+\begin{figure}[tp]
+    \begin{cppcode}
+        #include <thread> // make std::thread available
+                          // we will often omit includes
+
+        void workFn(int a, int b) {
+            // do some work …
+        }
+
+        // program's entry point
+        int main() {
+            // start two worker threads
+
+            // thread which calls workFn(1, 6)
+            std::thread worker0(workFn, 1, 6);
+            // thread which calls workFn(4, 2)
+            std::thread worker1(workFn, 4, 2);
+
+            // and wait for them
+            worker0.join();
+            worker1.join();
+        }
+    \end{cppcode}
+    \caption{A basic example C++ program with a main thread and two worker
+    threads.}\label{fig:prelim:cppthread}
+\end{figure}
+
+\paragraph{Mutexes and Other Synchronization Primitives}
+
+C++ comes with various high-level synchronization primitives (which are usually
+based on operating system level blocking primitives -- i.e., a thread waiting
+on these synchronization primitives is suspended and not using any resources).
+
+For the purposes of this work, we will use two synchronization primitives,
+\emph{mutexes} and \emph{condition variables}.
+Mutexes can be used to create mutual exclusion: only one thread can lock a
+given mutex at any point.
+Example code with mutexes is shown in \autoref{fig:prelim:cppmtx}.
+
+\begin{figure}[tp]
+    \begin{cppcode}
+        std::mutex global_lock;
+        int x = 0;
+        int y = 0;
+
+        void thread0() {
+            global_lock.lock();
+            ++x;
+            global_lock.unlock()
+            ++y;
+        }
+
+        void thread1() {
+            ++y; // global_lock not locked
+            std::unique_lock guard(global_lock); // lock it
+            // global_lock locked
+            ++x;
+        } // unlocks here
+
+        int main() {
+            std::thread t0(thread0);
+            std::thread t1(thread1);
+            t0.join(); t1.join();
+            assert(x == 2); // holds, all accesses to x are properly synchronized
+            assert(y == 2); // does not hold
+        }
+    \end{cppcode}
+    \caption{An example of C++ mutexes which shows two ways to lock a mutex in
+    C++.
+    It is possible to either explicitly lock mutex as in function
+    \cpp{thread0}, or to use scope-based resource control as in
+    \cpp{thread1}.
+    It is recommended to use the scope-based approach.
+    With the scope-based approach, the mutex is locked when an object of type
+    \cpp{std::unique_lock} is created (with given mutex as an argument),
+    and it is unlocked at the end of life of the \cpp{std::unique_lock} object.
+    \cpp{std::unique_lock} should be used as a local variable, therefore its
+    life ends at the end of the block in which it was declared (end of function
+    \cpp{thread1} in this case).
+    }\label{fig:prelim:cppmtx}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\paragraph{Atomic Variables}
 
 - atomic variables
 - mutexes
