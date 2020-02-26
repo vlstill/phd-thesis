@@ -541,6 +541,8 @@ Since the C++11 version of the C++ standard, C++ also has native support for
 threads and atomic variables with varying levels of atomicity guarantees.
 
 We will now show some of the C++ basics which will be used in this thesis.
+Unless explicitly stated otherwise, all C++ examples in this work use the C++20
+standard~\cite{cpp20}.
 
 \paragraph{Threads}
 
@@ -596,6 +598,9 @@ Example code with mutexes is shown in \autoref{fig:prelim:cppmtx}.
 
 \begin{figure}[tp]
     \begin{cppcode}
+        #include <mutex>
+        #include <thread>
+
         std::mutex global_lock;
         int x = 0;
         int y = 0;
@@ -637,18 +642,180 @@ Example code with mutexes is shown in \autoref{fig:prelim:cppmtx}.
     }\label{fig:prelim:cppmtx}
 \end{figure}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Condition variables allow some threads to wait for signal from other threads.
+They are often used in producer-consumer scenarios to signal to consumers that
+there is some data ready for them.
+Condition variables are always used together with mutexes.
+They have two main operations: \texttt{wait} and \texttt{signal}: \texttt{wait}
+is blocking call which suspend its calling thread until another thread calls
+\texttt{signal}.
+Waiting can only be ended if \texttt{signal} is called after the wait started,
+the conditional variable has no way to detect that \texttt{signal} was called
+before \texttt{wait}.
+Furthermore, due to limitations of certain platforms, \texttt{wait} is allowed
+to end spuriously (without being signalled).
+For these two reasons, condition variables are usually used together with a
+shared variable which indicates whether or not the consumer thread should
+proceed; this variable should be guarded by the same mutex as the condition
+variable used for signalling.
+To work around this limitation, and 
+See \autoref{fig:prelim:cppcond} for an example code with condition variables.
 
+\begin{figure}[tp]
+    \begin{cppcode}
+        #include <thread>
+        #include <mutex>
+        #include <condition_variable>
 
+        std::mutex lock;
+        std::condition_variable sig;
+        bool work_available = false;
+
+        void producer() {
+            // ... save work to shared variable
+            {
+                std::unique_lock guard(lock);
+                work_available = true;
+            } // end of block -> unlock 'lock'
+            sig.noify_all()
+        }
+
+        void consumer() {
+            {
+                // scope based locking is needed here as wait takes 'unique_lock' as one of its arguments
+                std::unique_lock guard(lock);
+                // the second argument of wait is a lambda function which gives condition which must hold before 'wait' can return -- if 'sig' is signalled before (or wait ends spuriously), waiting is resumed
+                // please note that the lock is release while waiting and re-acquired before 'wait' returns
+                sig.wait(guard, []{ return work_available; });
+            } // end of block -> unlock 'lock'
+            // ... now do some work with the data
+        }
+    \end{cppcode}
+    \caption{This is a simple commented example which demonstrates usage of
+    condition variables for thread signalling in producer-consumer scenario.
+    }\label{fig:prelim:cppcond}
+\end{figure}
 
 \paragraph{Atomic Variables}
 
-- atomic variables
-- mutexes
-- threads
-- scoped variables \& RAII
+Apart from the high-level synchronization primitives (mutexes, condition
+variables), C++ has also support for atomic variables and atomic operations
+with them.
+These atomic variables allow the program to take advantage of atomic hardware
+instructions available on most platforms.
+Atomic variables are mostly used in lock-free data structures and algorithms.
+
+Atomic variables in C++ are variables of one of the atomic types:
+\cpp{std::atomic_flag} and \cpp{std::atomic<T>} for some type \cpp{T} (which is
+usually an integral of pointer type, for example \cpp{std::atomic<int>}).
+For integral types, \cpp{std::atomic<T>} defines various operations which allow
+atomic modification of the value of an atomic variable: for example, by calling
+\cpp{fetch_add} on an atomic variable it is possible to atomically increment
+its value and return its original value before the increment.
+Some of these operations are also available with the operator syntax (e.g.,
+using the operator \cpp{+=}).
+For all types, it is possible to exchange the current value with a new one
+(returning the previous value) and to preform compare-exchange (also sometimes
+called compare-and-swap), which is a compound operation which atomically checks
+that the value of an atomic variable is equal to a specified value and if it is
+replaces the original value with a new one.
+
+An example of use of atomic variables can be seen in
+\autoref{fig:prelim:cppatomic}.
+
+\begin{figure}[tp]
+    \begin{cppcode}
+        #include <atomic>
+        #include <thread>
+
+        std::atomic< int > w { 0 };
+        std::atomic< int > x { 0 };
+        std::atomic< int > y { 0 }
+        int z = 0;
+
+        void worker() {
+            ++x; // OK, this is an atomic increment
+            y.fetch_add(1); // OK, atomic increment, returns original value
+            ++z; // ERROR, this is a data race
+            int expected = 0;
+
+            // OK, atomic, only one thread can succeed
+            if ( w.compare_exchange_strong(expected, 1) ) {
+                // 'w' changed from 0 to 1
+            } else {
+                // 'w' not changed
+            }
+        }
+
+        int main() {
+            std::thread t0(worker);
+            std::thread t1(worker);
+            t1.join();
+            t2.join();
+            assert( x == 2 ); // OK
+            assert( y == 2 ); // OK
+            assert( z == 2 ); // ERROR
+        }
+    \end{cppcode}
+    \caption{This code demonstrates basic usage of atomic variables in C++.
+    It shows two versions of atomic increment (with variables \texttt{x} and
+    \texttt{y}) and it also demonstrates use of the \texttt{compare\_exchange}
+    operation.
+    }\label{fig:prelim:cppatomic}
+\end{figure}
+
+\subparagraph{Memory Ordering for Atomic Operations}
+
+Without any additional settings all atomic instructions in C++ are sequentially
+consistent i.e., there is a single global ordering of atomic operations on
+which all threads agree.
+However, C++ aims to allow programmers to fully utilize the performance of a
+given platform and therefore it is possible to specify weaker constraints for
+atomic operations.
+These constraints are specified using so-called \emph{memory order}.
+We will now shortly describe available memory orders (however, not describe
+them precisely, as it is beyond scope and need of this work).
+
+\begin{description}
+    \item[\texttt{std::memory\_order::seq\_cst}] is the strongest and default
+        memory order.
+        It forces operations with this memory order to be sequentially
+        consistent.
+
+        \item[\texttt{std::memory\_order::release}] is memory order used with
+            store operations (operations which write to the memory).
+            It prevents other memory operations to be reordered after the
+            release store.
+
+        \item[\texttt{std::memory\_order::acquire}] is used with load operations
+            (operations which read from the memory).
+            It prevents other memory operations to be reordered before the
+            acquire load.
+            A release store and a subsequent acquire load from the same variable
+            create a synchronization which ensures that all modification
+            perfrormed in the storing thread before the release store are
+            visible to the loading store after the corresponding acquire load.
+
+        \item[\texttt{std::memory\_order::acq\_rel}] is used with atomic
+            compound operations and combines the acquire and release orderings.
+
+        \item[\texttt{std::memory\_order::consume}] is a weaker form of
+            \texttt{acquire} which only affects data-dependent variables.
+            It memory ordering is not widely used.
+
+        \item[\texttt{std::memory\_order::relaxed}] is the weakest atomic
+            ordering.
+            It guarantees no synchronization and does not affect operations
+            concerning other memory locations at all.
+            It only guarantees atomicity of the given operations.
+            Relaxed ordering can be used for example to implement atomic
+            counters used for statistics.
+\end{description}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{LLVM}
 
