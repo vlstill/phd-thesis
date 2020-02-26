@@ -1,4 +1,46 @@
+Historically, automatic analysis techniques for parallel programs started with
+analysis of models of systems.
+A programmer wishing to use such a tool would either start by creating a model
+of the system (in the specification step of the development), and then provide
+an executable implementation for this model or, if they already had a working
+product, they would have to create a model in order to analyze it.
+Such tools include for example \cite{spin}, \cite{divine-mc}, \cite{ltsmin?}, \cite{uppall?}, \cite{TODO...}.
+Such an approach requires an extra investment in the modelling phase and, even
+if analysis of the model concludes it is correct, it does not prove that the
+final product is indeed correct.
+
+Later, with the improvement of both analysis techniques, as well as overall
+improvement in available computing power, tools which analyse programs written
+in mainstream programming languages become available.
+Early examples of such tools are \TODO{…}.
+
+Since 2012, the Software Verification Competition (SV-COMP)~\cite{svc2020} aims
+to showcase tools which support direct verification of software written in C
+and Java.
+While it includes mostly sequential programs, there is also a subcategory for
+parallel C programs in SV-COMP.
+
+We will now focus in more details on automatic techniques for verification of
+parallel programs.
+
+\section{Bounded Model Checking}
+
+\section{K-Induction, IC3, …}
+
+\section{Symbolic Execution}
+
+\section{Stateless Model Checking}
+
+\section{Abstraction-Based Techniques}
+
+\section{Sequentialization Techniques}
+
+\section{Explicit-State Model Checking}
+
+\section{XXX}
+
 \section{Real-World Parallel Programs}
+
 
 \section{Relaxed Memory Models}
 
@@ -75,3 +117,5 @@ Overall, neither of these techniques is applicable in general for the detection 
 Finally, there are also techniques for checking termination of sequential programs, to name a few \cite{Giesl2017,Chen2018}.
 
 \section{Benchmark Suites}
+
+% vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en
