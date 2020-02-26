@@ -764,7 +764,7 @@ An example of use of atomic variables can be seen in
     }\label{fig:prelim:cppatomic}
 \end{figure}
 
-\subparagraph{Memory Ordering for Atomic Operations}
+\subparagraph{Memory Ordering for Atomic Operations} \label{sec:prelim:cppmemord}
 
 Without any additional settings all atomic instructions in C++ are sequentially
 consistent i.e., there is a single global ordering of atomic operations on
@@ -812,70 +812,165 @@ them precisely, as it is beyond scope and need of this work).
             counters used for statistics.
 \end{description}
 
+\paragraph{Exceptions}
+
+C++ has support for exceptions and is also able to specify that a given function
+is not allowed to throw an exception.
+In C++ it is possible to throw value of any type as an exception.
+When an exception is thrown, it propagates to callers of the function which
+have throw it until it triggers a \cpp{catch} code block which can catch it --
+a \cpp{catch} block which either catches exactly the type of the exception, or
+if the class of the exception uses inheritance, the exception can be also
+caught a by a \cpp{catch} block which catches some of the predecessor types of
+the exception.
+
+If a function is marked as \cpp{noexcept} and an exception would propagate from
+it, the program terminates.
+
+An example code with exceptions can be found in \autoref{fig:prelim:cppexcept}.
+
+\begin{figure}[tp]
+    \begin{cppcode}
+        // invalid input inherits from the standard exception type 'std::runtime_error'
+        struct invalid_input : std::runtime_error {
+            // inherit constructors
+            using std::runtime_error::runtime_error;
+        }
+
+        void foo(int val) {
+            if (val < 0)
+                throw invalid_input("val is less then 0");
+        }
+
+        void bar() {
+            try {
+                foo(-5);
+                // this will not execute due to exception
+            } catch (invalid_input &ex) {
+                // exception handler
+            }
+        }
+
+        void baz() noexcept { // this function declares it does not throw an exception
+            bar(); // OK, exception thrown and caught inside
+            foo(42); // also OK, exception not thrown
+            try {
+                foo(-1); // OK, exception caught here
+            } catch (std::runtime_error &ex) {
+                // also catches the exception
+            }
+            foo(-2); // ERROR, would propagate exception out of 'bar' -> program is terminated
+        }
+
+        int main() { baz(); }
+    \end{cppcode}
+    \caption{A demonstration of exceptions in C++.
+    We can see that an exception can be caught by a \cpp{catch} handler of its
+    predecessor type (in \cpp{baz}).
+    We also see that throwing an exception from a function marked as
+    \cpp{noexcept} causes the program to be terminated.
+    }\label{fig:prelim:cppexcept}
+\end{figure}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{LLVM} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{LLVM}
-
-LLVM is a compilation infrastructure which can be used to build optimizing compilers.
-The compiler build on LLVM consists of a language-specific frontend (which processes the source code and produces a language independent LLVM intermediate representation), an optimizer which runs on the LLVM intermediate representation, and a code generator which produces assembly for the given platform.
-LLVM intermediate representation (LLVM IR, LLVM code, or just LLVM), is a low-level programming language which is both mostly independent of the high-level language of the original program and the assembly language of the given hardware platform, which makes it a good basis for program analysis.
+LLVM is a compilation infrastructure which can be used to build optimizing
+compilers.
+The compiler build on LLVM consists of a language-specific frontend (which
+processes the source code and produces a language independent LLVM intermediate
+representation), an optimizer which runs on the LLVM intermediate
+representation, and a code generator which produces assembly for the given
+platform.
+LLVM intermediate representation (LLVM IR, LLVM code, or just LLVM), is a
+low-level programming language which is mostly independent of both the
+high-level language of the original program and the assembly language of the
+given hardware platform.
+Nevertheless, LLVM IR is somewhat influenced by the languages that are mainly
+translated to it, namely C and C++.
 
 \subsubsection{Introduction to LLVM IR}
 
 LLVM IR is a type-safe assembly-like language.
-Its basic operations are \emph{instructions} which take inputs of specific type and produce output of (possibly different) type.
-Values can be stored either in registers (each register is only assigned at one place in the code -- the code is static single assignment) or in memory.
-Memory can be further divided into global variables, which exist for the entire run of the program, and dynamically allocated memory, which is obtained by a call to an allocation function provided by the platform (i.e., the allocation function is expected to be externally provided, memory allocation is not a part of LLVM).
+Its basic operations are \emph{instructions} which take inputs of specific type
+and produce output of (possibly different) type.
+Values can be stored either in registers (each register is only assigned at one
+place in the code -- the code is static single assignment) or in memory.
+Memory can be further divided into global variables, which exist for the entire
+run of the program, and dynamically allocated memory, which is obtained by a
+call to an allocation function provided by the platform (i.e., the allocation
+function is expected to be externally provided, memory allocation is not a part
+of LLVM).
 
 \paragraph{Memory Manipulation in LLVM}
-Unlike for example the x86 machine code, most LLVM instruction do not modify memory directly, but work with registers only.
-Therefore, to change a value in memory, it is first necessary to load it, using the \li{load} instruction, then modify it, and finally store it using the \li{store} instruction.
-There are two more instructions which can access memory, and these are used for \emph{atomic compound operations}.
-The \li{atomicrmw} instruction (atomic read-modify-write) can atomically perform a load, arithmetic or logic operation, and a store or atomically replace a value in the memory with another value, and in all cases it returns the old value of the memory.
-The \li{cmpxchg} (compare exchange) can atomically check if the value in memory is the same as expected, and if so, replace it with a new value.
-The atomic compound operations are often used to implement \emph{lock-free} algorithms and data structures.
+Unlike for example the x86 machine code, most LLVM instruction do not modify
+memory directly, but work with registers only.
+Therefore, to change a value in memory, it is first necessary to load it, using
+the \li{load} instruction, then modify it, and finally store it using the
+\li{store} instruction.
+There are two more instructions which can access memory, and these are used for
+\emph{atomic compound operations}.
+The \li{atomicrmw} instruction (atomic read-modify-write) can atomically
+perform a load, arithmetic or logic operation, and a store or atomically
+replace a value in the memory with another value, and in all cases it returns
+the old value of the memory.
+The \li{cmpxchg} (compare exchange) can atomically check if the value in memory
+is the same as expected, and if so, replace it with a new value.
+The atomic compound operations are often used to implement \emph{lock-free}
+algorithms and data structures.
+Atomic compound operations have memory order argument which specifies their
+level of atomicity.
+Similarly, \li{load} and \li{store} instructions can be atomic and then they
+also come with a memory order argument.
+Memory orders in LLVM are based on memory orders in C++ (see
+\autoref{sec:prelim:cppmemord}).
 
 \paragraph{Threads in LLVM}
 
 LLVM has no primitives for starting and handling threads.
-This matches well with the programming languages often translated to LLVM, which usually implement threading using a library of thread-manipulation and synchronization primitives.
-Nevertheless, LLVM has a notion of thread-local variables; i.e., variables which exist in a separate copy in each thread.
+This matches well with the programming languages often translated to LLVM,
+which usually implement threading using a library of thread-manipulation and
+synchronization primitives.
+Nevertheless, LLVM has a notion of thread-local variables; i.e., variables
+which exist in a separate copy in each thread.
 
 \paragraph{Memory Model}
 
-
+Memory model of LLVM is mostly based on the memory model of C++, but instead of
+atomic variables, it uses only atomic operations (i.e., it is theoretically
+possible to combine atomic and non-atomic access to the same variable in LLVM).
 
 \paragraph{Exceptions}
 
+LLVM has support for exceptions.
+Namely, there are two ways in which a function can be called in LLVM.
+The \li{call} instruction is used for calls which either cannot throw an
+exception, or which can throw an exception, but the exception does not need to
+be inspected or caught in the functions which performs the \li{call}.
+On the other hand, the \li{invoke} instruction is used if the exception needs
+to be intercepted -- an \li{invoke} is a branching point.
+If the function called by \li{invoke} returns normally the \cpp{invoke} behaves
+like a \li{call}.
+However, if an exception is propagated through \li{invoke} it transfers control
+to a block of code which starts with a \li{landingpad} instruction which can
+recover information about the exception.
+The code which starts with the \li{landingpad} then decides how to handle the
+exception -- it can be handled by this function, or a cleanup can be run and
+the propagation of the exception can be resumed using the \li{resume}
+instruction.
+
+Interestingly, there is no instruction in LLVM to throw an exception.
+Instead, the whole design of exception handling in C++ assumes the platform for
+which the code is compiled provides an exception support library -- so called
+\emph{unwinder} which has also ability to throw the exception.
+When the program is executing, the unwinder also takes care of the actual
+propagation of the exception through the call stack (\emph{unwinding}).
+For this purpose it needs metadata which is generated by the code generator
+from the information in the \li{invoke}, \li{landingpad}, and \li{resume}
+instructions.
+
 \paragraph{Syntax of LLVM IR}
-
-In some of the examples in this work, we will use the human-readable version of LLVM IR to present a low-level code.
-Here, we will demonstrate basics of LLVM IR syntax on an example.
-
-\llvminput[lastline=4]{llexample.ll}
-
-\noindent
-At its beginning an LLVM module contains information about the source from which it was created and about the platform for which it is compiled (these information include sizes of various data types).
-
-\llvminput[firstline=6, lastline=6]{llexample.ll}
-
-\noindent
-Named types can be declared in LLVM, their name always starts with the \texttt{\%} sigil.
-The content of the type is given in the braces, in this case it is a data structure containing a 32 bit integer, a 64 bit integer, and a float.
-This code snipped can be obtained by compiling the following C/C++ declaration on a 64 bit Linux system: \cpp{struct Foo { int x; long y; float z; }}.
-
-\llvminput[firstline=8, lastline=8]{llexample.ll}
-
-\noindent
-Global variables (as well as functions) have names starting with the \texttt{@} sigil.
-Global variables are defined with their type (\li{i32} or a 32 bit integer in this case), alignment and linking options (which are largely irrelevant for this work).
-The type used in the declaration of a global variable is a type of its value, however, the type of the corresponding name expression (\li{@g} in this case) is a pointer to this type (\li{i32*}) as global variables has to be accessed using the memory manipulation instructions.
-
-
-\llvminput[linenos, firstline=10]{llexample.ll}
 
 \TODO{...}
 
