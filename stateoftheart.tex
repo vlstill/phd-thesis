@@ -98,10 +98,55 @@ the standard libraries and C++ exceptions (\autoref{chap:lang},
 
 \section{Stateless Model Checking}
 
+Compared to explicit-state model checking, stateless model checking (SMC)
+avoids storing the set of visited states and therefore has decreased memory
+consumption.
+Furthermore, since the state representation is not required to be as compact as
+possible, stateless model checker can have simpler representation of states.
+Stateless model checking was introduced in~\cite{Godefroid1997}, it aims at
+safety analysis of terminating parallel programs.
+A stateless model checker usually explores the state space in depth-first
+manner and it can explore some parts of the state space multiple times (since
+it does not store the set of visited states).
+Therefore, the requirement that input program is terminating is is necessary
+to ensure the verification procedure terminates.
+In practice, this requirement is often ensured by imposing loop iteration
+bounds -- loops are assigned maximum allowed number of iterations, if the
+program under test requires more iterations of some loop, the loop bound can be
+increased, or the analysis can be terminated as inconclusive.
+
+Without additional reductions, SMC would lead to redundant explorations of many
+parts of the state space -- in parallel programs it is common that two or more
+actions of different threads are independent and regardless of their order they
+lead to the same end state.
+In this case a stateless model checker would explore a state as many times as
+is the number of paths from the initial state to this state (in the worst case
+the number of paths to a given state can be exponential to its distance from
+the initial state).
+To mitigate this problem, dynamic partial order reduction
+(DPOR)~\cite{Flanagan2005dpor} is employed with SMC.
+DPOR is a version of partial order reduction which tightly integrates with
+the SMC exploration algorithm and keeps track of parts of the state space which
+still need to be explored.
+Using DPOR, SMC can avoid redundant exploration of equivalent paths in the
+state space.
+
+Many works are concerned with design of efficient DPOR methods both for
+parallel programs running under sequential consistency (interleaving
+semantics), and for various memory models.
+This is usually accomplished by combination of two aspects: an equivalence of
+traces and an exploration algorithm which ensures at least one trace (and in
+optimal case exactly one trace) from each equivalence class is explored.
+The trace equivalence has to be designed in such a way that for each of its
+classes either all traces contain only safe states or all traces contain an
+unsafe state -- i.e., the equivalence preserves safety properties.
+
+For sequential consistency, multiple DPOR techniques were introduced. \TODO{techniky} \cite{TODO,TODO}, among these \cite{Abdulla2014} is interesting by providing an optimal algorithm for the given type of trace equivalences \TODO{...}. \TODO{...}
+
+
 \TODO{from TEDI}
 
-Stateless Model Checking methods are intended for safety analysis of
-terminating programs in real-world programming languages~\cite{Godefroid1997}. They employ Dynamic Partial Order Reduction (DPOR)
+They employ Dynamic Partial Order Reduction (DPOR)
 to avoid exploring equivalent runs of the program~\cite{Flanagan2005dpor} and the works concerning relaxed memory models
 in this setting often discuss interlay between DPOR and relaxed memory
 model in length.
