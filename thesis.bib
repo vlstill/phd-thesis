@@ -606,6 +606,18 @@ year = {1999}
         goto-instrument and niddhug. Evaluation on C programs."
 }
 
+@article{Abdulla2017tso,
+    title={Stateless model checking for TSO and PSO},
+    author={Abdulla, Parosh Aziz and Aronis, Stavros and Atig, Mohamed Faouzi and Jonsson, Bengt and Leonardsson, Carl and Sagonas, Konstantinos},
+    journal={Acta Informatica},
+    volume={54},
+    number={8},
+    pages={789--818},
+    year={2017},
+    publisher={Springer}
+}
+
+
 @inproceedings{Turon2014,
     author = {Turon, Aaron and Vafeiadis, Viktor and Dreyer, Derek},
     title = {{GPS: Navigating Weak Memory with Ghosts, Protocols, and Separation}},
@@ -864,7 +876,7 @@ year = {1999}
     _url="https://doi.org/10.1007/978-3-540-74591-4_4"
 }
 
-@InProceedings{Mador-Haim2012,
+@InProceedings{MadorHaim2012,
     author="Mador-Haim, Sela and Maranget, Luc and Sarkar, Susmit and Memarian, Kayvan and Alglave, Jade and Owens, Scott and Alur, Rajeev and Martin, Milo M. K.  and Sewell, Peter and Williams, Derek",
     _editor="Madhusudan, P.  and Seshia, Sanjit A.",
     title="{An Axiomatic Memory Model for POWER Multiprocessors}",
@@ -1348,4 +1360,180 @@ year = {1999}
     publisher = {ACM},
     address = {New York, NY, USA},
     keywords = {Axiomatic, Operational, Relaxed Memory Models, Semantics},
-} 
+}
+
+@article{Chalupa2017,
+author = {Chalupa, Marek and Chatterjee, Krishnendu and Pavlogiannis, Andreas and Sinha, Nishant and Vaidya, Kapil},
+title = {Data-Centric Dynamic Partial Order Reduction},
+year = {2017},
+issue_date = {January 2018},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {2},
+number = {POPL},
+url = {https://doi.org/10.1145/3158119},
+doi = {10.1145/3158119},
+journal = {Proc. ACM Program. Lang.},
+month = dec,
+articleno = {Article 31},
+numpages = {30},
+keywords = {Partial-order Reduction, Stateless model-checking, Concurrency}
+}
+
+@article{Huang2015,
+    author = {Huang, Jeff},
+    title = {Stateless Model Checking Concurrent Programs with Maximal Causality Reduction},
+    year = {2015},
+    issue_date = {August 2015},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {50},
+    number = {6},
+    issn = {0362-1340},
+    url = {https://doi.org/10.1145/2813885.2737975},
+    doi = {10.1145/2813885.2737975},
+    journal = {SIGPLAN Not.},
+    month = jun,
+    pages = {165–174},
+    numpages = {10},
+    keywords = {maximal causality reduction, stateless model checking}
+}
+
+@article{Lahav2017,
+    author = {Lahav, Ori and Vafeiadis, Viktor and Kang, Jeehoon and Hur, Chung-Kil and Dreyer, Derek},
+    title = {Repairing Sequential Consistency in C/C++11},
+    year = {2017},
+    issue_date = {September 2017},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {52},
+    number = {6},
+    issn = {0362-1340},
+    url = {https://doi.org/10.1145/3140587.3062352},
+    doi = {10.1145/3140587.3062352},
+    journal = {SIGPLAN Not.},
+    month = jun,
+    pages = {618–632},
+    numpages = {15},
+    keywords = {Weak memory models, sequential consistency, C++11, declarative semantics}
+}
+
+@article{Demsky2015,
+    author = {Demsky, Brian and Lam, Patrick},
+    title = {SATCheck: SAT-Directed Stateless Model Checking for SC and TSO},
+    year = {2015},
+    issue_date = {December 2015},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {50},
+    number = {10},
+    issn = {0362-1340},
+    url = {https://doi.org/10.1145/2858965.2814297},
+    doi = {10.1145/2858965.2814297},
+    journal = {SIGPLAN Not.},
+    month = oct,
+    pages = {20–36},
+    numpages = {17},
+    keywords = {model checking, Relaxed memory model}
+}
+
+@InProceedings{Abdulla2016,
+    author="Abdulla, Parosh Aziz
+    and Atig, Mohamed Faouzi
+    and Jonsson, Bengt
+    and Leonardsson, Carl",
+    editor="Chaudhuri, Swarat
+    and Farzan, Azadeh",
+    title="Stateless Model Checking for POWER",
+    booktitle="Computer Aided Verification",
+    year="2016",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="134--156",
+    abstract="We present the first framework for efficient application of stateless model checking (SMC) to programs running under the relaxed memory model of POWER. The framework combines several contributions. The first contribution is that we develop a scheme for systematically deriving operational execution models from existing axiomatic ones. The scheme is such that the derived execution models are well suited for efficient SMC. We apply our scheme to the axiomatic model of POWER from [8]. Our main contribution is a technique for efficient SMC, called Relaxed Stateless Model Checking (RSMC), which systematically explores the possible inequivalent executions of a program. RSMC is suitable for execution models obtained using our scheme. We prove that RSMC is sound and optimal for the POWER memory model, in the sense that each complete program behavior is explored exactly once. We show the feasibility of our technique by providing an implementation for programs written in C/pthreads.",
+    isbn="978-3-319-41540-6"
+}
+
+@article{Shasha1988,
+    author = {Shasha, Dennis and Snir, Marc},
+    title = {Efficient and Correct Execution of Parallel Programs That Share Memory},
+    year = {1988},
+    issue_date = {April 1988},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {10},
+    number = {2},
+    issn = {0164-0925},
+    url = {https://doi.org/10.1145/42190.42277},
+    doi = {10.1145/42190.42277},
+    journal = {ACM Trans. Program. Lang. Syst.},
+    month = apr,
+    pages = {282–312},
+    numpages = {31}
+}
+
+@article{mckenney2010,
+  title={Memory barriers: a hardware view for software hackers},
+  author={McKenney, Paul E},
+  journal={Linux Technology Center, IBM Beaverton},
+  year={2010}
+}
+
+@inproceedings{Pulte2019,
+    author = {Pulte, Christopher and Pichon-Pharabod, Jean and Kang, Jeehoon and Lee, Sung-Hwan and Hur, Chung-Kil},
+    title = {Promising-ARM/RISC-V: A Simpler and Faster Operational Concurrency Model},
+    year = {2019},
+    isbn = {9781450367127},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/3314221.3314624},
+    doi = {10.1145/3314221.3314624},
+    booktitle = {Proceedings of the 40th ACM SIGPLAN Conference on Programming Language Design and Implementation},
+    pages = {1–15},
+    numpages = {15},
+    keywords = {RISC-V, ARM, Relaxed Memory Models, Operational Semantics},
+    location = {Phoenix, AZ, USA},
+    series = {PLDI 2019}
+}
+
+@book{ARMv8,
+    author = "{ARM}",
+    year = {2018},
+    title = {ARM Architecture Reference Manual},
+    chapter = {D2. The AArch64 Application Level Memory Model}
+}
+
+@inproceedings{Gray2015,
+    author = {Gray, Kathryn E. and Kerneis, Gabriel and Mulligan, Dominic and Pulte, Christopher and Sarkar, Susmit and Sewell, Peter},
+    title = {An Integrated Concurrency and Core-ISA Architectural Envelope Definition, and Test Oracle, for IBM POWER Multiprocessors},
+    year = {2015},
+    isbn = {9781450340342},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/2830772.2830775},
+    doi = {10.1145/2830772.2830775},
+    booktitle = {Proceedings of the 48th International Symposium on Microarchitecture},
+    pages = {635–646},
+    numpages = {12},
+    location = {Waikiki, Hawaii},
+    series = {MICRO-48}
+}
+
+@article{Flur2017,
+    author = {Flur, Shaked and Sarkar, Susmit and Pulte, Christopher and Nienhuis, Kyndylan and Maranget, Luc and Gray, Kathryn E. and Sezgin, Ali and Batty, Mark and Sewell, Peter},
+    title = {Mixed-Size Concurrency: ARM, POWER, C/C++11, and SC},
+    year = {2017},
+    issue_date = {May 2017},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {52},
+    number = {1},
+    issn = {0362-1340},
+    url = {https://doi.org/10.1145/3093333.3009839},
+    doi = {10.1145/3093333.3009839},
+    journal = {SIGPLAN Not.},
+    month = jan,
+    pages = {429–442},
+    numpages = {14},
+    keywords = {ISA, mixed-size, Relaxed Memory Models, semantics}
+}

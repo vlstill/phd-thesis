@@ -318,25 +318,112 @@ hard to create parallel software which scales well with the number of processors
 Furthermore, improving scalability usually makes the problem of correctness even
 harder -- improving scalability usually requires more more fine-grained (and
 therefore error-prone) synchronization.
+For example, fine-grained locking or lock-free programming can lead to
+high-performance code, but seeing that the code uses synchronization properly
+is significantly harder then for code which uses a few locks for which it is
+well defined which parts of the shared memory they guard.
+
+Furthermore, relaxed memory behaviour comes into play once shared variables are
+not only accessed in critical sections.
+As processor manufactures strive to increase speed of processors, they have
+introduced various optimizations into the memory infrastructure to avoid
+waiting for the relatively slow main memory.
+These optimizations can (and in most processors are) be visible to a parallel
+program and are manifested in relaxed memory behaviour.
+For example, on x86 processors (which are used in most laptop, desktop and
+server computers) a memory store can be delayed and appear, from the point of
+view of the other threads, later than a subsequent load.
+Some processors (for example POWER and higher-performance ARM processors) allow
+even more reordering, for example two memory stores executed sequentially by
+some thread can appear to be preformed in different order by two independent
+observer threads.
 
 In this section, we describe the basic model of parallelism we assume for our
 programs and follow some of its implications.
-We also outline the problematics of memory models and relaxed memory behaviour
-manifested by modern processors.
+We also outline describe basics of relaxed memory behaviour and memory models
+which describe it.
 
-A basic threading model assumes that execution of threads has \emph{interleaving
-semantics}.
+\subsection{Basic Threading Model \& Memory Models}
+
+We assume that a program consists of threads which interact using a shared
+memory.
+We also assume that execution of a thread can be interrupted at any point by a
+\emph{thread scheduler} (of the operating system on which the program runs) and
+will be later eventually resumed (unless the program exits in the meantime or
+the thread is \emph{blocked} infinitely).
+A thread can be \emph{blocked} if it waits for a resource provided by the
+operating system, for example availability of a lock or input from an input
+device.
+If a thread cannot be resumed because it is blocked and does never cease to be
+blocked we say there is a \emph{deadlock}.
+
+\begin{definition}[Dealock, Partial Dealock]\label{def:deadlock}
+    A \emph{deadlock} happens if a scheduler never allows the thread to run
+    because it waits for a resource which never becomes available.
+    Sometimes, when we need to distinguish between all the threads being
+    blocked and only some of them being blocked, we will use the notion of
+    \emph{partial deadlock} to signify a situation in a program where some
+    threads are blocked (in deadlock) but other can still proceed.
+\end{definition}
+
+It is important to note that our definition of deadlock does not include
+\emph{busy waiting} -- i.e., a thread is executing a loop in which it tests
+that some event occurred.
+Busy waiting can be used for example to implement exclusive sections without
+operating system support.
+
+\begin{definition}[Livelock]\label{def:livelock}
+    \TODO{
+    A \emph{livelock} is a situation in which a thread is allowed to run (by
+    the scheduler), but does not proceed in any meaningful way because it
+    executes a loop which is waiting for an event which ever happens.
+    }
+\end{definition}
+
+\paragraph{Interleaving of Threads, Sequential Consistency}
+
+In practice program threads can run concurrently, i.e., multiple cores of the
+processor can execute different threads at the same instant in time.
+Furthermore, the scheduler can map threads to processor cores arbitrarily and
+it can even change the core which executes a given thread.
+It is not practical (and not necessary) to simulate this behaviour when
+performing analysis of a parallel program.
+Instead, we consider that threads are interleaved (\emph{interleaving
+semantics}) or we consider execution based on some relaxed memory model.
 
 \begin{definition}[Interleaving Semantics of Threads]
     \TODO{
     With the \emph{interleaving semantics} we assume that all possible
     executions of parallel program can be obtained by interleaving.
-    That is, …
+    That is, at any point in execution of the program we consider which threads
+    are allowed to run and explore all possible selections, after a thread
+    performs an action, we again consider all possible actions of all threads
+    and so on.
+    …
     }
 \end{definition}
 
-However, interleaving is not a sufficient abstraction in presence of relaxed
-memory behaviour, which is manifested by modern processors.
+When considering relaxed memory models, it is also useful to consider memory
+model which corresponds to the interleaving semantics of threads.
+This is the \emph{sequential consistency}.
+
+\begin{definition}[Sequnetial Consistency]
+    \emph{Sequential consistency} is the memory model which corresponds to the
+    interleaving semantics of threads.
+    Under sequential consistency, all effects of memory manipulating
+    instructions are visible to all threads immediately and no instruction
+    reordering is observable.
+\end{definition}
+
+Sequential consistency is the strongest memory model (it is not relaxed at all).
+Therefore, a program running under a relaxed memory model will always exhibit
+behaviour present if the same program was run under sequential consistency, but
+it can also exhibit other behaviour.
+
+\paragraph{Relaxed Memory Models}
+
+Interleaving is not a sufficient abstraction in presence of relaxed memory
+behaviour, which is manifested by modern processors.
 The relaxed behavior of processors arises from optimizations in cache
 consistency protocols and observable effects of instructions reordering and
 speculation.
@@ -349,7 +436,7 @@ ones in embedded microcontroller) exhibit relaxed behavior.
 The extent of this relaxation is dependent on the processor architecture (e.g.,
 x86, ARM, POWER) but also on the concrete processor model.
 Furthermore, the actual behavior of the processor is often not precisely
-described by the processor vendor \cite{x86tso}.
+described by the processor vendor~\cite{x86tso}.
 To abstract from the details of particular processor models, \emph{relaxed
 memory models} are used to describe (often formally) behavior of a given
 processor architecture.
@@ -357,14 +444,6 @@ Examples of relaxed memory models of modern processors are the memory model of
 x86 and x86\_64 CPUs described formally as \xtso~\cite{x86tso} and the multiple
 variants of POWER~\cite{Sarkar2011,Mador-Haim2012} and
 ARM~\cite{Flur2016,Alglave2014,Pulte2017} memory models.
-
-\begin{definition}[Sequnetial Consistency]
-    \emph{Sequential consistency} is the memory model which corresponds to the
-    interleaving semantics of threads.
-    Under sequential consistency, all effects of memory manipulating
-    instructions are visible to all threads immediately and no instruction
-    reordering is observable.
-\end{definition}
 
 For the description of a memory model, it is sufficient to consider operations
 which affect the memory.
@@ -374,6 +453,8 @@ memory barriers (which constrain memory relaxation), and \emph{atomic compound
 operations} (read-modify-write operations and compare-and-swap operation).
 
 \subsection{The \xtso Memory Model}
+
+\TODO{Převzato z …}
 
 The \xtso memory model is a formal description of the memory model used in x86
 and x86-64 processors (manufactured by both Intel and AMD).
@@ -523,6 +604,108 @@ operations are not only fully supported, but they are also correctly
 synchronized if atomic instructions are used.
 This is in agreement with the aforementioned operational semantics of \xtso in
 which all the atomic operations share a single global lock.
+
+\subsection{Other Hardware Memory Models}
+
+\TODO{… už nepřevzato}
+
+Older works on analysis of programs under relaxed memory models usually
+consider the SPARC TSO, PSO and RMO memory models~\cite{SPARC94} or the memory
+model of ALPHA~\cite{mckenney2010} processors.
+However, these memory models are not relevant any more, with the exception of
+TSO, which is sometimes used interchangeable with the \xtso memory model, as
+they are very similar (the difference is that \xtso precisely describes
+behaviour of atomic compound operations of x86 processors, but some works use
+TSO to stand for the memory model of x86 processors too).
+
+Currently, apart from the \xtso memory model, mostly the memory models of
+variants of POWER and ARM processors are relevant.
+While these processors differ significantly in the area in which they are used
+(POWER is used in high-performance servers while ARM is mostly used in mobile
+devices), their memory models share some basic features.
+Both of these types of processors exhibit more relaxed behaviour then \xtso,
+for example it is possible to reorder a load after a store, or to reorder
+stores or loads with one another (provided they are independent).
+\TODO{example}
+On POWER it is also not guaranteed that if one thread observes some ordering of
+events, other threads will observe the same ordering.
+An example of such behaviour can be seen in \autoref{fig:prelim:iriw}.
+
+\begin{figure}[tp]
+    \begin{cppcode}
+        int x = 0, y = 0;
+    \end{cppcode}
+    \begin{multicols}{4}
+        \begin{cppcode}
+          void writer0()
+          {
+            x = 1;
+          }
+        \end{cppcode}
+        \columnbreak
+        \begin{cppcode}
+          void writer1()
+          {
+            y = 1;
+          }
+        \end{cppcode}
+        \columnbreak
+        \begin{cppcode}
+          void reader0()
+          {
+            int x0 = x;
+            int y0 = y;
+          }
+        \end{cppcode}
+        \columnbreak
+        \begin{cppcode}
+          void reader1()
+          {
+            int x1 = x;
+            int y1 = y;
+          }
+        \end{cppcode}
+    \end{multicols}
+    \center{\emph{Is it possible that $x_0 = 1 \land y_0 = 0 \land x_1 = 0 \land y_1 = 1$?}}
+    \caption{
+        An independent readers of independent writers example commonly used to
+        demonstrate some of the features of POWER memory models.
+        We assume each of the functions is executed in a separate thread.
+        Here, we are asking if it can happen that while the \cpp{reader0}
+        observes the new value of $x$ and old value of $y$ the \cpp{reader1}
+        will observe the old value of $x$ and new value of $y$.
+        Such an observation would imply that the two modifications are visible
+        to the two readers in different order.
+        This behaviour can indeed be observed on POWER~\cite{TODO}, but not on
+        ARM~\cite{Pulte2017}.
+    }\label{fig:prelim:iriw}
+\end{figure}
+
+There are several version (or generations) of ARM and POWER processors, and
+also multiple versions of memory models.
+The memory model of ARMv7 is described in~\cite{Alglave2014}.
+The memory model of newer ARMv8 is described in~\cite{Flur2016}, but it was
+later revised and simplified in collaboration with ARM and formalized
+in~\cite{Pulte2017} and in the ARMv8 architecture description.
+Later in~\cite{Pulte2019} an operation model of ARMv8 concurrency equivalent
+with the one presented in~\cite{Pulte2017} and optimized for program analysis
+was presented.
+Interestingly, \cite{Pulte2019} also presents a memory model of RISC-V
+architecture which is similar to the revised ARMv8 memory model.
+
+The basis of POWER memory model was described as an abstract machine
+in~\cite{Sarkar2011} and later extended in~\cite{Sarkar2012} to cover atomic
+compound operations.
+A more detailed memory model of POWER is presented in~\cite{Gray2015},
+including for example behaviour of mixed-size memory operations.
+Axiomatic description of POWER is provided by~\cite{MadorHaim2012} and
+\cite{Alglave2010_fences}.
+In~\cite{Flur2017} the authors describe behaviour of POWER and ARMv8 in
+presence of mixed-size memory operations.
+
+\subsection{Memory Models of Programming Languages}
+
+\cite{Pulte2019:29} C11
 
 \section{??? Lock Free Programming ???}
 
