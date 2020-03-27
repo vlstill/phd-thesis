@@ -1715,5 +1715,97 @@ keywords = {Partial-order Reduction, Stateless model-checking, Concurrency}
     pages="199--203",
     abstract="We gave CBMC the ability to explore and model check single program paths, as opposed to its default whole-program model-checking behaviour. This means that CBMC, when invoked with theflag, symbolically executes one program path at a time---saving unexplored paths for later---and attempts to prove properties for only that path. By doing this repeatedly for each path that CBMC encounters, CBMC can detect property violations in a scalable and incremental way.",
     isbn="978-3-030-17502-3"
-    }
+}
+
+@InProceedings{Cordeiro2019,
+    author="Cordeiro, Lucas and Kroening, Daniel and Schrammel, Peter",
+    editor="Beyer, Dirk and Huisman, Marieke and Kordon, Fabrice and Steffen, Bernhard",
+    title="JBMC: Bounded Model Checking for Java Bytecode",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2019",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="219--223",
+    abstract="JBMC is a bounded model checking tool for verifying Java bytecode. It is built on top of the CPROVER framework. JBMC processes Java bytecode together with a model of the standard Java libraries. It checks a set of desired properties, such as assertions and absence of uncaught exceptions, under given bounds on loops, recursion and data structures. Internally, it uses the same bounded model checking engine as its sibling tool CBMC and discharges the generated verification conditions with the help of MiniSAT 2.2.1.",
+    isbn="978-3-030-17502-3"
+}
+
+@InProceedings{Cordeiro2018,
+    author="Cordeiro, Lucas and Kesseli, Pascal and Kroening, Daniel and Schrammel,Peter and Trtik, Marek",
+    editor="Chockler, Hana and Weissenbacher, Georg",
+    title="JBMC: A Bounded Model Checking Tool for Verifying Java Bytecode",
+    booktitle="Computer Aided Verification",
+    year="2018",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="183--190",
+    abstract="We present a bounded model checking tool for verifying Java bytecode, which is built on top of the CPROVER framework, named Java Bounded Model Checker (JBMC). JBMC processes Java bytecode together with a model of the standard Java libraries and checks a set of desired properties. Experimental results show that JBMC can correctly verify a set of Java benchmarks from the literature and that it is competitive with two state-of-the-art Java verifiers.",
+    isbn="978-3-319-96145-3"
+}
+
+@InProceedings{Gadelha2019,
+    author="Gadelha, Mikhail R.  and Monteiro, Felipe and Cordeiro, Lucas and Nicole, Denis",
+    editor="Beyer, Dirk and Huisman, Marieke and Kordon, Fabrice and Steffen, Bernhard",
+    title="ESBMC v6.0: Verifying C Programs Using k-Induction and Invariant Inference",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2019",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="209--213",
+    abstract="ESBMC v6.0 employs a k-induction algorithm to both falsify and prove safety properties in C programs. We have developed a new interval-invariant generator that pre-processes the program, inferring invariants based on intervals and introducing them in the program as assumptions. Our experiments show that ESBMC v6.0 using k-induction can prove up to 7{\%} more programs when the invariant generation is enabled.",
+    isbn="978-3-030-17502-3"
+}
+
+@inproceedings{Gadelha2018,
+    author = {Gadelha, Mikhail R. and Monteiro, Felipe R. and Morse, Jeremy and Cordeiro, Lucas C. and Fischer, Bernd and Nicole, Denis A.},
+    title = {ESBMC 5.0: An Industrial-Strength C Model Checker},
+    year = {2018},
+    isbn = {9781450359375},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/3238147.3240481},
+    doi = {10.1145/3238147.3240481},
+    booktitle = {Proceedings of the 33rd ACM/IEEE International Conference on Automated Software Engineering},
+    pages = {888–891},
+    numpages = {4},
+    keywords = {Software model checking, {it k}-induction, Bug detection},
+    location = {Montpellier, France},
+    series = {ASE 2018}
+}
+
+@InProceedings{Merz2012,
+    author="Merz, Florian and Falke, Stephan and Sinz, Carsten",
+    editor="Joshi, Rajeev and M{\"u}ller, Peter and Podelski, Andreas",
+    title="LLBMC: Bounded Model Checking of C and C++ Programs Using a Compiler IR",
+    booktitle="Verified Software: Theories, Tools, Experiments",
+    year="2012",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="146--161",
+    abstract="Bounded model checking (BMC) of C and C++ programs is challenging due to the complex and intricate syntax and semantics of these programming languages. The BMC tool LLBMC presented in this paper thus uses the LLVM compiler framework in order to translate C and C++ programs into LLVM's intermediate representation. The resulting code is then converted into a logical representation and simplified using rewrite rules. The simplified formula is finally passed to an SMT solver. In contrast to many other tools, LLBMC uses a flat, bit-precise memory model. It can thus precisely model, e.g., memory-based re-interpret casts as used in C and static/dynamic casts as used in C++. An empirical evaluation shows that LLBMC compares favorable to the related BMC tools CBMC and ESBMC.",
+    isbn="978-3-642-27705-4",
+    doi="10.1007/978-3-642-27705-4_12"
+}
+
+@INPROCEEDINGS{Falke2013,
+    author={S. {Falke} and F. {Merz} and C. {Sinz}},
+    booktitle={2013 28th IEEE/ACM International Conference on Automated Software Engineering (ASE)},
+    title={The bounded model checker LLBMC},
+    year={2013},
+    volume={},
+    number={},
+    pages={706-709},
+    doi={10.1109/ASE.2013.6693138}
+}
+
+@article{Sousa2013,
+    title={LLVMVF: A generic approach for verification of multicore software},
+    author={Sousa, Marcelo and Sen, Alper},
+    journal={Journal of Electronic Testing},
+    volume={29},
+    number={5},
+    pages={635--646},
+    year={2013},
+    publisher={Springer}
+}
 

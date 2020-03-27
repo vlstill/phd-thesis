@@ -252,6 +252,8 @@ The algorithm is implemented in the tool Niddhugg.
 
 \section{Bounded Model Checking}
 
+\TODO{Symbolic MC without BDDs}
+
 CBMC \cite{Kroening2014}, \cite{Clarke2004}
 - bit-precise BMC for C
 - SAT based
@@ -261,6 +263,8 @@ CBMC \cite{Kroening2014}, \cite{Clarke2004}
 - relaxed memory has little impact on performance
 - SC: \cite{Alglave2013por:25}
 - SV-COMP
+- custom C frontend
+- k-induction?? (\cite{Gadelha2018:7})
 
 \textsc{Yogar-CBMC} \cite{Yin2018}, \cite{Yin2019}
 - parallelism, SC only
@@ -272,14 +276,58 @@ CBMC Path~\cite{Khazem2019}
 - aimed at faster bug discovery, especially for shallow bugs
 - performed poorly in SV-COMP even on buggy benchmarks only
 
+JBMC~\cite{Cordeiro2019}, \cite{Cordeiro2018}
+- Java + exact verification-friendly model of most common parts of its standard libraries
+- supports exceptions (lowering to goto)
+- assertions, memory errors, integer overflows, type casting errors
+- SAT+SMT, bit-precise
+- shares BMC engine with CBMC
+- dedicated solver for string operations
+- no JNI, reflection, parallelism (in progress)
+
+LLBMC~\cite{Merz2012}, \cite{Falke2013}
+- BMC for C and C++
+- based on the LLVM infrastructure, uses LLVM IR
+- SMT based, bit-precise
+- no floats, (C++) exceptions, RTTI
+- overflows, invalid shifts, memory errors, memory leaks, assertions
+
+LLVMVF~\cite{Sousa2013}
+- for parallel programs, LLVM based
+- generic framework on which the BMC is built
+- input is LLVM IR
+- no condition variables
 
 \paragraph{Limitations of BMC}
 
 - C programs
 - bounded depth
-- functions inlined (… function pointers)
+- functions inlined (… function pointers)/recursion bound
+- no threads(?)
 
 \section{K-Induction, IC3, …}
+
+\paragraph{$k$-Induction}
+
+$k$-induction is an extension of bounded model checking which allows it to find bugs faster and to prove correctness of programs without unwinding loops fully.
+A BMC with $k$-induction repeatedly performs three steps with an increasing bound $k$:
+\begin{description}
+    \item[Base Case] checks if an error is reachable in $k$ steps.
+    \item[Forward Condition] checks if all program's paths had terminated in $k$ steps (i.e., the verification is done as the tool had already explored all states)
+    \item[Inductive Step] checks that in a modified program in which all loop variables are initialized to nondeterministic values before the loops and the loops are required to execute to completion,\footnotemark{} if the safety property holds for the first $k$ steps, it also holds for $k+1$ steps. If the induction step holds the program is correct.
+\end{description}
+\footnotetext{This can be achieved by instrumenting \texttt{assume} statements which ensure that the loop body is entered and that after the given number of iterations the condition for loop termination holds.}
+
+
+ESBMC~\cite{Gadelha2019}, \cite{Gadelha2018}
+- C programs
+- SMT-based BMC + k-induction + invariant generation based on intervals for integral variables (to guide the inductive step)
+- interval analysis cannot handle pointers and is incorrect with them
+- context-bounded?
+- clang-based frontend (uses AST, not LLVM)
+- assertions, memory errors, overflow, deadlocks
+- (uses a symbolic execution when generating formula \& unrolling (so does CBMC))
+
 
 \section{Symbolic Execution}
 
