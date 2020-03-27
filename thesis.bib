@@ -184,6 +184,23 @@ year = {1999}
     _summary="Transformation for adding memory models (parametrized from TSO to POWER) to goto-programs together with optimization of the number of delays."
 }
 
+@InProceedings{Alglave2013por,
+author="Alglave, Jade
+and Kroening, Daniel
+and Tautschnig, Michael",
+editor="Sharygina, Natasha
+and Veith, Helmut",
+title="Partial Orders for Efficient Bounded Model Checking of Concurrent Software",
+booktitle="Computer Aided Verification",
+year="2013",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="141--157",
+abstract="The number of interleavings of a concurrent program makes automatic analysis of such software very hard. Modern multiprocessors' execution models make this problem even harder. Modelling program executions with partial orders rather than interleavings addresses both issues: we obtain an efficient encoding into integer difference logic for bounded model checking that enables first-time formal verification of deployed concurrent systems code. We implemented the encoding in the CBMC tool and present experiments over a wide range of memory models, including SC, Intel x86 and IBM Power. Our experiments include core parts of PostgreSQL, the Linux kernel and the Apache HTTP server.",
+isbn="978-3-642-39799-8"
+}
+
+
 @Inbook{Alglave2010_fences,
     author="Alglave, Jade and Maranget, Luc and Sarkar, Susmit and Sewell, Peter",
     editor="Touili, Tayssir and Cook, Byron and Jackson, Paul",
@@ -1537,3 +1554,166 @@ keywords = {Partial-order Reduction, Stateless model-checking, Concurrency}
     numpages = {14},
     keywords = {ISA, mixed-size, Relaxed Memory Models, semantics}
 }
+
+@article{Lipton1975,
+    author = {Lipton, Richard J.},
+    title = {Reduction: A Method of Proving Properties of Parallel Programs},
+    year = {1975},
+    issue_date = {December 1975},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {18},
+    number = {12},
+    issn = {0001-0782},
+    url = {https://doi.org/10.1145/361227.361234},
+    doi = {10.1145/361227.361234},
+    journal = {Commun. ACM},
+    month = dec,
+    pages = {717–721},
+    numpages = {5},
+    keywords = {indivisible, parallel program, deadlock free, reduction, semaphore, interruptible, process, verification method, computation sequence}
+}
+
+@inbook{BBR2012,
+    address = {Berlin, Heidelberg},
+    author = {Jiří Barnat and Luboš Brim and Petr Ročkai},
+    booktitle = {NASA Formal Methods: 4th International Symposium, NFM 2012, Norfolk, VA, USA, April 3-5, 2012. Proceedings},
+    doi = {10.1007/978-3-642-28891-3_25},
+    editor = {Goodloe, Alwyn E.
+    and Person, Suzette},
+    isbn = {978-3-642-28891-3},
+    pages = {252--266},
+    publisher = {Springer Berlin Heidelberg},
+    title = {Towards LTL Model Checking of Unmodified Thread-Based C {\&} C++ Programs},
+    url = {http://dx.doi.org/10.1007/978-3-642-28891-3_25},
+    year = {2012}
+}
+
+
+@InProceedings{RBB13,
+  author = "Petr Ročkai and Jiří Barnat and Luboš Brim",
+  title = "{Improved State Space Reductions for LTL Model Checking of C \& C++ Programs}",
+  booktitle = "{NASA Formal Methods (NFM 2013)}",
+  pages = "1--15",
+  year = "2013",
+  volume = "7871",
+  series = "LNCS",
+  publisher = "Springer Berlin Heidelberg",
+  keywords = {divine, red hat},
+  editor = "Brat, Guillaume and Rungta, Neha and Venet, Arnaud",
+  abstract="In this paper, we present substantial improvements in efficiency of explicit-state LTL model checking of C {\&} C++ programs, building on [2], including improvements to state representation and to state space reduction techniques. The improved state representation allows to easily exploit symmetries in heap configurations of the program, especially in programs with interleaved heap allocations. Finally, we present a major improvement through a semi-dynamic proviso for partial-order reduction, based on eager local searches constrained through control-flow loop detection.",
+  isbn="978-3-642-38088-4",
+  doi = "10.1007/978-3-642-38088-4_1"
+}
+
+@article{Yorav2004,
+    title={Static analysis for state-space reductions preserving temporal logics},
+    author={Yorav, Karen and Grumberg, Orna},
+    journal={Formal Methods in System Design},
+    volume={25},
+    number={1},
+    pages={67--96},
+    year={2004},
+    publisher={Springer},
+    doi = "10.1023/B:FORM.0000033963.55470.9e"
+}
+
+@InProceedings{Peled1993,
+    author="Peled, Doron",
+    editor="Courcoubetis, Costas",
+    title="All from one, one for all: on model checking using representatives",
+    booktitle="Computer Aided Verification",
+    year="1993",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="409--423",
+    abstract="Checking that a given finite state program satisfies a linear temporal logic property is suffering in many cases from a severe space and time explosion. One way to cope with this is to reduce the state graph used for model checking. We define an equivalence relation between infinite sequences, based on infinite traces such that for each equivalence class, either all or none of the sequences satisfy the checked formula. We present an algorithm for constructing a state graph that contains at least one representative sequence for each equivalence class. This allows applying existing model checking algorithms to the reduced state graph rather than on the larger full state graph of the program. It also allows model checking under fairness assumptions, and exploits these assumptions to obtain smaller state graphs. A formula rewriting technique is presented to allow coarser equivalence relation among sequences, such that less representatives are needed.",
+    isbn="978-3-540-47787-7",
+    doi="10.1007/3-540-56922-7_34"
+}
+
+@book{Holzmann2004,
+    title={The SPIN model checker: Primer and reference manual},
+    author={Holzmann, Gerard J},
+    volume={1003},
+    year={2004},
+    publisher={Addison-Wesley Reading}
+}
+
+@InProceedings{Zaks2008,
+    author="Zaks, Anna
+    and Joshi, Rajeev",
+    editor="Havelund, Klaus
+    and Majumdar, Rupak
+    and Palsberg, Jens",
+    title="Verifying Multi-threaded C Programs with SPIN",
+    booktitle="Model Checking Software",
+    year="2008",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="325--342",
+    abstract="A key challenge in model checking software is the difficulty of verifying properties of implementation code, as opposed to checking an abstract algorithmic description. We describe a tool for verifying multi-threaded C programs that uses the SPIN model checker. Our tool works by compiling a multi-threaded C program into a typed bytecode format, and then using a virtual machine that interprets the bytecode and computes new program states under the direction of SPIN. Our virtual machine is compatible with most of SPIN's search options and optimization flags, such as bitstate hashing and multi-core checking. It provides support for dynamic memory allocation (the malloc and free family of functions), and for the pthread library, which provides primitives often used by multi-threaded C programs. A feature of our approach is that it can check code after compiler optimizations, which can sometimes introduce race conditions. We describe how our tool addresses the state space explosion problem by allowing users to define data abstraction functions and to constrain the number of allowed context switches. We also describe a reduction method that reduces context switches using dynamic knowledge computed on-the-fly, while being sound for both safety and liveness properties. Finally, we present initial experimental results with our tool on some small examples.",
+    isbn="978-3-540-85114-1"
+}
+
+@book{Godefroid1996partial,
+    title={Partial-order methods for the verification of concurrent systems: an approach to the state-explosion problem},
+    author={Godefroid, Patrice and van Leeuwen, Jan and Hartmanis, Juris and Goos, Gerhard and Wolper, Pierre},
+    volume={1032},
+    year={1996},
+    publisher={Springer Heidelberg}
+}
+
+@article{Pratt1986,
+    title={Modeling concurrency with partial orders},
+    author={Pratt, Vaughan},
+    journal={International journal of parallel programming},
+    volume={15},
+    number={1},
+    pages={33--71},
+    year={1986},
+    publisher={Springer}
+}
+
+@InProceedings{Yin2018,
+    author="Yin, Liangze
+    and Dong, Wei
+    and Liu, Wanwei
+    and Li, Yunchou
+    and Wang, Ji",
+    editor="Beyer, Dirk
+    and Huisman, Marieke",
+    title="YOGAR-CBMC: CBMC with Scheduling Constraint Based Abstraction Refinement",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2018",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="422--426",
+    abstract="This paper presents the Yogar-CBMC tool for verification of multi-threaded C programs. It employs a scheduling constraint based abstraction refinement method for bounded model checking of concurrent programs. To obtain effective refinement constraints, we have proposed the notion of Event Order Graph (EOG), and have devised two graph-based algorithms over EOG for counterexample validation and refinement generation. The experiments in SV-COMP 2017 show the promising results of our tool.",
+    isbn="978-3-319-89963-3"
+}
+
+@INPROCEEDINGS{Yin2019,
+    author={L. {Yin} and W. {Dong} and W. {Liu} and J. {Wang}},
+    booktitle={2019 IEEE/ACM 41st International Conference on Software
+    Engineering (ICSE)},
+    title={Parallel Refinement for Multi-Threaded Program Verification},
+    year={2019},
+    volume={},
+    number={},
+    pages={643-653},
+}
+
+@InProceedings{Khazem2019,
+    author="Khazem, Kareem and Tautschnig, Michael",
+    editor="Beyer, Dirk and Huisman, Marieke and Kordon, Fabrice and Steffen,Bernhard",
+    title="CBMC Path: A Symbolic Execution Retrofit of the C Bounded Model Checker",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2019",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="199--203",
+    abstract="We gave CBMC the ability to explore and model check single program paths, as opposed to its default whole-program model-checking behaviour. This means that CBMC, when invoked with theflag, symbolically executes one program path at a time---saving unexplored paths for later---and attempts to prove properties for only that path. By doing this repeatedly for each path that CBMC encounters, CBMC can detect property violations in a scalable and incremental way.",
+    isbn="978-3-030-17502-3"
+    }
+

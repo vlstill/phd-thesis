@@ -22,6 +22,8 @@ parallel C programs in SV-COMP.
 
 We will now focus in more details on automatic techniques for verification of
 parallel programs.
+We will not consider program analysis techniques which require substantial manual effort (e.g., proof-theorem-based techniques), or techniques which are not applicable to realistic programs (e.g., techniques which use a special modelling language).
+We will also mostly disregard tools with no support for parallel programs.
 
 \section{Explicit-State Model Checking}
 
@@ -53,17 +55,35 @@ Using these techniques, it is possible to explore only some of the states of
 the state space in such a way that the property holds for these states if and
 only if it holds for the entire state space.
 These reduction techniques include \emph{Partial Order Reduction} (POR), which
-can eliminate some states by exploring independent event only in one particular
-order.
-Another example consists of various variants of \emph{\TODO{Lipton's?}
-reduction}~\cite{TODO} (also called $\tau$-reduction~\cite{TODO}), which can
-coalesce a path in the state space into a single edge and hide all intermediate
-states, provided that the resulting edge has at most one action which can
-interact with other actions in the state space.
-Finally, there are variants of \emph{symmetry reductions}, for example the
-\emph{heap-symmetry} reduction, which makes it possible to coalesce states
-which differ only in non-interesting properties, for example in the order in
-which memory objects were allocated.
+can eliminate some states by exploring independent events only in one
+particular order \cite{Pele1993,Godefroid1996partial, TODO}.
+\TODO{...}
+
+Another wide family of reductions are reductions which can coalesce a path in a
+state space into a single edge and hide all intermediate states.
+This idea was introduced by Lipton in~\cite{Lipton1975}, who introduced the
+notion of right movers (``resource acquire operations'') and left movers
+(``resource release operations'') to identify statements in program which can
+be executed atomically.
+However, in analysis of realistic parallel programs a notion of instruction (or
+action) visibility is often used -- a group of instructions from one thread can
+be executed atomically provided that at most one of them is visible to other
+threads and that this grouping does not influence checking of the verified
+property.
+Both static and dynamic reduction methods were proposed, under many names,
+including D-reduction~\cite{Lipton1975}, path reduction~\cite{Yorav2004}, $\tau$ reduction~\cite{BBR2012}, \TODO{…} for the static variants and $\tau+$ reduction~\cite{RBB13} and \cite[Section 6]{RSCB2018}, \TODO{...} for the dynamic once.
+Quite naturally, the dynamic methods are better suited for the complex control-
+and data-flow of realistic programs.
+
+Finally, there are variants of \emph{symmetry reductions} which reduce the
+state space by coalescing states which differ only in properties not relevant
+for the program analysis.
+For example the \emph{heap-symmetry} reduction allows to consider two states
+that differ only in the order in which memory objects were allocated to be the
+same~\cite{RBB13}, \cite[Chapter 6]{RSCB2018}, \cite{TODO}.
+A dead-variable reduction~\cite{Yorav2004,Yorav2004:4,TODO} can be also seen as an instance of symmetry reductions.
+\TODO{...}
+
 These state space reduction techniques can reduce the number of states by
 several orders of magnitude~\cite{TODO}, and therefore enable verification of
 realistic (but still relatively small) programs.
@@ -83,8 +103,12 @@ it is not practical to explicitly enumerate all possible values of data
 domains.
 Therefore, if data nondeterminism is required, it is required to combine explicit-state model checking with some technique for symbolic of abstract data representation \TODO{...}.
 
+\paragraph{Tools}
+
 Among the various tools which use explicit-state model checking as its basis,
-there are \TODO{...}, and our own tool DIVINE~\cite{DIVINEToolPaper2017}.
+there are SPIN~\cite{Holzmann1997,Holzmann2004}, \textsc{LTSmin}~\cite{TODO}, Java Path Finder (JPF)~\cite{TODO}, \TODO{...}, and our own tool DIVINE~\cite{DIVINEToolPaper2017}.
+SPIN targets primarily a modelling language PROMELA, but there is also an extension of SPIN to partial support of C, with the need to define a PROMELA driver~\cite{Zaks2008}.
+
 DIVINE uses dynamic $\tau+$ reduction~\cite{TODO}, heap symmetry reduction, and
 efficient representation of state space by memory graphs~\cite{RSCB2018}, to
 tackle realistic programs.
@@ -115,17 +139,17 @@ bounds -- loops are assigned maximum allowed number of iterations, if the
 program under test requires more iterations of some loop, the loop bound can be
 increased, or the analysis can be terminated as inconclusive.
 
-Without additional reductions, SMC would lead to redundant explorations of many
-parts of the state space -- in parallel programs it is common that two or more
-actions of different threads are independent and regardless of their order they
-lead to the same end state.
+Without additional state space reductions, SMC would lead to redundant
+explorations of many parts of the state space -- in parallel programs it is
+common that two or more actions of different threads are independent and
+regardless of their order they lead to the same end state.
 In this case a stateless model checker would explore a state as many times as
 is the number of paths from the initial state to this state (in the worst case
 the number of paths to a given state can be exponential to its distance from
 the initial state).
 To mitigate this problem, dynamic partial order reduction
 (DPOR)~\cite{Flanagan2005dpor} is employed with SMC.
-DPOR is a version of partial order reduction which tightly integrates with
+DPOR is a version of partial order reduction that tightly integrates with
 the SMC exploration algorithm and keeps track of parts of the state space which
 still need to be explored.
 Using DPOR, SMC can avoid redundant exploration of equivalent paths in the
@@ -141,58 +165,119 @@ The trace equivalence has to be designed in such a way that for each of its
 classes either all traces contain only safe states or all traces contain an
 unsafe state -- i.e., the equivalence preserves safety properties.
 
-For sequential consistency, multiple DPOR techniques were introduced. \TODO{techniky} \cite{TODO,TODO}, among these \cite{Abdulla2014} is interesting by providing an optimal algorithm for the given type of trace equivalences \TODO{...}. \TODO{...}
+For sequential consistency, multiple DPOR techniques were introduced.
+\TODO{Verisoft, CHESS, techniky} \cite{TODO,TODO}, among these \cite{Abdulla2014} is interesting by providing an optimal algorithm for equivalence based on \emph{Mazurkiewicz trace} \cite{Abdulla2014:17} (where traces are considered equivalent if one of them can be obtained from the other by swapping adjacent non-conflicting execution step..).
+While the original implementation of the is technique was used for verification of Erlang programs (which use message passing instead of shared variables) using the Concuerror tool, it was later successfully applied also to verification of C programs under TSO and PSO memory models using the Niddhugg SMC \cite{Abdulla2017tso}, a simpler, non-optimal version proposed in the original paper is also implemented in the Skink SMC~\cite{Cassez2017}.
+
+It is important to note that the optimal DPOR presented by \cite{Abdulla2014}
+is optimal for the given trace equivalence.
+Later a data-centric DPOR which uses a coarser equivalence and an optimal
+exploration algorithm for it was introduced in~\cite{Chalupa2017} and it was
+shown that it performs better on a selection of C benchmarks.
+
+Another approach based on observation of read and written values is Maximal
+Causality Reduction (MCR)~\cite{Huang2015}, which can be seen as an alternative
+to DPOR.
+MCR employs an SMT solver to find new traces to explore which allows it to
+explore less interleavings then Mazurkiewicz-trace-based DPOR techniques.
+Another advantage of MCR is that it can be easily modified for parallel
+exploration (DPOR cannot be easily executed in parallel).
+
+\TODO{...?}
+
+\paragraph{Relaxed Memory Models}
+
+Thanks to its ability to reduce exploration of redundant interleavings, SMC
+combined with DPOR or other reduction techniques is often used as a basis for
+analysis of programs running under various relaxed memory models.
+
+Several approaches focus on the TSO/\xtso memory models (and often also on PSO,
+which is somewhat more relaxed then TSO, but can usually be simulated in a
+similar manner).
+These include \emph{rInspect} presented in~\cite{Zhang2015}, which uses store
+buffers and shadow threads which flush them to integrate relaxed memory with
+existing DPOR approaches for sequential consistendy.
+The tool \emph{rInspect} is based on LLVM and targets primarily C programs.
+It has support for both bounded and unbounded store buffers (but being a SMC it
+works on terminating programs only).
+Another approach to TSO and PSO is used by tool Niddhugg and presented
+in~\cite{Abdulla2015}.
+This approach uses chronological traces that capture dependencies between
+memory operations.
+Chronological traces are then used with the optimal DPOR
+from~\cite{Abdulla2014}, which gives rise to an interesting property -- for
+robust programs (i.e., programs which do not exhibit observable relaxed
+behaviour) the number of traces explored under TSO or PSO should be the same as
+the number of traces explored under sequential consistency.
+Niddhugg is an LLVM-based tool for analysis of C programs.
+A SAT-based stateless approach is presented in~\cite{Demsky2015}.
+It targets both sequential consistency and \xtso and is implemented in the tool
+SATCheck.
+It repeatedly executes a concrete interleaving of threads (and records
+dependencies in this execution) and invokes SAT solver to find new
+interleavings with different behaviour.
+
+For the C11/C++11 memory model~\cite{Norris2013} presents a tool \textsc{CDSChecker}.
+It covers most of the C11 memory model, with the exception of release-consume
+synchronization and executions which exhibit out-of-thin-air
+values.\footnotemark
+To allow reads which are reordered with future operations (which is allowed by
+the C11 memory model), \textsc{CDSChecker} can propagate stored values to
+previous loads and validate this speculation.
+\textsc{CDSChecker} targets primarily unit tests of concurrent data structures
+written in C11/C++11.
+A different approach to stateless model checking of programs running under the
+C11/C++11 memory model is taken in~\cite{Kokologiannakis2017}.
+This approach uses the RC11 memory model, which is a proposed memory model
+which fixes some of the problems with the C11/C++11 memory
+model~\cite{Lahav2017}.
+Here, the authors use execution graphs which represent visible program actions
+and dependencies between them to explore all behaviour of a given program.
+This allows them to cover all program's behaviour without direct exploration of
+its interleavings.
+The approach is implemented in the tool RCMC.
+
+\footnotetext{Out-of-thin-air values \TODO{...}.}
+
+In~\cite{Abdulla2016} an approach for stateless model checking under the POWER memory model is show.
+The work presents a way to derive a suitable execution model from the axiomatic semantics of the memory model, and an SMC exploration algorithm for the execution model.
+The proposed approach explores only a single complete trace from each equivalence class given by Shasha-Snir traces~\cite{Shasha1988}, but it can perform redundant exploration of incomplete traces. 
+The algorithm is implemented in the tool Niddhugg.
 
 
-\TODO{from TEDI}
+\paragraph{Limitations of SMC}
 
-They employ Dynamic Partial Order Reduction (DPOR)
-to avoid exploring equivalent runs of the program~\cite{Flanagan2005dpor} and the works concerning relaxed memory models
-in this setting often discuss interlay between DPOR and relaxed memory
-model in length.
+- deteministic threads: \cite{Huang2015:14,Huang2015:27}.
 
-A stateless model checking approach to the analysis of programs running
-under the C++11 memory model (with the exception of release-consume
-synchronization) is presented in~\cite{Norris2013}. It uses custom
-implementation of C++ thread and atomic libraries to produce binaries
-which perform the analysis. It lazily builds relations between memory
-operations in the form of a \emph{modification order graph}. This
-representation prevents exploration of infeasible executions as well as
-unnecessary distinction between equivalent executions. Furthermore, as
-the C++ memory model allows reordering of reads with future operations,
-the authors propose to simulate this by propagating stored values to
-previous loads and validating this speculation (which does not simulate
-out-of-thin-air values). The paper includes a long discussion on
-features of the C++ memory model and the corresponding implementation in
-\textsc{CDSChecker}, which is usable for (small) unit tests of
-concurrent data structures written in C11 or C++11.
-
-In~\cite{Zhang2015} the authors focus mostly on modelling of TSO and PSO
-and its interplay with DPOR. They combine modelling of thread scheduling
-nondeterminism and memory model nondeterminism using store buffers to a
-common framework. This is done by adding store buffers to the program
-and adding shadow thread for each store buffer which is responsible for
-flushing contents of this buffer to the memory. The proposed approach is
-implemented in the tool \emph{rInspect}, which is an LLVM-based
-stateless model checker which supports both unbounded store buffers and
-buffer bounding (however, as it is a stateless model checker, it works
-only on programs which terminate).
-
-Another approach to combining TSO and PSO analysis with stateless model
-checking is presented in~\cite{Abdulla2015}. In this work executions are
-represented by chronological traces which capture dependencies required
-to represent interaction between memory actions. These chronological
-traces are acyclic relations and therefore can be used for DPOR,
-including the optimal DPOR which explores exactly one execution in the
-equivalence class of the partial order~\cite{Abdulla2014}. The advantage
-of this approach is that for robust programs, using the optimal DPOR
-algorithm with chronological traces should produce the same number of
-executions under SC as under relaxed memory model. The proposed approach
-is implemented in an LLVM-based tool Niddhugg, which supports analysis
-of C programs with pthreads parallelism and with a bounded execution
-length.
 
 \section{Bounded Model Checking}
+
+CBMC \cite{Kroening2014}, \cite{Clarke2004}
+- bit-precise BMC for C
+- SAT based
+- assertions + instrumentation for other properties (safety only)
+- unrolling bound
+- parallelism, weak (SC, x86, POWER), uses partial orders  for efficient encoding of parallelism \cite{Alglave2013por} (\TODO{? :30, :36, :6})
+- relaxed memory has little impact on performance
+- SC: \cite{Alglave2013por:25}
+- SV-COMP
+
+\textsc{Yogar-CBMC} \cite{Yin2018}, \cite{Yin2019}
+- parallelism, SC only
+- can run in parallel
+- abstraction and refinement of the encoding of scheduling constraints (which is normally cubic)
+
+CBMC Path~\cite{Khazem2019}
+- encodes program to SAT a single path a time
+- aimed at faster bug discovery, especially for shallow bugs
+- performed poorly in SV-COMP even on buggy benchmarks only
+
+
+\paragraph{Limitations of BMC}
+
+- C programs
+- bounded depth
+- functions inlined (… function pointers)
 
 \section{K-Induction, IC3, …}
 
@@ -203,6 +288,8 @@ length.
 \section{Sequentialization Techniques}
 
 \section{Systematic Testing}
+
+\section{Control-Flow Analysis Techniques}
 
 \section{XXX}
 
@@ -234,12 +321,6 @@ Another approach to program transformation is taken in~\cite{Atig2011}, in this 
 In~\cite{Abdulla2017} the context-bounded analysis using transformation is applied to the POWER memory model.
 Our work in~\cite{SRB15weakmem} presents a transformation of LLVM bitcode to simulate buffer-bounded \xtso runs; compared to this work it has significantly less efficient implementation of the \xtso simulation.
 
-A stateless model checking~\cite{Godefroid1997} approach to the analysis of programs running under the C++11 memory model (except for the release-consume synchronization) is presented in~\cite{Norris2013}.
-In~\cite{Zhang2015} the authors focus mostly on modeling of TSO and PSO and its interplay with dynamic partial order reduction (DPOR, \cite{Flanagan2005dpor}).
-They combine modeling of thread scheduling nondeterminism and memory model nondeterminism using store buffers to a common framework by adding shadow thread for each store buffer which is responsible for flushing contents of this buffer to the memory.
-Another approach to combining TSO and PSO analysis with stateless model checking is presented in~\cite{Abdulla2015}.
-The advantage of this approach is that for a program without relaxed behavior it should produce no additional traces compared to sequential consistency.
-Another approach to stateless model checking is taken in \cite{Kokologiannakis2017}, which uses execution graphs to explore all behavior of a C/C++ program under a modified C++11 memory model without exploring its interleaving directly.
 
 So far, all of the described techniques used some kind of bounding to achieve efficiency -- either bounding number of reordered operations, number of context switches, or number of iterations of loops.
 An unbounded approach to verification of programs under TSO is presented in~\cite{Linden2010}.
@@ -284,5 +365,8 @@ Overall, neither of these techniques is applicable in general for the detection 
 Finally, there are also techniques for checking termination of sequential programs, to name a few \cite{Giesl2017,Chen2018}.
 
 \section{Benchmark Suites}
+
+- \cite{Sarkar2011}, \cite{MadorHaim2012} POWER tests
+- http://www.cprover.org/wmm/
 
 % vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en
