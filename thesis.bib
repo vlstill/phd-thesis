@@ -1702,6 +1702,7 @@ keywords = {Partial-order Reduction, Stateless model-checking, Concurrency}
     volume={},
     number={},
     pages={643-653},
+    doi={10.1109/ICSE.2019.00074}
 }
 
 @InProceedings{Khazem2019,
@@ -1941,7 +1942,7 @@ series = {POPL ’05}
     publisher="Springer International Publishing",
     address="Cham",
     pages="97--103",
-    abstract="We integrate a simplified model of the Qt framework, named as Qt operational model (QtOM), into the efficient SMT-based context-bounded model checker (ESBMC++), which results in ESBMC{\$}{\$}^{\{}QtOM{\}}{\$}{\$}QtOM. In particular, ESBMC{\$}{\$}^{\{}QtOM{\}}{\$}{\$}QtOMis a bounded model checking tool to verify Qt-based applications, which focuses on the verification of code properties, such as invalid memory access and containers usage, through pre- and postconditions, data usage evaluation, and simulation features. Experimental results show that ESBMC{\$}{\$}^{\{}QtOM{\}}{\$}{\$}QtOMcan be effectively and efficiently applied to verify Qt-based consumer electronics applications.",
+    abstract="We integrate a simplified model of the Qt framework, named as Qt operational model (QtOM), into the efficient SMT-based context-bounded model checker (ESBMC++), which results in ESBMC{$^{QtOM}$}. In particular, ESBMC{$^{QtOM}$} is a bounded model checking tool to verify Qt-based applications, which focuses on the verification of code properties, such as invalid memory access and containers usage, through pre- and postconditions, data usage evaluation, and simulation features. Experimental results show that ESBMC{$^{QtOM}$} can be effectively and efficiently applied to verify Qt-based consumer electronics applications.",
     isbn="978-3-319-32582-8"
 }
 
@@ -1957,3 +1958,83 @@ series = {POPL ’05}
     abstract="We present combined-case k-induction, a novel technique for verifying software programs. This technique draws on the strengths of the classical inductive-invariant method and a recent application of k-induction to program verification. In previous work, correctness of programs was established by separately proving a base case and inductive step. We present a new k-induction rule that takes an unstructured, reducible control flow graph (CFG), a natural loop occurring in the CFG, and a positive integer k, and constructs a single CFG in which the given loop is eliminated via an unwinding proportional to k. Recursively applying the proof rule eventually yields a loop-free CFG, which can be checked using SAT-/SMT-based techniques. We state soundness of the rule, and investigate its theoretical properties. We then present two implementations of our technique: K-Inductor, a verifier for C programs built on top of the CBMC model checker, and K-Boogie, an extension of the Boogie tool. Our experiments, using a large set of benchmarks, demonstrate that our k-induction technique frequently allows program verification to succeed using significantly weaker loop invariants than are required with the standard inductive invariant approach.",
     isbn="978-3-642-23702-7"
 }
+
+@InProceedings{Inverso2014,
+    author="Inverso, Omar and Tomasco, Ermenegildo and Fischer, Bernd and La Torre, Salvatore and Parlato, Gennaro",
+    editor="Biere, Armin
+    and Bloem, Roderick",
+    title="Bounded Model Checking of Multi-threaded C Programs via Lazy Sequentialization",
+    booktitle="Computer Aided Verification",
+    year="2014",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="585--602",
+    abstract="Bounded model checking (BMC) has successfully been used for many practical program verification problems, but concurrency still poses a challenge. Here we describe a new approach to BMC of sequentially consistent C programs using POSIX threads. Our approach first translates a multi-threaded C program into a nondeterministic sequential C program that preserves reachability for all round-robin schedules with a given bound on the number of rounds. It then re-uses existing high-performance BMC tools as backends for the sequential verification problem. Our translation is carefully designed to introduce very small memory overheads and very few sources of nondeterminism, so that it produces tight SAT/SMT formulae, and is thus very effective in practice: our prototype won the concurrency category of SV-COMP14. It solved all verification tasks successfully and was 30x faster than the best tool with native concurrency handling.",
+    isbn="978-3-319-08867-9"
+}
+
+@article{Qadeer2004,
+    author = {Qadeer, Shaz and Wu, Dinghao},
+    title = {KISS: Keep It Simple and Sequential},
+    year = {2004},
+    issue_date = {June 2004},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {39},
+    number = {6},
+    issn = {0362-1340},
+    url = {https://doi.org/10.1145/996893.996845},
+    doi = {10.1145/996893.996845},
+    journal = {SIGPLAN Not.},
+    month = jun,
+    pages = {14–24},
+    numpages = {11},
+    keywords = {program analysis, assertion checking, concurrent software, race detection, model checking}
+}
+
+@InProceedings{Tomasco2015,
+    author="Tomasco, Ermenegildo and Inverso, Omar and Fischer, Bernd and La Torre, Salvatore and Parlato, Gennaro",
+    editor="Baier, Christel
+    and Tinelli, Cesare",
+    title="Verifying Concurrent Programs by Memory Unwinding",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2015",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="551--565",
+    abstract="We describe a new sequentialization-based approach to the symbolic verification of multithreaded programs with shared memory and dynamic thread creation. Its main novelty is the idea of memory unwinding (MU), i.e., a sequence of write operations into the shared memory. For the verification, we nondeterministically guess an MU and then simulate the behavior of the program according to any scheduling that respects it. This approach is complementary to other sequentializations and explores an orthogonal dimension, i.e., the number of write operations. It also simplifies the implementation of several important optimizations, in particular the targeted exposure of individual writes. We implemented this approach as a code-to-code transformation from multithreaded into nondeterministic sequential programs, which allows the reuse of sequential verification tools. Experiments show that our approach is effective: it found all errors in the concurrency category of SV-COMP15.",
+    isbn="978-3-662-46681-0",
+    doi="10.1007/978-3-662-46681-0_52"
+}
+
+@InProceedings{Tomasco2016,
+    author="Tomasco, Ermenegildo and Nguyen, Truc L.  and Inverso, Omar and Fischer, Bernd and La Torre, Salvatore and Parlato, Gennaro",
+    editor="Chechik, Marsha
+    and Raskin, Jean-Fran{\c{c}}ois",
+    title="MU-CSeq 0.4: Individual Memory Location Unwindings",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2016",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="938--941",
+    abstract="We present the MU-CSeq tool for the verification of multi-threaded C programs with dynamic thread creation, dynamic memory allocation, and pointer arithmetic. It is based on sequentializing the programs over the new notion of individual memory location unwinding (IMU). IMU is derived from the notion of memory unwinding that has been implemented in the previous versions of MU-CSeq. The main concepts of IMU are: (1) the use of multiple write sequences, one for each individual shared memory location that is effectively used in the executions and (2) the use of memory addresses rather than variable names in the operations on the shared memory, which requires a separate table to map write sequences but supports pointer arithmetic.",
+    isbn="978-3-662-49674-9",
+    doi="10.1007/978-3-662-49674-9_65"
+}
+
+@InProceedings{Tomasco2017,
+    author="Tomasco, Ermenegildo and Nguyen, Truc Lam and Fischer, Bernd and La Torre, Salvatore and Parlato, Gennaro",
+    editor="Cimatti, Alessandro
+    and Sirjani, Marjan",
+    title="Using Shared Memory Abstractions to Design Eager Sequentializations for Weak Memory Models",
+    booktitle="Software Engineering and Formal Methods",
+    year="2017",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="185--202",
+    abstract="Sequentialization translates concurrent programs into equivalent nondeterministic sequential programs so that the different concurrent schedules no longer need to be handled explicitly. However, existing sequentializations assume sequential consistency, which modern hardware architectures no longer guarantee. Here we describe a new approach to embed weak memory models within eager sequentializations. Our approach is based on the separation of intra-thread computations from inter-thread communications by means of a shared memory abstraction (SMA). We give details of SMA implementations for the SC, TSO, and PSO memory models that are based on the idea of individual memory unwindings. We use our approach to implement a new, efficient BMC-based bug finding tool for multi-threaded C programs under SC, TSO, or PSO based on these SMAs, and show experimentally that it is competitive to existing tools.",
+    isbn="978-3-319-66197-1",
+    doi="10.1007/978-3-319-66197-1_12"
+}
+
+

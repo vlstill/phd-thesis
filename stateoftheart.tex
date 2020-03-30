@@ -285,7 +285,7 @@ CBMC \cite{Kroening2014}, \cite{Clarke2004}
 \textsc{Yogar-CBMC} \cite{Yin2018}, \cite{Yin2019}
 - parallelism, SC only
 - can run in parallel
-- abstraction and refinement of the encoding of scheduling constraints (which is normally cubic)
+- abstraction and refinement of the encoding of scheduling constraints (which is normally cubic), multiple counterexample-guided refinements run at once, sharing the learned constraints
 
 CBMC Path~\cite{Khazem2019}
 - encodes program to SAT a single path a time
@@ -315,6 +315,34 @@ LLVMVF~\cite{Sousa2013}
 - no condition variables
 - no threads
 - not actively maintained \TODO{ověřit}
+
+\paragraph{Sequentialization}
+
+\TODO{\cite{Qadeer2004}}
+
+Lazy-CSeq~\cite{Inverso2014}
+- sequentialization of C programs: multi-threaded program -> nondeterministic sequential proram (source-to-source transformation)
+- context bounded, round-robin schedules with given bound on round number
+- designed to minimize memory overhead and sources of nondeterminism
+- error checking is deffered to the backend
+- uses CBMC as a backend (can use other BNCs: ESBMC, LLBMC, BLITZ)
+- the formula size if O(|orig prog.| * |n threads| * |n rounds|)
+- Lazy = explores only reachable state space (compared to Akash Lal \& Thomas Reps: Reducing concurrent analysis under a context bound to sequential analysis), does not start after each context switch from nondeterministic values
+
+MU-CSeq~\cite{Tomasco2015}, \cite{Tomasco2016}
+- memory unwinding (MU) = sequence of write operations to the shared memory
+- MU is nondeterministically guessed, the program is allowed to run such that it respects the MU
+- = bounded number of write operations 
+  - either all write operations, or only some selected as visible to other threads are part of the unwinding
+- later IMU = individual memory location unwinding
+  - separate sequence for each location + timestamp of writes
+- uses CBMC as a backend
+- source-to-source transformation for C
+- support for dynamic memory added in~\cite{Tomasco2016}
+- eager = threads are executed separately, with nondeterministic values for shared memory reads, runs are pruned
+- IMU-CSeq~\cite{Tomasco2017}
+  - relaxed memory models (TSO, PSO)
+  - shared memory abstraction (SMA) = definition of memory operations + synchronization primitives (different SMA -> different memory model)
 
 \paragraph{Limitations of BMC}
 
