@@ -274,7 +274,8 @@ CBMC \cite{Kroening2014}, \cite{Clarke2004}
 - SAT based
 - assertions + instrumentation for other properties (safety only)
 - unrolling bound
-- parallelism, weak (SC, x86, POWER), uses partial orders  for efficient encoding of parallelism \cite{Alglave2013por} (\TODO{? :30, :36, :6})
+- parallelism, weak (SC, x86, POWER), uses partial orders  for efficient encoding of parallelism \cite{Alglave2013por} instead of interleavings (\TODO{? :30, :36, :6})
+  - the formula is build from SSA form of each thread and ordering constraints for shared variables
 - relaxed memory has little impact on performance
 - SC: \cite{Alglave2013por:25}
 - SV-COMP
@@ -351,13 +352,21 @@ ESBMC~\cite{Gadelha2019}, \cite{Gadelha2018}
   - abstract representation of C++ libraries (= operational model; conservative appriximation of library behaviour)
   - exception handling, inheritance (modelling of objects)
   - GCC/g++ based parser
+  - later a Qt object model was added~\cite{Sousa2015},~\cite{Garcia2016}: tool $\text{ESBMC}^{\mathit{Qt}OM}$
+    - partial support for the Qt framework for C++ programs
+    - model based on documentation
 
 
 DepthK~\cite{Rocha2017}, \cite{Rocha2017svc}
 - BMC + k-induction + polyherdral invariants
 - a preprocessor for ESBMC, it uses an external tool for invariant generation
 - C programs, parallelism
-- 
+
+\cite{Donaldson2011}: \textsc{K-Inductor}, \textsc{K-Boogie}
+<- CBMC based
+-> extension of Boogie
+- \TODO{...}
+
 
 \section{Symbolic Execution}
 

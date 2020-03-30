@@ -1920,4 +1920,40 @@ series = {POPL ’05}
     volume={},
     number={},
     pages={147-156},
-} 
+}
+
+@INPROCEEDINGS{Sousa2015,
+    author={F. R. M. {Sousa} and L. C. {Cordeiro} and E. B. {de Lima Filho}},
+    booktitle={2015 IEEE 4th Global Conference on Consumer Electronics (GCCE)},
+    title={Bounded model checking of C++ programs based on the Qt framework},
+    year={2015},
+    volume={},
+    number={},
+    pages={179-180},
+}
+
+@InProceedings{Garcia2016,
+    author="Garcia, M{\'a}rio and Monteiro, Felipe and Cordeiro, Lucas and de Lima Filho, Eddie",
+    editor="Bo{\v{s}}na{\v{c}}ki, Dragan and Wijs, Anton",
+    title="ESBMC{$^{QtOM}$}: A Bounded Model Checking Tool to Verify Qt Applications",
+    booktitle="Model Checking Software",
+    year="2016",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="97--103",
+    abstract="We integrate a simplified model of the Qt framework, named as Qt operational model (QtOM), into the efficient SMT-based context-bounded model checker (ESBMC++), which results in ESBMC{\$}{\$}^{\{}QtOM{\}}{\$}{\$}QtOM. In particular, ESBMC{\$}{\$}^{\{}QtOM{\}}{\$}{\$}QtOMis a bounded model checking tool to verify Qt-based applications, which focuses on the verification of code properties, such as invalid memory access and containers usage, through pre- and postconditions, data usage evaluation, and simulation features. Experimental results show that ESBMC{\$}{\$}^{\{}QtOM{\}}{\$}{\$}QtOMcan be effectively and efficiently applied to verify Qt-based consumer electronics applications.",
+    isbn="978-3-319-32582-8"
+}
+
+@InProceedings{Donaldson2011,
+    author="Donaldson, Alastair F.  and Haller, Leopold and Kroening, Daniel and R{\"u}mmer, Philipp",
+    editor="Yahav, Eran",
+    title="Software Verification Using k-Induction",
+    booktitle="Static Analysis",
+    year="2011",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="351--368",
+    abstract="We present combined-case k-induction, a novel technique for verifying software programs. This technique draws on the strengths of the classical inductive-invariant method and a recent application of k-induction to program verification. In previous work, correctness of programs was established by separately proving a base case and inductive step. We present a new k-induction rule that takes an unstructured, reducible control flow graph (CFG), a natural loop occurring in the CFG, and a positive integer k, and constructs a single CFG in which the given loop is eliminated via an unwinding proportional to k. Recursively applying the proof rule eventually yields a loop-free CFG, which can be checked using SAT-/SMT-based techniques. We state soundness of the rule, and investigate its theoretical properties. We then present two implementations of our technique: K-Inductor, a verifier for C programs built on top of the CBMC model checker, and K-Boogie, an extension of the Boogie tool. Our experiments, using a large set of benchmarks, demonstrate that our k-induction technique frequently allows program verification to succeed using significantly weaker loop invariants than are required with the standard inductive invariant approach.",
+    isbn="978-3-642-23702-7"
+}
