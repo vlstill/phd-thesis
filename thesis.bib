@@ -1809,3 +1809,115 @@ keywords = {Partial-order Reduction, Stateless model-checking, Concurrency}
     publisher={Springer}
 }
 
+@InProceedings{Rocha2017svc,
+    author="Rocha, Williame and Rocha, Herbert and Ismail, Hussama and Cordeiro, Lucas and Fischer, Bernd",
+    editor="Legay, Axel and Margaria, Tiziana",
+    title="DepthK: A k-Induction Verifier Based on Invariant Inference for C Programs",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2017",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="360--364",
+    abstract="DepthK is a software verification tool that employs a proof by induction algorithm that combines k-induction with invariant inference. In order to efficiently and effectively verify and falsify safety properties in C programs, DepthK infers program invariants using polyhedral constraints. Experimental results show that our approach can handle a wide variety of safety properties in several intricate verification tasks.",
+    isbn="978-3-662-54580-5"
+}
+
+@Inbook{Rocha2017,
+author="Rocha, Herbert
+and Ismail, Hussama
+and Cordeiro, Lucas
+and Barreto, Raimundo",
+editor="Lettnin, Djones
+and Winterholer, Markus",
+title="Model Checking Embedded C Software Using k-Induction and Invariants",
+bookTitle="Embedded Software Verification and Debugging",
+year="2017",
+publisher="Springer New York",
+address="New York, NY",
+pages="159--182",
+abstract="We present a novel proof by induction algorithm, which combines k-induction with invariants to model check embedded C software with bounded and unbounded loops. The k-induction algorithm consists of three cases: in the base case, we aim to find a counterexample with upÂ to k loop unwindings; in the forward condition, we check whether loops have been fully unrolled and that the safety property P holds in all states reachable within k unwindings; and in the inductive step, we check that whenever P holds for k unwindings, it also holds after the next unwinding of the system. For each step of the k-induction algorithm, we infer invariants using affine constraints (i.e., polyhedral) to specify pre and postconditions. The algorithm was implemented in two different ways, with and without invariants using polyhedral, and the results were compared. Experimental results show that both forms can handle a wide variety of safety properties in typical embedded software applications from telecommunications, control systems, and medical devices domains; however, the k-induction algorithm adopting polyhedral solves more verification tasks, which demonstrate an improvement of the induction algorithm effectiveness.",
+isbn="978-1-4614-2266-2",
+doi="10.1007/978-1-4614-2266-2_7",
+url="https://doi.org/10.1007/978-1-4614-2266-2_7"
+}
+
+@inproceedings{Cordeiro2011,
+    author = {Cordeiro, Lucas and Fischer, Bernd},
+    title = {Verifying Multi-Threaded Software Using Smt-Based Context-Bounded Model Checking},
+    year = {2011},
+    isbn = {9781450304450},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/1985793.1985839},
+    doi = {10.1145/1985793.1985839},
+    booktitle = {Proceedings of the 33rd International Conference on Software Engineering},
+    pages = {331–340},
+    numpages = {10},
+    keywords = {symbolic and explicit model checking, formal software verification, sat modulo theories, multi-threaded systems},
+    location = {Waikiki, Honolulu, HI, USA},
+    series = {ICSE ’11}
+}
+
+@inproceedings{10.1145/1040305.1040316,
+author = {Grumberg, Orna and Lerda, Flavio and Strichman, Ofer and Theobald, Michael},
+title = {Proof-Guided Underapproximation-Widening for Multi-Process Systems},
+year = {2005},
+isbn = {158113830X},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1040305.1040316},
+doi = {10.1145/1040305.1040316},
+booktitle = {Proceedings of the 32nd ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
+pages = {122–131},
+numpages = {10},
+keywords = {software verification, SAT proofs, underapproximation-widening, bounded model checking, abstraction},
+location = {Long Beach, California, USA},
+series = {POPL ’05}
+}
+
+@article{Grumberg2005,
+    author = {Grumberg, Orna and Lerda, Flavio and Strichman, Ofer and Theobald, Michael},
+    title = {Proof-Guided Underapproximation-Widening for Multi-Process Systems},
+    year = {2005},
+    issue_date = {January 2005},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {40},
+    number = {1},
+    issn = {0362-1340},
+    url = {https://doi.org/10.1145/1047659.1040316},
+    doi = {10.1145/1047659.1040316},
+    journal = {SIGPLAN Not.},
+    month = jan,
+    pages = {122–131},
+    numpages = {10},
+    keywords = {SAT proofs, underapproximation-widening, bounded model checking, software verification, abstraction}
+}
+
+@article{Cordeiro2016,
+    author = {Cordeiro, Lucas C. and de Lima Filho, Eddie B.},
+    title = {SMT-Based Context-Bounded Model Checking for Embedded Systems: Challenges and Future Trends},
+    year = {2016},
+    issue_date = {June 2016},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {41},
+    number = {3},
+    issn = {0163-5948},
+    url = {https://doi.org/10.1145/2934240.2934247},
+    doi = {10.1145/2934240.2934247},
+    journal = {SIGSOFT Softw. Eng. Notes},
+    month = jun,
+    pages = {1–6},
+    numpages = {6}
+}
+
+@INPROCEEDINGS{Ramalho2013,
+    author={M. {Ramalho} and M. {Freitas} and F. {Sousa} and H. {Marques} and L. {Cordeiro} and B. {Fischer}},
+    booktitle={2013 20th IEEE International Conference and Workshops on Engineering of Computer Based Systems (ECBS)},
+    title={SMT-Based Bounded Model Checking of C++ Programs},
+    year={2013},
+    volume={},
+    number={},
+    pages={147-156},
+} 

@@ -88,6 +88,10 @@ These state space reduction techniques can reduce the number of states by
 several orders of magnitude~\cite{TODO}, and therefore enable verification of
 realistic (but still relatively small) programs.
 
+\TODO{Interestingly, the proposed reduction techniques which aim to preserve verified properties are not always correct, for example the original version of $\tau+$ reduction considered only stores visible, but it was later shown that repeated loads have to be also visible (shown by me in~\cite{S2016}, acknowledged an fixed in \cite[Section 6]{RSCB2018}).
+Similar problem was present in \cite{Cordeiro2011} where ESBMC could perform two conditional jumps which read the same shared variable with no context switch between them (section 3.1, rule R3).
+Interestingly, the authors notice the possibility of missing context switches, but only introduce an option to fix it.}
+
 To further improve capabilities of explicit-state model checking, several
 techniques for compact representation of the set of visited states were
 introduced.
@@ -245,6 +249,17 @@ The proposed approach explores only a single complete trace from each equivalenc
 The algorithm is implemented in the tool Niddhugg.
 
 
+---
+
+CHESS:
+- state hashing (according to \cite{Cordeiro2011})
+
+
+SATABS (unknown type)
+- according to \cite{Cordeiro2011} cannot handle arrays + arithmetic
+
+
+
 \paragraph{Limitations of SMC}
 
 - deteministic threads: \cite{Huang2015:14,Huang2015:27}.
@@ -297,13 +312,14 @@ LLVMVF~\cite{Sousa2013}
 - generic framework on which the BMC is built
 - input is LLVM IR
 - no condition variables
+- no threads
+- not actively maintained \TODO{ověřit}
 
 \paragraph{Limitations of BMC}
 
 - C programs
 - bounded depth
 - functions inlined (… function pointers)/recursion bound
-- no threads(?)
 
 \section{K-Induction, IC3, …}
 
@@ -317,17 +333,31 @@ A BMC with $k$-induction repeatedly performs three steps with an increasing boun
     \item[Inductive Step] checks that in a modified program in which all loop variables are initialized to nondeterministic values before the loops and the loops are required to execute to completion,\footnotemark{} if the safety property holds for the first $k$ steps, it also holds for $k+1$ steps. If the induction step holds the program is correct.
 \end{description}
 \footnotetext{This can be achieved by instrumenting \texttt{assume} statements which ensure that the loop body is entered and that after the given number of iterations the condition for loop termination holds.}
-
+Invariants can be used to strengthen the induction by constraining the nondeterministic values of loop variables.
+\cite{Cordeiro2016:23-27}
 
 ESBMC~\cite{Gadelha2019}, \cite{Gadelha2018}
 - C programs
 - SMT-based BMC + k-induction + invariant generation based on intervals for integral variables (to guide the inductive step)
 - interval analysis cannot handle pointers and is incorrect with them
-- context-bounded?
+- context-bounded - the number of context switches is limited
+- context switches only at visible instructions (access of shared memory)
 - clang-based frontend (uses AST, not LLVM)
 - assertions, memory errors, overflow, deadlocks
 - (uses a symbolic execution when generating formula \& unrolling (so does CBMC))
+- approach to threading is described in~\cite{Cordeiro2011} (the tree of possible interleavings is explored explicitly, variable constraints are only collected but not resolved, encoded by paths (= lazy; each interleaving uses a seperate single-threaded BNC instance) or together (= schedule recording, using guards to encode scheduling of the interleavings), or an algorithm based on approximation and widening~\cite{Grumberg2005} can be used (=underapproximation+widening; which uses series of under-approximations refined based on proofs of unsatisfiability of the formula which represents the runs of the programs with the property. Should guide the checker to interleavings interesting for the formula. The formula still encodes all interleavings, but only some of them can be used.) lazy is best, then scheduler, UW is slowest (probably due to proof generation).
+- \cite{Cordeiro2016}: analysis of challenges of BMC
+- support for C++: ESBMC++~\cite{Ramalho2013}
+  - abstract representation of C++ libraries (= operational model; conservative appriximation of library behaviour)
+  - exception handling, inheritance (modelling of objects)
+  - GCC/g++ based parser
 
+
+DepthK~\cite{Rocha2017}, \cite{Rocha2017svc}
+- BMC + k-induction + polyherdral invariants
+- a preprocessor for ESBMC, it uses an external tool for invariant generation
+- C programs, parallelism
+- 
 
 \section{Symbolic Execution}
 
@@ -416,5 +446,11 @@ Finally, there are also techniques for checking termination of sequential progra
 
 - \cite{Sarkar2011}, \cite{MadorHaim2012} POWER tests
 - http://www.cprover.org/wmm/
+- ESBMC (\cite{Cordeiro2011}): http://users.ecs.soton.ac.uk/lcc08r/esbmc/
+- ESBMC++ \cite{Ramalho2016:19,6,27,.} (sec. IV.A. Experimental Setup)
+
+\section{MISC}
+
+- need for environemnt and application intefrace modelling: \cite{Cordeiro2016}
 
 % vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en
