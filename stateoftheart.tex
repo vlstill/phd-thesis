@@ -95,11 +95,11 @@ Interestingly, the authors notice the possibility of missing context switches, b
 To further improve capabilities of explicit-state model checking, several
 techniques for compact representation of the set of visited states were
 introduced.
-These techniques include \emph{hash compaction}~\cite{TODO}, which is an
+These techniques include \emph{hash compaction} and \emph{bitstate hashing}~\cite{Holzmann1998}, which is an
 incomplete technique which stores hashes of states instead of storing the
 entries states (and therefore can omit some parts of the state space if there
 is hash collision), \emph{probabilistic storage of states}\TODO{...}, and
-\emph{lossless compression techniques}~\cite{RSB15TC,TODO}.
+\emph{lossless compression techniques}~\cite{RSB15TC,Laarman2019}.
 
 \TODO{data} While explicit-state model checking can easily represent
 control-flow nondeterminism, it is not well suited for data nondeterminism, as
@@ -123,6 +123,33 @@ parallel programs (\autoref{chap:lnterm}, \cite{SB2019}).
 DIVINE has also good support for the C and C++ languages, including support for
 the standard libraries and C++ exceptions (\autoref{chap:lang},
 \cite{SRB2017}).
+
+---
+
+LTSmin~\cite{Kant2015}
+- probabilistic, timed systems
+- multi-core LTL model checker, partial order reduction
+- multi-core symbolic checking for $\mu$-calculus
+- multiple modelling formalism, but no realistic programming languages
+- state space compression
+- paralell LTL search
+
+Java Pathfinder (JPF)~\cite{Artho2019}, \cite{Visser2003}
+- java bitecode programs (with limited support to call native code), including concurrency
+- based on explicit-state model checking
+- extension to symbolic execution Symbolic Pathfinder~\cite{Pasareanu2013}
+  - test generation, assertion violations, concurrency errors in programs with inputs
+  - targets unit tests and sub-system level testing
+  - possibility of unit preconditions, combination of symbolic and concrete values
+  - uses JPF to explore different interleavings
+  - depth bound (state comparison disabled by default, if enabled disregards symbolic data)
+  - support for symbolic input data structures -> lazily initialized and extended when needed (heap allocations)
+- checks for uncaught exceptions (includes assertions in Java)
+- uses hash-compaction for representation of the set of visited states~\cite{TODO} (-> under-approximation)
+- groups instructions with local effects (~ $\tau$) with heuristics to decide which instructions can be grouped -- according to the authors it can miss behaviours
+- nondeterministic choices - scheduling, data (over given range)
+- partial model of the standard library
+- some support for IO ??
 
 \section{Stateless Model Checking}
 
@@ -273,10 +300,10 @@ CBMC \cite{Kroening2014}, \cite{Clarke2004}
 - SAT based
 - assertions + instrumentation for other properties (safety only)
 - unrolling bound
-- parallelism, weak (SC, x86, POWER), uses partial orders  for efficient encoding of parallelism \cite{Alglave2013por} instead of interleavings (\TODO{? :30, :36, :6})
+- parallelism, weak (SC, x86, POWER), uses partial orders  for efficient encoding of parallelism \cite{Alglave2013po} instead of interleavings (\TODO{? :30, :36, :6})
   - the formula is build from SSA form of each thread and ordering constraints for shared variables
 - relaxed memory has little impact on performance
-- SC: \cite{Alglave2013por:25}
+- SC: \cite{Alglave2013po:25}
 - SV-COMP
 - custom C frontend
 - k-induction?? (\cite{Gadelha2018:7})
@@ -319,14 +346,15 @@ LLVMVF~\cite{Sousa2013}
 
 \TODO{\cite{Qadeer2004}}
 
-Lazy-CSeq~\cite{Inverso2014}
+Lazy-CSeq~\cite{Inverso2015}, \cite{Nguyen2017}
 - sequentialization of C programs: multi-threaded program -> nondeterministic sequential proram (source-to-source transformation)
 - context bounded, round-robin schedules with given bound on round number
 - designed to minimize memory overhead and sources of nondeterminism
-- error checking is deffered to the backend
+- error checking is deffered to the backend + deadlocks in POSIX thread mutex use
 - uses CBMC as a backend (can use other BNCs: ESBMC, LLBMC, BLITZ)
 - the formula size if O(|orig prog.| * |n threads| * |n rounds|)
 - Lazy = explores only reachable state space (compared to Akash Lal \& Thomas Reps: Reducing concurrent analysis under a context bound to sequential analysis), does not start after each context switch from nondeterministic values
+- abstract interpretation (using Frama-C~\cite{Canet2009}) added to infer variable bounds and the shrink bitvector variables in the formulas \cite{Nguyen2017}
 
 MU-CSeq~\cite{Tomasco2015}, \cite{Tomasco2016}
 - memory unwinding (MU) = sequence of write operations to the shared memory
@@ -476,6 +504,35 @@ Also, these global deadlock detection techniques are inadequate in the presence 
 A somewhat different approach based on communicating channels is proposed in \cite{Ng2016}, but this approach is aiming at the Go programming language which primarily uses shared channels for communication between threads.
 Overall, neither of these techniques is applicable in general for the detection of nontermination in programs which use a combination of synchronisation primitives in shared memory.
 Finally, there are also techniques for checking termination of sequential programs, to name a few \cite{Giesl2017,Chen2018}.
+
+\section{Termination Checking}
+
+SACO~\cite{Albert2017}
+- for analysis of concurrent programs with loops
+- uses may-happen-in-parallel analysis to infer which part of the program can interfere
+- also infer upper bounds on iteration numbers
+- for modelling language (with shared memory)
+- generates constraints on how the shared state can be modified in order for the loop to terminate and than checks that this will eventually hold
+
+2LS~\cite{Malik2018}
+- built on CPROVER (the backend of CBMC)
+- bounded model checking with k-induction and abstract interpretation
+- sequential C programs
+- bit-precise
+- assertions, (non-)termination
+- template-based synthesis for invariants and ranking functions
+- shape domain for heap analysis -- only linked list structures
+  - -> memory safety for linked list structures
+- termination analysis based on lexicographical linear orders
+- simple nontermination proofs for loops (repeated loop state; loops which iterate over numerical variables with constant increments in a way they cannot end)
+- no recursion
+
+2LS~\cite{Chen2017}
+- interprocedural termination analysis for sequential programs
+- template-based interprocedural summarization (preconditions)
+- lexicographic linear ranking functions
+- bit-precise
+- no recursion, strings, arrays
 
 \section{Benchmark Suites}
 

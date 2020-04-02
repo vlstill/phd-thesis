@@ -184,7 +184,7 @@ year = {1999}
     _summary="Transformation for adding memory models (parametrized from TSO to POWER) to goto-programs together with optimization of the number of delays."
 }
 
-@InProceedings{Alglave2013por,
+@InProceedings{Alglave2013po,
 author="Alglave, Jade
 and Kroening, Daniel
 and Tautschnig, Michael",
@@ -2037,4 +2037,161 @@ series = {POPL ’05}
     doi="10.1007/978-3-319-66197-1_12"
 }
 
+@INPROCEEDINGS{Canet2009,
+    author={G. {Canet} and P. {Cuoq} and B. {Monate}},
+    booktitle={2009 Ninth IEEE International Working Conference on Source Code Analysis and Manipulation},
+    title={A Value Analysis for C Programs},
+    year={2009},
+    volume={},
+    number={},
+    pages={123-124},
+    doi={10.1109/SCAM.2009.22}
+} 
+
+@InProceedings{Nguyen2017,
+    author="Nguyen, Truc L.  and Inverso, Omar and Fischer, Bernd and La Torre, Salvatore and Parlato, Gennaro",
+    editor="Legay, Axel
+    and Margaria, Tiziana",
+    title="Lazy-CSeq 2.0: Combining Lazy Sequentialization with Abstract Interpretation",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2017",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="375--379",
+    abstract="Lazy sequentialization has emerged as one of the most effective techniques to find bugs in concurrent programs. However, the size of the shared global and thread-local state still poses a problem for further scaling. We therefore use abstract interpretation to minimize the representation of the concurrent program's state variables. More specifically, we run the Frama-C abstract interpretation tool over the sequentialized program output by Lazy-CSeq to compute over-approximating intervals for all (original) state variables and then exploit CBMC's bitvector support to reduce the number of bits required to represent these in the sequentialized program. We demonstrate that this leads to substantial performance gains on complex instances.",
+    isbn="978-3-662-54580-5",
+    doi="10.1007/978-3-662-54580-5_26"
+}
+
+@INPROCEEDINGS{Inverso2015,
+    author={O. {Inverso} and T. L. {Nguyen} and B. {Fischer} and S. L. {Torre} and G. {Parlato}},
+    booktitle={2015 30th IEEE/ACM International Conference on Automated Software Engineering (ASE)},
+    title={Lazy-CSeq: A Context-Bounded Model Checking Tool for Multi-threaded C-Programs},
+    year={2015},
+    volume={},
+    number={},
+    pages={807-812},
+    doi={10.1109/ASE.2015.108}
+}
+
+@InProceedings{Artho2019,
+    author="Artho, Cyrille and Visser, Willem",
+    editor="Beyer, Dirk and Huisman, Marieke and Kordon, Fabrice and Steffen, Bernhard",
+    title="Java Pathfinder at SV-COMP 2019 (Competition Contribution)",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2019",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="224--228",
+    abstract="This paper gives a brief overview of Java Pathfinder, or jpf-core. We describe the architecture of JPF, its strengths, and how it was set up for SV-COMP 2019.",
+    isbn="978-3-030-17502-3",
+    doi="10.1007/978-3-030-17502-3_18"
+}
+
+@article{Visser2003,
+    title={Model checking programs},
+    author={Visser, Willem and Havelund, Klaus and Brat, Guillaume and Park, SeungJoon and Lerda, Flavio},
+    journal={Automated software engineering},
+    volume={10},
+    number={2},
+    pages={203--232},
+    year={2003},
+    publisher={Springer},
+    doi={10.1023/A:1022920129859}
+}
+
+@article{Pasareanu2013,
+    title={Symbolic PathFinder: integrating symbolic execution with model checking for Java bytecode analysis},
+    author={P{\u{a}}s{\u{a}}reanu, Corina S and Visser, Willem and Bushnell, David and Geldenhuys, Jaco and Mehlitz, Peter and Rungta, Neha},
+    journal={Automated Software Engineering},
+    volume={20},
+    number={3},
+    pages={391--425},
+    year={2013},
+    publisher={Springer},
+    doi={10.1007/s10515-013-0122-2}
+}
+
+@article{Holzmann1998,
+    title={An analysis of bitstate hashing},
+    author={Holzmann, Gerard J},
+    journal={Formal methods in system design},
+    volume={13},
+    number={3},
+    pages={289--307},
+    year={1998},
+    publisher={Springer},
+    doi={10.1023/A:1008696026254}
+}
+
+@article{Laarman2019,
+    title={Optimal compression of combinatorial state spaces},
+    author={Laarman, Alfons},
+    journal={Innovations in Systems and Software Engineering},
+    volume={15},
+    number={3-4},
+    pages={235--251},
+    year={2019},
+    publisher={Springer},
+    doi={10.1007/s11334-019-00341-7}
+}
+
+@InProceedings{Kant2015,
+    author="Kant, Gijs and Laarman, Alfons and Meijer, Jeroen and van de Pol, Jaco and Blom, Stefan and van Dijk, Tom",
+    editor="Baier, Christel and Tinelli, Cesare",
+    title="LTSmin: High-Performance Language-Independent Model Checking",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2015",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="692--707",
+    abstract="In recent years, the LTSmin model checker has been extended with support for several new modelling languages, including probabilistic (Mapa) and timed systems (Uppaal). Also, connecting additional language front-ends or ad-hoc state-space generators to LTSmin was simplified using custom C-code. From symbolic and distributed reachability analysis and minimisation, LTSmin's functionality has developed into a model checker with multi-core algorithms for on-the-fly LTL checking with partial-order reduction, and multi-core symbolic checking for the modal $\mu$ calculus, based on the multi-core decision diagram package Sylvan.",
+    isbn="978-3-662-46681-0",
+    doi="10.1007/978-3-662-46681-0_61"
+}
+
+@InProceedings{Malik2018,
+    author="Mal{\'i}k, Viktor and Marti{\v{c}}ek, {\v{S}}tefan and Schrammel, Peter and Srivas, Mandayam and Vojnar, Tom{\'a}{\v{s}} and Wahlang, Johanan",
+    editor="Beyer, Dirk and Huisman, Marieke",
+    title="2LS: Memory Safety and Non-termination",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2018",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="417--421",
+    abstract="2LS is a C program analyser built upon the CPROVER infrastructure. 2LS is bit-precise and it can verify and refute program assertions and termination. 2LS implements template-based synthesis techniques, e.g. to find invariants and ranking functions, and incremental loop unwinding techniques to find counterexamples and k-induction proofs. New features in this year's version are improved handling of heap-allocated data structures using a template domain for shape analysis and two approaches to prove program non-termination.",
+    isbn="978-3-319-89963-3",
+    doi="10.1007/978-3-319-89963-3_24"
+}
+
+@article{Chen2017,
+    author = {Chen, Hong-Yi and David, Cristina and Kroening, Daniel and Schrammel, Peter and Wachter, Bj\"{o}rn},
+    title = {Bit-Precise Procedure-Modular Termination Analysis},
+    year = {2017},
+    issue_date = {January 2018},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {40},
+    number = {1},
+    issn = {0164-0925},
+    url = {https://doi.org/10.1145/3121136},
+    doi = {10.1145/3121136},
+    journal = {ACM Trans. Program. Lang. Syst.},
+    month = dec,
+    articleno = {Article 1},
+    numpages = {38},
+    keywords = {interprocedural analysis, bit-precise analysis, Termination analysis, templates}
+}
+
+@article{Albert2017,
+    title={Rely-guarantee termination and cost analyses of loops with concurrent interleavings},
+    author={Albert, Elvira and Flores-Montoya, Antonio and Genaim, Samir and Martin-Martin, Enrique},
+    journal={Journal of Automated Reasoning},
+    volume={59},
+    number={1},
+    pages={47--85},
+    year={2017},
+    publisher={Springer},
+    doi={10.1007/s10817-016-9400-6}
+}
 
