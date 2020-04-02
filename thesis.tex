@@ -56,6 +56,8 @@
 \newminted[cppcode]{cpp}{autogobble,breaklines}
 \newmintinline[cpp]{cpp}{}
 
+\newmintinline[java]{java}{}
+
 \newmintinline[llvmcode]{llvm}{autogobble,breaklines}
 \newmintedfile[llvminput]{llvm}{breaklines}
 \newmintinline[li]{llvm}{}
@@ -220,8 +222,8 @@
 
 %% MARGIN NOTES %%
 \newcounter{mnote}[chapter]
-\newcommand{\mnotemark}{\stepcounter{mnote}\hyperlink{mnote:\themnote}{${}^\arabic{mnote}$}\xspace}
-\newcommand{\mnotetext}[1]{\marginnote{\hypertarget{mnote:\themnote}{${}^\arabic{mnote}\,$}\footnotesize{}#1}}
+\newcommand{\mnotemark}{\stepcounter{mnote}\hyperlink{mnote:\thechapter:\themnote}{${}^\arabic{mnote}$}\xspace}
+\newcommand{\mnotetext}[1]{\marginnote{\hypertarget{mnote:\thechapter:\themnote}{${}^\arabic{mnote}\,$}\footnotesize{}#1}}
 \newcommand{\mnote}[1]{\mnotemark\mnotetext{#1}\xspace}
 
 

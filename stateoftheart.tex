@@ -4,7 +4,7 @@ A programmer wishing to use such a tool would either start by creating a model
 of the system (in the specification step of the development), and then provide
 an executable implementation for this model or, if they already had a working
 product, they would have to create a model in order to analyze it.
-Such tools include for example \cite{spin}, \cite{divine-mc}, \cite{ltsmin?}, \cite{uppall?}, \cite{TODO...}.
+Such tools include for example SPIN~\cite{Holzmann1997,Holzmann2004}, older version of DIVINE~\cite{BBCS05,BBCR10}, LTSmin~\cite{Kant2015}, \cite{uppall?}, \cite{TODO...}.
 Such an approach requires an extra investment in the modelling phase and, even
 if analysis of the model concludes it is correct, it does not prove that the
 final product is indeed correct.
@@ -12,11 +12,11 @@ final product is indeed correct.
 Later, with the improvement of both analysis techniques, as well as overall
 improvement in available computing power, tools which analyse programs written
 in mainstream programming languages become available.
-Early examples of such tools are \TODO{…}.
+Early examples of such tools are Java Path Finder~\cite{Visser2003} (an explicit-state model checker for Java) and CBMC~\cite{Clarke2004} (a SAT-based bounded model checker for C).
 
-Since 2012, the Software Verification Competition (SV-COMP)~\cite{svc2020} aims
+Since 2012, the Software Verification Competition (SV-COMP)~\cite{Beyer2020svc} aims
 to showcase tools which support direct verification of software written in C
-and Java.
+and later also Java.
 While it includes mostly sequential programs, there is also a subcategory for
 parallel C programs in SV-COMP.
 
@@ -32,22 +32,27 @@ state-space graph \cite{TODO}.
 It checks that a given (finite-state) system satisfies given property.
 The property is often given by an LTL formula and the automata-based approach
 to LTL verification is used (i.e., the problem is reduced to the problem of
-repeated reachability of a state in the state-space graph).
+repeated reachability of a state in the state-space graph)~\cite{TODO}.
 In the special case of safety properties, it is sufficient to perform graph
 search for a state which violates the safety property, for example using the
 depth-first search algorithm, or any other graph search.
 
 The advantage of explicit-state model checking is that it is conceptually easy
-to apply it to verification of parallel programs, as the interleaving semantics
-of thread naturally gives rise to the state space graph. \TODO{...?}
+to apply it to verification of parallel programs (under sequential
+consistency), as the interleaving semantics of thread naturally gives rise to
+the state space graph.
+Furthermore, explicit-state model checking does not require the program to be terminating, it is sufficient that its state space is finite.\mnote{A finite state space can contain cyclical infinite behaviour:
+\TODO{image}
+}
 
 In practice, explicit-state model checking is prone to the \emph{state-space
 explosion} problem: the number of states in the state-space graph of a
 reasonable system can easily be so big it is not possible to store the state
 space in the available memory.
 Since the algorithm which explores the state-space graph needs to detect which
-states were already seen to ensure termination, the state space explosion
-problem can significantly limit capabilities of explicit-state model checking.
+states were already seen to ensure termination (and to check for LTL
+properties), the state space explosion problem can significantly limit
+capabilities of explicit-state model checking.
 
 To mitigate state-space explosion, several state-space reduction techniques
 were introduced.
@@ -56,7 +61,7 @@ the state space in such a way that the property holds for these states if and
 only if it holds for the entire state space.
 These reduction techniques include \emph{Partial Order Reduction} (POR), which
 can eliminate some states by exploring independent events only in one
-particular order \cite{Pele1993,Godefroid1996partial, TODO}.
+particular order \cite{Peled1993,Godefroid1996partial,TODO}.
 \TODO{...}
 
 Another wide family of reductions are reductions which can coalesce a path in a
@@ -67,15 +72,20 @@ notion of right movers (``resource acquire operations'') and left movers
 be executed atomically.
 However, in analysis of realistic parallel programs a notion of instruction (or
 action) visibility is often used -- a group of instructions from one thread can
-be executed atomically provided that at most one of them is visible to other
-threads and that this grouping does not influence checking of the verified
-property.
+be executed atomically provided that at most one of them is observable by the
+other threads and that this grouping does not influence checking of the
+verified property or termination of the search.
 Both static and dynamic reduction methods were proposed, under many names,
 including D-reduction~\cite{Lipton1975}, path reduction~\cite{Yorav2004}, $\tau$ reduction~\cite{BBR2012}, \TODO{…} for the static variants and $\tau+$ reduction~\cite{RBB13} and \cite[Section 6]{RSCB2018}, \TODO{...} for the dynamic once.
+The reductions are also often used without naming the technique, for example in
+Java Path Finder~\cite{Visser2003}.
 Quite naturally, the dynamic methods are better suited for the complex control-
 and data-flow of realistic programs.
 
-Finally, there are variants of \emph{symmetry reductions} which reduce the
+Partial order reductions and path reductions are often also used in tools based
+on other principles then explicit-state exploration.
+
+Additionally, there are variants of \emph{symmetry reductions} which reduce the
 state space by coalescing states which differ only in properties not relevant
 for the program analysis.
 For example the \emph{heap-symmetry} reduction allows to consider two states
@@ -88,68 +98,136 @@ These state space reduction techniques can reduce the number of states by
 several orders of magnitude~\cite{TODO}, and therefore enable verification of
 realistic (but still relatively small) programs.
 
-\TODO{Interestingly, the proposed reduction techniques which aim to preserve verified properties are not always correct, for example the original version of $\tau+$ reduction considered only stores visible, but it was later shown that repeated loads have to be also visible (shown by me in~\cite{S2016}, acknowledged an fixed in \cite[Section 6]{RSCB2018}).
+Interestingly, the proposed reduction techniques which aim to preserve verified properties are not always correct, for example the original version of $\tau+$ reduction considered only stores to be visible, but it was later shown that repeated loads have to be also visible (shown by me in~\cite{S2016}, acknowledged an fixed in \cite[Section 6]{RSCB2018}).\mnote{
+\cpp{
+int x = 0;
+void t0() {
+  x = 1;
+}
+void t1() {
+  int a = x;
+  assert(a == x);
+}
+}
+
+The assertion is violated if \cpp{t0} executes between the (local, invisible)
+assignment and the assertion in \cpp{t1}.
+However, if repeated loads are not considered visible, they are coalesced and
+the assertion is not violated.
+}
 Similar problem was present in \cite{Cordeiro2011} where ESBMC could perform two conditional jumps which read the same shared variable with no context switch between them (section 3.1, rule R3).
-Interestingly, the authors notice the possibility of missing context switches, but only introduce an option to fix it.}
+Interestingly, the authors notice the possibility of missing context switches, but only introduce an option to fix it, leaving the problematic behaviour as default.
 
 To further improve capabilities of explicit-state model checking, several
 techniques for compact representation of the set of visited states were
 introduced.
-These techniques include \emph{hash compaction} and \emph{bitstate hashing}~\cite{Holzmann1998}, which is an
-incomplete technique which stores hashes of states instead of storing the
-entries states (and therefore can omit some parts of the state space if there
-is hash collision), \emph{probabilistic storage of states}\TODO{...}, and
-\emph{lossless compression techniques}~\cite{RSB15TC,Laarman2019}.
+These techniques include \emph{hash compaction} and \emph{bitstate
+hashing}~\cite{Holzmann1998}, which are incomplete techniques which use hashes
+of states instead of storing the entries states (and therefore can omit some
+parts of the state space if there is hash collision),
+\emph{probabilistic storage of states}\TODO{...}, and
+\emph{lossless compression techniques}~\cite{RSB15TC,Laarman2019} which aim to design compact but representation of the state space which can still facilitate fast lookups.
 
-\TODO{data} While explicit-state model checking can easily represent
-control-flow nondeterminism, it is not well suited for data nondeterminism, as
-it is not practical to explicitly enumerate all possible values of data
-domains.
-Therefore, if data nondeterminism is required, it is required to combine explicit-state model checking with some technique for symbolic of abstract data representation \TODO{...}.
+\paragraph{Data Nondeterminism}
+While explicit-state model checking can easily represent control-flow
+nondeterminism, it is not well suited for data nondeterminism, as it is not
+practical (or even possible) to explicitly enumerate all possible values of
+data domains.
+Therefore, if data nondeterminism is required, explicit-state model checking
+needs to be combined with some technique for symbolic of abstract data
+representation.
 
 \paragraph{Tools}
 
-Among the various tools which use explicit-state model checking as its basis,
-there are SPIN~\cite{Holzmann1997,Holzmann2004}, \textsc{LTSmin}~\cite{TODO}, Java Path Finder (JPF)~\cite{TODO}, \TODO{...}, and our own tool DIVINE~\cite{DIVINEToolPaper2017}.
-SPIN targets primarily a modelling language PROMELA, but there is also an extension of SPIN to partial support of C, with the need to define a PROMELA driver~\cite{Zaks2008}.
+The pioneering tool is the SPIN LTL model
+checker~\cite{Holzmann1997,Holzmann2004}, however, it has a very limited
+support for analysis of realistic programs.
+SPIN targets a parallel modelling language PROMELA, which has support to embed
+C code to define atomic an atomic step.
+In~\cite{Zaks2008} SPIN was extended to have partial support of C with the need
+to define a test driver in PROMELA.
 
-DIVINE uses dynamic $\tau+$ reduction~\cite{TODO}, heap symmetry reduction, and
-efficient representation of state space by memory graphs~\cite{RSCB2018}, to
-tackle realistic programs.
-Furthermore, DIVINE has support for symbolic and abstract representation of
-data~\cite{TODO}, can analyse programs running under the \xtso memory model
-(\autoref{chap:mm}, \cite{SB2018x86tso}), and can detect nontermination of
-parallel programs (\autoref{chap:lnterm}, \cite{SB2019}).
-DIVINE has also good support for the C and C++ languages, including support for
-the standard libraries and C++ exceptions (\autoref{chap:lang},
-\cite{SRB2017}).
+Java Pathfinder (JPF)~\cite{Artho2019,Visser2003} is an explicit state model
+checker (with later symbolic extensions) for Java and JVM-based\mnote{Java is
+not executing directly on the target hardware but instead uses an intermediate
+language which is executed by JVM. Other languages (e.g., Scala, Kotlin) can
+also target JVM and share the intermediate representation with Java.}
+languages.
+From its beginning JPF targets concurrent Java programs.
+It checks for safety properties, namely for uncaught exceptions which in Java also subsume assertion checking and bound checking.
+To reduce state space JPF uses hash-compaction (and therefore under-approximates all possible behaviours) and groups instructions with local effects.
+Interestingly, the instruction grouping in JPF uses a heuristic which can cause it to miss some behaviours.
+JPF has also model of parts of the Java standard library (including limited IO
+support) and limited support for execution of native code from the Java
+code\mnote{Java programs can use the Java Native Interface (JNI) to interfere
+with native code, for example in order to access operating system primitives
+directly.}
+In addition to scheduling nondeterminism, JPF can use explicit choice as an
+additional source of nondeterminism.
+The symbolic extension, Symbolic Pathfinder (SPF)~\cite{Pasareanu2013} adds
+support for symbolic data representation using symbolic execution.
+It supports test generation and detection of assertions and concurrency errors.
+It primarily targets unit tests and sub-system level testing and has a
+possibility to use unit preconditions and combine symbolic and explicit
+execution.
+To explore different possible interleavings, SPF uses the explicit JPF without
+state comparison and with depth bound to ensure termination (the state
+comparison can be enabled but then disregards the symbolic data and therefore
+can miss many behaviours).
+Interestingly, SPF is able to handle certain cases of dynamically allocated
+linked symbolic data by \emph{lazy initialization} -- when a symbolic pointer
+is accessed it can be expanded to either null pointer or another node of
+symbolic data.
 
----
+DIVINE~\cite{DIVINEToolPaper2017} is an explicit-state model checker developed
+by our research group.
+Historically it targeted several modelling languages for parallel systems and
+LTL verification using parallel and distributed algorithms, but later it
+shifter towards analysis of C and C++ using the LLVM intermediate language.
+While it now aims primarily at verification of safety properties (assertion
+violations, memory access safety, detection of use of undefined variables,
+detection of memory leads, numeric manipulation errors, deadlock-freedom for
+the POSIX mutexes, …) it has also limited support for LTL and there is also an
+extension for detection of nontermination in concurrent programs
+(\autoref{chap:lnterm}, \cite{SB2019}).
+To tackle realistic programs, DIVINE uses a dynamic detection of invisible
+actions ($\tau+$ reduction) and an efficient representation of program memory
+which facilitates heap-symmetry reduction and state-space
+compression~\cite{RSCB2018}.
+DIVINE has also support for symbolic and abstract data representation using
+program transformations \cite{LRB2018}.
+Currently it supports symbolic bitvector manipulations for integers and floats
+and symbolic string representation~\cite{CLR2019}.
+With the symbolic data representation using bitvectors, DIVINE uses SMT solvers
+to check for feasibility of traces and to compare symbolic states -- this way
+it retains the ability to join states which are semantically equivalent even if
+the symbolic data are represented by a different formula and therefore DIVINE
+with symbolic data can use LTL properties.
+One of the main goals of DIVINE is to support verification of C and C++
+programs which use existing libraries.
+To this end, DIVINE has almost complete standard C and C++ libraries (as of
+C++17), the POSIX thread library (\texttt{pthreads}), and it also supports C++
+exceptions (\autoref{chap:lang}, \cite{SRB2017}).
+To reflect behaviour of concurrent programs on contemporary hardware, DIVINE
+has also support to analyse programs with respect to the \xtso memory
+model~(\autoref{chap:mm}, \cite{SB2018x86tso}).
 
-LTSmin~\cite{Kant2015}
-- probabilistic, timed systems
-- multi-core LTL model checker, partial order reduction
-- multi-core symbolic checking for $\mu$-calculus
-- multiple modelling formalism, but no realistic programming languages
-- state space compression
-- paralell LTL search
+Another explicit-state model checker from our research group is
+\textsf{SymDIVINE}~\cite{MBLB2016} which combines explicit control flow
+handling with symbolic representation of data using bitvectors (with symbolic
+state equality).
+\textsf{SymDIVINE} targets safety and LTL properties in C programs.
+This tool is now discontinued in favor of aforementioned symbolic data support
+in DIVINE.
 
-Java Pathfinder (JPF)~\cite{Artho2019}, \cite{Visser2003}
-- java bitecode programs (with limited support to call native code), including concurrency
-- based on explicit-state model checking
-- extension to symbolic execution Symbolic Pathfinder~\cite{Pasareanu2013}
-  - test generation, assertion violations, concurrency errors in programs with inputs
-  - targets unit tests and sub-system level testing
-  - possibility of unit preconditions, combination of symbolic and concrete values
-  - uses JPF to explore different interleavings
-  - depth bound (state comparison disabled by default, if enabled disregards symbolic data)
-  - support for symbolic input data structures -> lazily initialized and extended when needed (heap allocations)
-- checks for uncaught exceptions (includes assertions in Java)
-- uses hash-compaction for representation of the set of visited states~\cite{TODO} (-> under-approximation)
-- groups instructions with local effects (~ $\tau$) with heuristics to decide which instructions can be grouped -- according to the authors it can miss behaviours
-- nondeterministic choices - scheduling, data (over given range)
-- partial model of the standard library
-- some support for IO ??
+
+% LTSmin~\cite{Kant2015}
+% - probabilistic, timed systems
+% - multi-core LTL model checker, partial order reduction
+% - multi-core symbolic checking for $\mu$-calculus
+% - multiple modelling formalism, but no realistic programming languages
+% - state space compression
+% - paralell LTL search
 
 \section{Stateless Model Checking}
 
