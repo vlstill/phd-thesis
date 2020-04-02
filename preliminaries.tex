@@ -569,10 +569,10 @@ Store instructions push a new entry to the local store buffer.
 Entries in the store buffer are not visible to threads other then the one
 owning the store buffer.
 Atomic instructions include various read-modify-write instructions, e.g. atomic
-arithmetic operations (which take memory address and a constant),\footnote{These
+arithmetic operations (which take memory address and a constant),\mnote{These
   instructions have the \texttt{lock} prefix in the assembly, for example
   \texttt{lock xadd} for atomic addition.}
-or compare-and-swap instruction.\footnote{\texttt{lock cmpxchg}}
+or compare-and-swap instruction.\mnote{\texttt{lock cmpxchg}}
 All atomic instructions use the shared memory lock so that only one such
 instruction can be executed at a given time, regardless of the number of
 hardware threads in the machine.
@@ -581,7 +581,7 @@ they release the lock.
 This means that effects of atomic operations are immediately visible, i.e.,
 atomics are sequentially consistent on \xtso.
 On top of these instructions, \xtso has a full memory barrier (\texttt{mfence})
-which flushes the store buffer of the thread that executed it.\footnote{There
+which flushes the store buffer of the thread that executed it.\mnote{There
 are two more fence instructions in the x86 instruction set, but according
 to~\cite{x86tso} they are not relevant to normal program execution.}
 
@@ -594,7 +594,7 @@ An alternative approach would be to use atomic exchange instruction
 memory slot.
 
 One of the specifics of x86 is that it can handle unaligned memory
-operations.\footnote{Other architectures, for example ARM, require loaded
+operations.\mnote{Other architectures, for example ARM, require loaded
 values to be aligned, usually so that the address is divisible by the value
 size.}
 While the \xtso paper does not give any specifics about handling unaligned and
@@ -1177,14 +1177,12 @@ Please note that programs with finite state space can have infinite behaviour as
 
 \subsection{Basic Program Features}
 
-When it comes to the program analysis of programs written in high-level programming languages (such as C, C++, C\#, Java, Haskell),\footnotemark{} it is often necessary to choose a level on which the program will be analysed.
-We can choose to analyse the high-level code directly -- in this case the analysis can be both precise and make use of high-level concepts (such as cycles or declarative description of certain thereading concepts e.g., using Open MP\footnotemark{}).
+When it comes to the program analysis of programs written in high-level programming languages (such as C, C++, C\#, Java, Haskell),\mnote{Some readers might find it peculiar to consider C to be a high-level programming language; however, for our purposes the defining characteristic of a high-level language is that it is intended to be written by the programmer and allows them to use and define abstractions -- at the very least functions and data structures. In this way C is a high-level programming language, while assembly languages (such as x86-64 assembly) are low-level.} it is often necessary to choose a level on which the program will be analysed.
+We can choose to analyse the high-level code directly -- in this case the analysis can be both precise and make use of high-level concepts (such as cycles or declarative description of certain thereading concepts e.g., using Open MP\mnote{\TODO{Open MP}}).
 However, the direct analysis comes at high cost as programming languages often have rich and complex syntax and complicated semantics which is designed to aid programming, not verification.
 For example, if we choose to handle in this way programs written in C++, we would need to concern ourselves with object hierarchies, exception handling, templates and many more.
 This approach is also specific for the given programming language.
 
-\footnotetext{Some readers might find it peculiar to consider C to be a high-level programming language; however, for our purposes the defining characteristic of a high-level language is that it is intended to be written by the programmer and allows them to use and define abstractions -- at the very least functions and data structures. In this way C is a high-level programming language, while assembly languages (such as x86-64 assembly) are low-level.}
-\footnotetext{\TODO{Open MP}}
 
 The on the other side of the spectrum, we can analyse a compiled program i.e., analyse machine code or assembly of given platform.
 This approach can then be applied regardless of programming language and it works even on programs for which we have no source code available.

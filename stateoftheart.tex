@@ -224,7 +224,7 @@ interleavings with different behaviour.
 For the C11/C++11 memory model~\cite{Norris2013} presents a tool \textsc{CDSChecker}.
 It covers most of the C11 memory model, with the exception of release-consume
 synchronization and executions which exhibit out-of-thin-air
-values.\footnotemark
+values.\mnote{Out-of-thin-air values \TODO{...}.}
 To allow reads which are reordered with future operations (which is allowed by
 the C11 memory model), \textsc{CDSChecker} can propagate stored values to
 previous loads and validate this speculation.
@@ -241,7 +241,6 @@ This allows them to cover all program's behaviour without direct exploration of
 its interleavings.
 The approach is implemented in the tool RCMC.
 
-\footnotetext{Out-of-thin-air values \TODO{...}.}
 
 In~\cite{Abdulla2016} an approach for stateless model checking under the POWER memory model is show.
 The work presents a way to derive a suitable execution model from the axiomatic semantics of the memory model, and an SMC exploration algorithm for the execution model.
@@ -359,9 +358,8 @@ A BMC with $k$-induction repeatedly performs three steps with an increasing boun
 \begin{description}
     \item[Base Case] checks if an error is reachable in $k$ steps.
     \item[Forward Condition] checks if all program's paths had terminated in $k$ steps (i.e., the verification is done as the tool had already explored all states)
-    \item[Inductive Step] checks that in a modified program in which all loop variables are initialized to nondeterministic values before the loops and the loops are required to execute to completion,\footnotemark{} if the safety property holds for the first $k$ steps, it also holds for $k+1$ steps. If the induction step holds the program is correct.
+    \item[Inductive Step] checks that in a modified program in which all loop variables are initialized to nondeterministic values before the loops and the loops are required to execute to completion,\mnote{This can be achieved by instrumenting \texttt{assume} statements which ensure that the loop body is entered and that after the given number of iterations the condition for loop termination holds.} if the safety property holds for the first $k$ steps, it also holds for $k+1$ steps. If the induction step holds the program is correct.
 \end{description}
-\footnotetext{This can be achieved by instrumenting \texttt{assume} statements which ensure that the loop body is entered and that after the given number of iterations the condition for loop termination holds.}
 Invariants can be used to strengthen the induction by constraining the nondeterministic values of loop variables.
 \cite{Cordeiro2016:23-27}
 
