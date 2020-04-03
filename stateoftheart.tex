@@ -211,6 +211,7 @@ exceptions (\autoref{chap:lang}, \cite{SRB2017}).
 To reflect behaviour of concurrent programs on contemporary hardware, DIVINE
 has also support to analyse programs with respect to the \xtso memory
 model~(\autoref{chap:mm}, \cite{SB2018x86tso}).
+DIVINE has also an in-built compiler based on LLVM's clang and support for significant parts of POSIX filesystem and process APIs~\cite{RBMKB2019}.
 
 Another explicit-state model checker from our research group is
 \textsf{SymDIVINE}~\cite{MBLB2016} which combines explicit control flow
@@ -231,18 +232,20 @@ in DIVINE.
 
 \section{Stateless Model Checking}
 
+\TODO{(= Systematic concurrency testing)}
+
 Compared to explicit-state model checking, stateless model checking (SMC)
 avoids storing the set of visited states and therefore has decreased memory
 consumption.
 Furthermore, since the state representation is not required to be as compact as
 possible, stateless model checker can have simpler representation of states.
 Stateless model checking was introduced in~\cite{Godefroid1997}, it aims at
-safety analysis of terminating parallel programs.
+safety analysis of terminating realistic parallel programs.
 A stateless model checker usually explores the state space in depth-first
 manner and it can explore some parts of the state space multiple times (since
 it does not store the set of visited states).
-Therefore, the requirement that input program is terminating is is necessary
-to ensure the verification procedure terminates.
+Therefore, the requirement that input program is terminating is necessary to
+ensure the verification procedure terminates.
 In practice, this requirement is often ensured by imposing loop iteration
 bounds -- loops are assigned maximum allowed number of iterations, if the
 program under test requires more iterations of some loop, the loop bound can be
@@ -257,7 +260,7 @@ is the number of paths from the initial state to this state (in the worst case
 the number of paths to a given state can be exponential to its distance from
 the initial state).
 To mitigate this problem, dynamic partial order reduction
-(DPOR)~\cite{Flanagan2005dpor} is employed with SMC.
+(DPOR)~\cite{Flanagan2005dpor} is often employed with SMC.
 DPOR is a version of partial order reduction that tightly integrates with
 the SMC exploration algorithm and keeps track of parts of the state space which
 still need to be explored.
@@ -275,26 +278,28 @@ classes either all traces contain only safe states or all traces contain an
 unsafe state -- i.e., the equivalence preserves safety properties.
 
 For sequential consistency, multiple DPOR techniques were introduced.
-\TODO{Verisoft, CHESS, techniky} \cite{TODO,TODO}, among these \cite{Abdulla2014} is interesting by providing an optimal algorithm for equivalence based on \emph{Mazurkiewicz trace} \cite{Abdulla2014:17} (where traces are considered equivalent if one of them can be obtained from the other by swapping adjacent non-conflicting execution step..).
+\TODO{Verisoft, CHESS, techniky} \cite{TODO,TODO}, among these \cite{Abdulla2014} is interesting by providing an optimal algorithm for equivalence based on \emph{Mazurkiewicz traces}~\cite{Mazurkiewicz1987} (where traces are considered equivalent if one of them can be obtained from the other by swapping adjacent non-conflicting execution steps).
 While the original implementation of the is technique was used for verification of Erlang programs (which use message passing instead of shared variables) using the Concuerror tool, it was later successfully applied also to verification of C programs under TSO and PSO memory models using the Niddhugg SMC \cite{Abdulla2017tso}, a simpler, non-optimal version proposed in the original paper is also implemented in the Skink SMC~\cite{Cassez2017}.
 
 It is important to note that the optimal DPOR presented by \cite{Abdulla2014}
 is optimal for the given trace equivalence.
-Later a data-centric DPOR which uses a coarser equivalence and an optimal
+A data-centric DPOR which uses a coarser equivalence and an optimal
 exploration algorithm for it was introduced in~\cite{Chalupa2017} and it was
 shown that it performs better on a selection of C benchmarks.
 
 Another approach based on observation of read and written values is Maximal
 Causality Reduction (MCR)~\cite{Huang2015}, which can be seen as an alternative
 to DPOR.
-MCR employs an SMT solver to find new traces to explore which allows it to
-explore less interleavings then Mazurkiewicz-trace-based DPOR techniques.
+\TODO{MCR employs an SMT solver to find new traces to explore which allows it to
+explore less interleavings then Mazurkiewicz-trace-based DPOR techniques.}
 Another advantage of MCR is that it can be easily modified for parallel
 exploration (DPOR cannot be easily executed in parallel).
 
 \TODO{...?}
 
 \paragraph{Relaxed Memory Models}
+
+\TODO{rewrite?}
 
 Thanks to its ability to reduce exploration of redundant interleavings, SMC
 combined with DPOR or other reduction techniques is often used as a basis for
@@ -310,8 +315,8 @@ The tool \emph{rInspect} is based on LLVM and targets primarily C programs.
 It has support for both bounded and unbounded store buffers (but being a SMC it
 works on terminating programs only).
 Another approach to TSO and PSO is used by tool Niddhugg and presented
-in~\cite{Abdulla2015}.
-This approach uses chronological traces that capture dependencies between
+in~\cite{Abdulla2017}.
+This approach uses \emph{chronological traces} that capture dependencies between
 memory operations.
 Chronological traces are then used with the optimal DPOR
 from~\cite{Abdulla2014}, which gives rise to an interesting property -- for
@@ -350,7 +355,7 @@ The approach is implemented in the tool RCMC.
 In~\cite{Abdulla2016} an approach for stateless model checking under the POWER memory model is show.
 The work presents a way to derive a suitable execution model from the axiomatic semantics of the memory model, and an SMC exploration algorithm for the execution model.
 The proposed approach explores only a single complete trace from each equivalence class given by Shasha-Snir traces~\cite{Shasha1988}, but it can perform redundant exploration of incomplete traces. 
-The algorithm is implemented in the tool Niddhugg.
+The algorithm is implemented in the tool Nidhugg.
 
 
 ---
@@ -362,16 +367,70 @@ CHESS:
 SATABS (unknown type)
 - according to \cite{Cordeiro2011} cannot handle arrays + arithmetic
 
+Nidhugg~\cite{Abdulla2017}
+
 
 
 \paragraph{Limitations of SMC}
 
-- deteministic threads: \cite{Huang2015:14,Huang2015:27}.
+As already mentioned, the SMC requires programs to be terminating, which is
+usually achieved by bounding loops and recursion.
+For this reason, SMC is limited only to properties of finite paths, and
+therefore it cannot be used for general LTL properties or showing program
+nontermination.
+
+Furthermore, most SMC techniques require programs to have no source of
+nondeterminism apart from thread scheduling and memory model (i.e., no data
+nondeterminism)~\cite{Abdulla2017}.
+\TODO{ deteministic threads: \cite{Huang2015:14,Huang2015:27}}
 
 
-\section{Bounded Model Checking}
+\section{Bounded Model Checking \& Related Techniques}
 
-\TODO{Symbolic MC without BDDs}
+Bounded model checking (BMC) was introduced in~\cite{Biere1999} as an alternative to
+symbolic model checking techniques which used binary decision diagrams.
+BMC encodes program runs of fixed length into propositional formulas, or
+formulas over some first-order logic.
+Then in relies on SAT or SMT solvers to decide if the formula is satisfiable or
+not.
+
+The original paper introducing BNC presented a verification procedure for LTL
+(which detected loops in the program runs by checking equality of the last
+state of the bounded run to some of its previous states).
+However, for realistic programs the focus is mainly on safety properties, and
+more recently also on (non)termination.\mnote{For tools which use approximation
+or heuristics, checking for termination is not the same as checking for
+nontermination as the tool might simply return \emph{unknown} result if it
+fails to prove its objective (i.e., termination or nontermination).}
+
+The main limitation of BMC is that it explores only runs up to some length
+bound $k$.
+Therefore, BMC alone cannot prove correctness unless it shows that the loop
+bound was sufficient (for example by inserting a special \emph{unwinding
+assertions} into the program and showing they are not violated).
+To mitigate this limitations BMC can be combined with other techniques which
+aim to prove correctness of the program, such as $k$-induction~\cite{TODO} or
+IC3~\cite{TODO}.
+
+\paragraph{$k$-Induction}
+
+$k$-induction is an extension of bounded model checking which allows it to find bugs faster and to prove correctness of programs without unwinding loops fully.
+A BMC with $k$-induction repeatedly performs three steps with an increasing bound $k$.
+\begin{description}
+    \item[Base Case] checks if an error is reachable in $k$ steps.
+    \item[Forward Condition] checks if all program's paths had terminated in $k$ steps (i.e., the verification is done as the tool had already explored all states).
+    \item[Inductive Step] checks that in a modified program in which all loop variables are initialized to nondeterministic values before the loops and the loops are required to execute to completion,\mnote{This can be achieved by instrumenting \texttt{assume} statements which ensure that the loop body is entered and that after the given number of iterations the condition for loop termination holds.} if the safety property holds for the first $k$ steps, it also holds for $k+1$ steps. If the induction step holds the program is correct.
+\end{description}
+Invariants can be used to strengthen the induction by constraining the nondeterministic values of loop variables.
+\TODO{\cite{Cordeiro2016:23-27}}
+
+\paragraph{Tools}
+
+BMC~\cite{Biere1999} (Symbolic MC without BDDs)
+- the introductory paper, starting from symbolic model checking
+- SAT based
+- BMC for LTL (to detect loops checks that the last state of the bounded run is equal to some of the previous states)
+- used a modelling language
 
 CBMC \cite{Kroening2014}, \cite{Clarke2004}
 - bit-precise BMC for C
@@ -458,16 +517,6 @@ MU-CSeq~\cite{Tomasco2015}, \cite{Tomasco2016}
 \section{K-Induction, IC3, …}
 
 \paragraph{$k$-Induction}
-
-$k$-induction is an extension of bounded model checking which allows it to find bugs faster and to prove correctness of programs without unwinding loops fully.
-A BMC with $k$-induction repeatedly performs three steps with an increasing bound $k$:
-\begin{description}
-    \item[Base Case] checks if an error is reachable in $k$ steps.
-    \item[Forward Condition] checks if all program's paths had terminated in $k$ steps (i.e., the verification is done as the tool had already explored all states)
-    \item[Inductive Step] checks that in a modified program in which all loop variables are initialized to nondeterministic values before the loops and the loops are required to execute to completion,\mnote{This can be achieved by instrumenting \texttt{assume} statements which ensure that the loop body is entered and that after the given number of iterations the condition for loop termination holds.} if the safety property holds for the first $k$ steps, it also holds for $k+1$ steps. If the induction step holds the program is correct.
-\end{description}
-Invariants can be used to strengthen the induction by constraining the nondeterministic values of loop variables.
-\cite{Cordeiro2016:23-27}
 
 ESBMC~\cite{Gadelha2019}, \cite{Gadelha2018}
 - C programs
