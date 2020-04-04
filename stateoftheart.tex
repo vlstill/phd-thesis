@@ -393,6 +393,7 @@ BMC encodes program runs of fixed length into propositional formulas, or
 formulas over some first-order logic.
 Then in relies on SAT or SMT solvers to decide if the formula is satisfiable or
 not.
+One of the advantages of BMC is that is naturally handles data nondeterminism.
 
 The original paper introducing BNC presented a verification procedure for LTL
 (which detected loops in the program runs by checking equality of the last
@@ -435,6 +436,16 @@ For this reason, the induction can be strengthen by invariants derived from the 
 \TODO{\cite{Cordeiro2016:23-27}}
 
 \paragraph{IC3} \TODO{TODO}
+
+\paragraph{Sequentialization}
+
+Most BMC tools for parallel programs have native notion of parallelism, that
+is, the tool takes threads into account when encoding the program.
+An alternative approach is to take advantage of BMC for sequential programs and
+its ability to handle nondeterministic data and use preprocessing step to
+convert a parallel program into a nondeterministic sequential program.
+Many sequentialization schemes were proposed, differing both in the size of the encoding and the way they limit thread interaction (e.g., limit to the number of context switches, to the number of shared-variable interactions, …)~\cite{Qadeer2004?,TODO...}.
+
 
 \paragraph{Tools}
 
@@ -530,48 +541,64 @@ Another LLVM-base tool is LLVMVF~\cite{Sousa2013} which is a generic verificatio
 Concurrency support in LLVMVF is incomplete, for example it lacks support for condition variables.
 \TODO{unmaintained}
 
-\textsc{Yogar-CBMC} \cite{Yin2018}, \cite{Yin2019}
-- parallelism, SC only
-- can run in parallel
-- abstraction and refinement of the encoding of scheduling constraints (which is normally cubic), multiple counterexample-guided refinements run at once, sharing the learned constraints
+Yogar-CBMC~\cite{Yin2018},~\cite{Yin2019} is a derivative of CBMC which uses
+abstraction and refinement for the encoding of scheduling constraints in
+parallel programs in order to make the formulas smaller.
+Unlike CBMC, it has no support for relaxed memory.
+It can run multiple counterexample-guided refinement loops in parallel and they
+share the learned scheduling constraints in order to analyze the program
+faster.
+Yogar-CBMC was able to solve all concurrency benchmarks in SV-COMP 2019 and significantly outperformed CBMC.
 
-CBMC Path~\cite{Khazem2019}
-- encodes program to SAT a single path a time
-- aimed at faster bug discovery, especially for shallow bugs
-- performed poorly in SV-COMP even on buggy benchmarks only
+CBMC-Path~\cite{Khazem2019} is another derivative of CBMC, it encodes paths in
+the state space one by one instead of building a formula for the whole
+(bounded) state space of a parallel program.
+While it was designed to facilitate faster bug discovery for SV-COMP it performed significantly worse than CBMC.
 
-\paragraph{Sequentialization}
+DepthK~\cite{Rocha2017}, \cite{Rocha2017svc}, is a tool based on ESBMC with
+addition of polyhedral invariants which aim to strengthen inductive step in the
+$k$-induction.
+It was presented before ESBMC gained ability to compute invariants itself and it uses an external tool for invariant generation.
+DepthK can analyze concurrent C programs.
 
-\TODO{\cite{Qadeer2004}}
+Lazy-CSeq~\cite{Inverso2015}, \cite{Nguyen2017} is a sequentialization-based
+tool for analysis of concurrent C programs which uses bounded model checker as
+a backend (CBMC by default).
+It performs source-to-source transformation from a concurrent C program to a
+sequential C program which simulates a bounded number of round-robin scheduling
+rounds (i.e., the number of context switches is limited and the threads are
+required to execute in a fixed order, with possibility to perform no steps in a
+given round).
+This way Lazy-CSeq can simulate a bounded number of interleavings with small
+memory overhead and limiting additional nondeterminism compared to the
+additional program.
+It can detect errors detectable by the used backend, plus POSIX mutex
+deadlocks.
+In order to speed verification, Lazy-CSeq uses Frama-C~\cite{Canet2009} to
+infer  bounds of integral variables and shrink the corresponding bitvector
+formulas.
 
-Lazy-CSeq~\cite{Inverso2015}, \cite{Nguyen2017}
-- sequentialization of C programs: multi-threaded program -> nondeterministic sequential proram (source-to-source transformation)
-- context bounded, round-robin schedules with given bound on round number
-- designed to minimize memory overhead and sources of nondeterminism
-- error checking is deffered to the backend + deadlocks in POSIX thread mutex use
-- uses CBMC as a backend (can use other BNCs: ESBMC, LLBMC, BLITZ)
-- the formula size if O(|orig prog.| * |n threads| * |n rounds|)
-- Lazy = explores only reachable state space (compared to Akash Lal \& Thomas Reps: Reducing concurrent analysis under a context bound to sequential analysis), does not start after each context switch from nondeterministic values
-- abstract interpretation (using Frama-C~\cite{Canet2009}) added to infer variable bounds and the shrink bitvector variables in the formulas \cite{Nguyen2017}
+\TODO{- the formula size if O(|orig prog.| * |n threads| * |n rounds|)
+- Lazy = explores only reachable state space (compared to Akash Lal \& Thomas Reps: Reducing concurrent analysis under a context bound to sequential analysis), does not start after each context switch from nondeterministic values}
 
-MU-CSeq~\cite{Tomasco2015}, \cite{Tomasco2016}
-- memory unwinding (MU) = sequence of write operations to the shared memory
-- MU is nondeterministically guessed, the program is allowed to run such that it respects the MU
-- = bounded number of write operations 
-  - either all write operations, or only some selected as visible to other threads are part of the unwinding
-- later IMU = individual memory location unwinding
-  - separate sequence for each location + timestamp of writes
-- uses CBMC as a backend
-- source-to-source transformation for C
-- support for dynamic memory added in~\cite{Tomasco2016}
-- eager = threads are executed separately, with nondeterministic values for shared memory reads, runs are pruned
-- IMU-CSeq~\cite{Tomasco2017}
-  - relaxed memory models (TSO, PSO)
-  - shared memory abstraction (SMA) = definition of memory operations + synchronization primitives (different SMA -> different memory model)
+MU-CSeq~\cite{Tomasco2015},~\cite{Tomasco2016} and IMU-CSeq~\cite{Tomasco2017}
+are sequentialization-based tools for analysis of concurrent C programs which
+uses CBMC as a backend.
+They work by nondeterministically guessing a bounded sequence of shared memory
+writes and then simulating the program so that its runs match this sequence.
+Optionally it can allow also unobserved memory writes which are not part of the
+sequence to execute.
+The difference between the tools is that IMU-CSeq uses a separate sequence for
+each memory location, while MU-CSeq has a single sequence of visible memory
+operations.
+IMU-CSeq has also support for relaxed memory (TSO, PSO) by the means of
+\emph{Shared Memory Abstraction} which defines behaviour of memory operations
+and synchronization primitives of the given memory model.
+
+\TODO{- eager = threads are executed separately, with nondeterministic values for shared memory reads, runs are pruned}
 
 \paragraph{Limitations of BMC}
 
-- C programs
 - bounded depth
 - functions inlined (… function pointers)/recursion bound
 
@@ -579,11 +606,6 @@ MU-CSeq~\cite{Tomasco2015}, \cite{Tomasco2016}
 
 \paragraph{$k$-Induction}
 
-
-DepthK~\cite{Rocha2017}, \cite{Rocha2017svc}
-- BMC + k-induction + polyherdral invariants
-- a preprocessor for ESBMC, it uses an external tool for invariant generation
-- C programs, parallelism
 
 \cite{Donaldson2011}: \textsc{K-Inductor}, \textsc{K-Boogie}
 <- CBMC based
