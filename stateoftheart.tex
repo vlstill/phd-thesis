@@ -418,32 +418,117 @@ $k$-induction is an extension of bounded model checking which allows it to find 
 A BMC with $k$-induction repeatedly performs three steps with an increasing bound $k$.
 \begin{description}
     \item[Base Case] checks if an error is reachable in $k$ steps.
-    \item[Forward Condition] checks if all program's paths had terminated in $k$ steps (i.e., the verification is done as the tool had already explored all states).
-    \item[Inductive Step] checks that in a modified program in which all loop variables are initialized to nondeterministic values before the loops and the loops are required to execute to completion,\mnote{This can be achieved by instrumenting \texttt{assume} statements which ensure that the loop body is entered and that after the given number of iterations the condition for loop termination holds.} if the safety property holds for the first $k$ steps, it also holds for $k+1$ steps. If the induction step holds the program is correct.
+    \item[Forward Condition] checks if all program's paths had terminated in
+        $k$ steps (i.e., the verification is done as the tool had already
+        explored all states).
+    \item[Inductive Step] checks that if the property holds for the first $k$
+        steps, it also holds for the $k+1$ steps.
+        This is checked in a modified program in which all loop variables are
+        initialized to nondeterministic values before the loops and the loops
+        are required to execute to completion.\mnote{This can be achieved by
+        instrumenting \texttt{assume} statements which ensure that the loop
+        body is entered and that after the given number of iterations the
+        condition for loop termination holds.}
 \end{description}
-Invariants can be used to strengthen the induction by constraining the nondeterministic values of loop variables.
+One of the problems with $k$-induction is that the induction argument is not strong enough to prove the inductive step.
+For this reason, the induction can be strengthen by invariants derived from the original program (i.e., the nondeterministic values of loop variables are constrained by the invariants).
 \TODO{\cite{Cordeiro2016:23-27}}
+
+\paragraph{IC3} \TODO{TODO}
 
 \paragraph{Tools}
 
-BMC~\cite{Biere1999} (Symbolic MC without BDDs)
-- the introductory paper, starting from symbolic model checking
-- SAT based
-- BMC for LTL (to detect loops checks that the last state of the bounded run is equal to some of the previous states)
-- used a modelling language
+The original bounded model checker BMC~\cite{Biere1999} was an LTL bounded
+model checker which targeted a modelling language.
 
+
+CBMC~\cite{Clarke2004},~\cite{Kroening2014} is a widely used SAT-based bounded
+model checker for sequential and parallel C programs.
+It uses bit-precise encoding and therefore preserves semantics of computer
+integers.
+CBMC can detect safety errors, it uses instrumentation for detection of errors
+other then assertions.
+For efficient analysis of parallel programs CBMC uses encoding based on partial
+orders described in~\cite{Alglave2013po} -- it builds the formula from the SSA
+form of each thread and ordering constraints for shared variables.
+CBMC is notable for its support of relaxed memory models, including \xtso,
+POWER memory model and sequential consistency~\cite{Alglave2013po}, \TODO{cite
+more…}.
+
+\TODO{
 CBMC \cite{Kroening2014}, \cite{Clarke2004}
-- bit-precise BMC for C
-- SAT based
-- assertions + instrumentation for other properties (safety only)
-- unrolling bound
 - parallelism, weak (SC, x86, POWER), uses partial orders  for efficient encoding of parallelism \cite{Alglave2013po} instead of interleavings (\TODO{? :30, :36, :6})
-  - the formula is build from SSA form of each thread and ordering constraints for shared variables
 - relaxed memory has little impact on performance
 - SC: \cite{Alglave2013po:25}
-- SV-COMP
-- custom C frontend
 - k-induction?? (\cite{Gadelha2018:7})
+}
+
+ESBMC~\cite{Gadelha2018},~\cite{Gadelha2019}, is another widely used BMC for C
+programs in which it can detect assertion violations, memory errors, overflows and \TODO{mutex-caused} deadlocks.
+ESBMC was derived from CBMC, it uses SMT for encoding of the program and has
+support for $k$-induction with invariant generation (based on interval analysis
+of integral variables; the invariant generation is currently unsound for
+programs with pointers).
+The support for concurrency in ESBMC is described in~\cite{Cordeiro2011}.
+Interestingly, ESBMC explores possible program interleavings explicitly and
+doing so it collects constrains on nondeterministic variables, which are then
+used to generate a formula.
+The formula can be generated and solved either for each run separately (lazy
+approach), which has the advantage of being incremental, or all interleavings
+can be encoded into one formula (schedule recording) which uses guards to
+encode scheduling of each interleaving.
+There is also encoding based on under-approximation and widening which attempts
+to produce more compact encoding.
+The approximation uses proofs of unsatisfiability of the formula for refinement.
+The lazy approach seems to work best according to~\cite{Cordeiro2011}.
+Regardless of the formula encoding, ESBMC uses bound on the number of context
+switches.
+In order to limit number of runs which need to be explored, ESBMC allows
+context switches only at visible instructions (i.e., instructions which access
+shared memory).
+The handling of parallelism in ESBMC makes it closely related to explicit-state
+model checkers with symbolic extensions, like Symbolic Pathfinder or DIVINE.
+Similarly to CBMC, ESBMC used a custom C parser, but it had later switched to
+using the clang compiler for parsing C and C++.
+Unlike other tools which use clang, it does not use the LLVM intermediate
+representation, but instead builds its own internal representation based on the
+C/C++ AST produced by clang.
+
+ESBMC has also derivatives which aim at C++ verification.
+ESBMC++~\cite{Ramalho2013} uses a model of parts of the standard C++ library,
+has support for C++ exceptions and inheritance.
+$\text{ESBMC}^{\textit{Qt}OM}$~\cite{Sousa2015},~\cite{Garcia2016} adds a model
+of parts of the Qt framework for C++ programs.
+In both cases the models approximate behaviour of the respective libraries
+based on the standard or documentation.
+
+JBMC~\cite{Cordeiro2019},~\cite{Cordeiro2018}, is a bounded model checker for
+Java built on the same basis as CBMC.
+It uses combination of SAT and SMT solving with a dedicated solver for string
+operations.
+JBMC has support for exceptions (by lowering them to jumps in its intermediate
+representation) and has an exact verification-friendly model of most common
+parts of the Java standard libraries.
+It can detect assertions, memory errors, integral overflows an type casting
+errors.
+JBMC has no support for threads currently \TODO{oveřit s SVC 2020}.
+It also lacks support for the Java Native Interface (JNI) and reflection.
+
+LLBMC~\cite{Merz2012},~\cite{Falke2013} is an SMT-based bit-precise BMC for
+sequential C and C++ programs which is notable for its used of the LLVM
+intermediate representation which allows it to reuse existing C and C++
+compilers.
+It is also one of the few tools which have support of C++, although with some
+limitations, most notably there is not support for exceptions and run-time type
+support and there is no support for threads and floating-point arithmetic for
+both C and C++.
+It can detect assertion violations, integer overflows, invalid shifts, memory
+errors and memory leaks.
+\TODO{unmaintained}
+
+Another LLVM-base tool is LLVMVF~\cite{Sousa2013} which is a generic verification framework on which a BMC for parallel programs is built.
+Concurrency support in LLVMVF is incomplete, for example it lacks support for condition variables.
+\TODO{unmaintained}
 
 \textsc{Yogar-CBMC} \cite{Yin2018}, \cite{Yin2019}
 - parallelism, SC only
@@ -454,30 +539,6 @@ CBMC Path~\cite{Khazem2019}
 - encodes program to SAT a single path a time
 - aimed at faster bug discovery, especially for shallow bugs
 - performed poorly in SV-COMP even on buggy benchmarks only
-
-JBMC~\cite{Cordeiro2019}, \cite{Cordeiro2018}
-- Java + exact verification-friendly model of most common parts of its standard libraries
-- supports exceptions (lowering to goto)
-- assertions, memory errors, integer overflows, type casting errors
-- SAT+SMT, bit-precise
-- shares BMC engine with CBMC
-- dedicated solver for string operations
-- no JNI, reflection, parallelism (in progress)
-
-LLBMC~\cite{Merz2012}, \cite{Falke2013}
-- BMC for C and C++
-- based on the LLVM infrastructure, uses LLVM IR
-- SMT based, bit-precise
-- no floats, (C++) exceptions, RTTI
-- overflows, invalid shifts, memory errors, memory leaks, assertions
-
-LLVMVF~\cite{Sousa2013}
-- for parallel programs, LLVM based
-- generic framework on which the BMC is built
-- input is LLVM IR
-- no condition variables
-- no threads
-- not actively maintained \TODO{ověřit}
 
 \paragraph{Sequentialization}
 
@@ -517,25 +578,6 @@ MU-CSeq~\cite{Tomasco2015}, \cite{Tomasco2016}
 \section{K-Induction, IC3, …}
 
 \paragraph{$k$-Induction}
-
-ESBMC~\cite{Gadelha2019}, \cite{Gadelha2018}
-- C programs
-- SMT-based BMC + k-induction + invariant generation based on intervals for integral variables (to guide the inductive step)
-- interval analysis cannot handle pointers and is incorrect with them
-- context-bounded - the number of context switches is limited
-- context switches only at visible instructions (access of shared memory)
-- clang-based frontend (uses AST, not LLVM)
-- assertions, memory errors, overflow, deadlocks
-- (uses a symbolic execution when generating formula \& unrolling (so does CBMC))
-- approach to threading is described in~\cite{Cordeiro2011} (the tree of possible interleavings is explored explicitly, variable constraints are only collected but not resolved, encoded by paths (= lazy; each interleaving uses a seperate single-threaded BNC instance) or together (= schedule recording, using guards to encode scheduling of the interleavings), or an algorithm based on approximation and widening~\cite{Grumberg2005} can be used (=underapproximation+widening; which uses series of under-approximations refined based on proofs of unsatisfiability of the formula which represents the runs of the programs with the property. Should guide the checker to interleavings interesting for the formula. The formula still encodes all interleavings, but only some of them can be used.) lazy is best, then scheduler, UW is slowest (probably due to proof generation).
-- \cite{Cordeiro2016}: analysis of challenges of BMC
-- support for C++: ESBMC++~\cite{Ramalho2013}
-  - abstract representation of C++ libraries (= operational model; conservative appriximation of library behaviour)
-  - exception handling, inheritance (modelling of objects)
-  - GCC/g++ based parser
-  - later a Qt object model was added~\cite{Sousa2015},~\cite{Garcia2016}: tool $\text{ESBMC}^{\mathit{Qt}OM}$
-    - partial support for the Qt framework for C++ programs
-    - model based on documentation
 
 
 DepthK~\cite{Rocha2017}, \cite{Rocha2017svc}
