@@ -2308,3 +2308,373 @@ series = {POPL ’05}
     isbn="978-3-540-49059-3",
     doi="10.1007/3-540-49059-0_14"
 }
+
+@inproceedings{Cho2013,
+    title={Blitz: Compositional bounded model checking for real-world programs},
+    author={Cho, Chia Yuan and D'Silva, Vijay and Song, Dawn},
+    booktitle={2013 28th IEEE/ACM International Conference on Automated Software Engineering (ASE)},
+    pages={136--146},
+    year={2013},
+    organization={IEEE},
+    doi={10.1109/ASE.2013.6693074}
+}
+
+@InProceedings{Rabinovitz2005,
+    author="Rabinovitz, Ishai and Grumberg, Orna",
+    editor="Etessami, Kousha and Rajamani, Sriram K.",
+    title="Bounded Model Checking of Concurrent Programs",
+    booktitle="Computer Aided Verification",
+    year="2005",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="82--97",
+    abstract="We propose a SAT-based bounded verification technique, called TCBMC, for threaded C programs. Our work is based on CBMC, which models sequential C programs in which the number of executions for each loop and the depth of recursion are bounded.",
+    isbn="978-3-540-31686-2",
+    doi="10.1007/11513988_9"
+}
+
+@InProceedings{Ganai2008,
+    author="Ganai, Malay K.  and Gupta, Aarti",
+    editor="Havelund, Klaus and Majumdar, Rupak and Palsberg, Jens",
+    title="Efficient Modeling of Concurrent Systems in BMC",
+    booktitle="Model Checking Software",
+    year="2008",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="114--133",
+    abstract="We present an efficient method for modeling multi-threaded concurrent systems with shared variables and locks in Bounded Model Checking (BMC), and use it to improve the detection of safety properties such as data races. Previous approaches based on synchronous modeling of interleaving semantics do not scale up well due to the inherent asynchronism in those models. Instead, in our approach, we first create independent (uncoupled) models for each individual thread in the system, then explicitly add additional synchronization variables and constraints, incrementally, and only where such synchronization is needed to guarantee the (chosen) concurrency semantics (based on sequential consistency). We describe our modeling in detail and report verification results to demonstrate the efficacy of our approach on a complex case study.",
+    isbn="978-3-540-85114-1",
+    doi="10.1007/978-3-540-85114-1_10"
+}
+
+@inproceedings{Burckhardt2007,
+    author = {Burckhardt, Sebastian and Alur, Rajeev and Martin, Milo M. K.},
+    title = {CheckFence: Checking Consistency of Concurrent Data Types on Relaxed Memory Models},
+    year = {2007},
+    isbn = {9781595936332},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/1250734.1250737},
+    doi = {10.1145/1250734.1250737},
+    booktitle = {Proceedings of the 28th ACM SIGPLAN Conference on Programming Language Design and Implementation},
+    pages = {12–21},
+    numpages = {10},
+    keywords = {sequential consistency, concurrent data structures, multi-threading, software model checking, memory models, lock-free synchronization, shared-memory multiprocessors},
+    location = {San Diego, California, USA},
+    series = {PLDI ’07}
+}
+
+@InProceedings{Gunther2016,
+    doi="10.1007/978-3-662-49674-9_69",
+    author="G{\"u}nther, Henning and Laarman, Alfons and Weissenbacher, Georg",
+    editor="Chechik, Marsha and Raskin, Jean-Fran{\c{c}}ois",
+    title="Vienna Verification Tool: IC3 for Parallel Software",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2016",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="954--957",
+    abstract="Recently proposed extensions of the IC3 model checking algorithm offer a powerful new way to symbolically verify software. The Vienna Verification Tool (VVT) implements these techniques with the aim to tackle the problem of parallel software verification. Its SMT-based abstraction mechanisms allow VVT to deal with infinite state systems. In addition, VVT utilizes a coarse-grained large-block encoding and a variant of Lipton's reduction to reduce the number of interleavings. This paper introduces VVT, its underlying architecture and use.",
+    isbn="978-3-662-49674-9"
+}
+
+@InProceedings{Birgmeier2014,
+    doi="10.1007/978-3-319-08867-9_55",
+    author="Birgmeier, Johannes and Bradley, Aaron R.  and Weissenbacher, Georg",
+    editor="Biere, Armin and Bloem, Roderick",
+    title="Counterexample to Induction-Guided Abstraction-Refinement (CTIGAR)",
+    booktitle="Computer Aided Verification",
+    year="2014",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="831--848",
+    abstract="Typical CEGAR-based verification methods refine the abstract domain based on full counterexample traces. The finite state model checking algorithm IC3 introduced the concept of discovering, generalizing from, and thereby eliminating individual state counterexamples to induction (CTIs). This focus on individual states suggests a simpler abstraction-refinement scheme in which refinements are performed relative to single steps of the transition relation, thus reducing the expense of refinement and eliminating the need for full traces. Interestingly, this change in refinement focus leads to a natural spectrum of refinement options, including when to refine and which type of concrete single-step query to refine relative to. Experiments validate that CTI-focused abstraction refinement, or CTIGAR, is competitive with existing CEGAR-based tools.",
+    isbn="978-3-319-08867-9"
+}
+
+@InProceedings{Bradley2011,
+    doi="10.1007/978-3-642-18275-4_7",
+    author="Bradley, Aaron R.",
+    editor="Jhala, Ranjit and Schmidt, David",
+    title="SAT-Based Model Checking without Unrolling",
+    booktitle="Verification, Model Checking, and Abstract Interpretation",
+    year="2011",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="70--87",
+    abstract="A new form of SAT-based symbolic model checking is described. Instead of unrolling the transition relation, it incrementally generates clauses that are inductive relative to (and augment) stepwise approximate reachability information. In this way, the algorithm gradually refines the property, eventually producing either an inductive strengthening of the property or a counterexample trace. Our experimental studies show that induction is a powerful tool for generalizing the unreachability of given error states: it can refine away many states at once, and it is effective at focusing the proof search on aspects of the transition system relevant to the property. Furthermore, the incremental structure of the algorithm lends itself to a parallel implementation.",
+    isbn="978-3-642-18275-4"
+}
+
+@inproceedings{Gunther2014,
+    doi="10.1145/2632362.2632374",
+    author = {G\"{u}nther, Henning and Weissenbacher, Georg},
+    title = {Incremental Bounded Software Model Checking},
+    year = {2014},
+    isbn = {9781450324526},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/2632362.2632374},
+    doi = {10.1145/2632362.2632374},
+    booktitle = {Proceedings of the 2014 International SPIN Symposium on Model Checking of Software},
+    pages = {40–47},
+    numpages = {8},
+    keywords = {Incremental, C, SMT, LLVM},
+    location = {San Jose, CA, USA},
+    series = {SPIN 2014}
+}
+
+@InProceedings{Rajkhowa2019,
+    doi="10.1007/978-3-030-17502-3_23",
+    author="Rajkhowa, Pritom and Lin, Fangzhen",
+    editor="Beyer, Dirk and Huisman, Marieke and Kordon, Fabrice and Steffen,
+    Bernhard",
+    title="VIAP 1.1",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2019",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="250--255",
+    abstract="VIAP (Verifier for Integer Assignment Programs) is an automated system for verifying safety properties of procedural programs with integer assignments and loops. It is based on a translation from of a program to a set of first-order axioms with quantification over natural numbers, and currently makes use of SymPy as the algebraic simplifier and the SMT solver Z3 as the theorem prover. Our first version of the system competed at SV-COMP 2018. This paper describes VIAP 1.1, a new version that makes use of our newly developed recurrence solver. As a result, VIAP 1.1. is able to verify many programs that were out of reach for the older version VIAP 1.0.",
+    isbn="978-3-030-17502-3"
+}
+
+@INPROCEEDINGS{Rajkhowa2017,
+    author={Pritom {Rajkhowa} and Fangzhen {Lin}},
+    booktitle={2017 19th International Symposium on Symbolic and Numeric Algorithms for Scientific Computing (SYNASC)},
+    title={VIAP - Automated System for Verifying Integer Assignment Programs with Loops},
+    year={2017},
+    volume={},
+    number={},
+    pages={137-144},
+    doi={10.1109/SYNASC.2017.00032}
+}
+
+@InProceedings{Noller2019,
+    doi="10.1007/978-3-030-17502-3_21",
+    author="Noller, Yannic and P{\u{a}}s{\u{a}}reanu, Corina S.  and Fromherz, Aymeric and Le, Xuan-Bach D.  and Visser, Willem",
+    editor="Beyer, Dirk and Huisman, Marieke and Kordon, Fabrice and Steffen, Bernhard",
+    title="Symbolic Pathfinder for SV-COMP",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2019",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="239--243",
+    abstract="This paper describes the benchmark entry for Symbolic Pathfinder, a symbolic execution tool for Java bytecode. We give a brief description of the tool and we describe the particular run configuration that was used in the SV-COMP competition. Furthermore, we comment on the competition results and we outline some directions for future work.",
+    isbn="978-3-030-17502-3"
+}
+
+@InProceedings{Khurshid2003,
+    doi="10.1007/3-540-36577-X_40",
+    author="Khurshid, Sarfraz and P{\u{A}}s{\u{A}}reanu, Corina S.  and Visser, Willem",
+    editor="Garavel, Hubert and Hatcliff, John",
+    title="Generalized Symbolic Execution for Model Checking and Testing",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2003",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="553--568",
+    abstract="Modern software systems, which often are concurrent and manipulate complex data structures must be extremely reliable. We present a novel framework based on symbolic execution, for automated checking of such systems. We provide a two-fold generalization of traditional symbolic execution based approaches. First, we define a source to source translation to instrument a program, which enables standard model checkers to perform symbolic execution of the program. Second, we give a novel symbolic execution algorithm that handles dynamically allocated structures (e.g., lists and trees), method preconditions (e.g., acyclicity), data (e.g., integers and strings) and concurrency. The program instrumentation enables a model checker to automatically explore different program heap configurations and manipulate logical formulae on program data (using a decision procedure). We illustrate two applications of our framework: checking correctness of multi-threaded programs that take inputs from unbounded domains with complex structure and generation of non-isomorphic test inputs that satisfy a testing criterion. Our implementation for Java uses the Java PathFinder model checker.",
+    isbn="978-3-540-36577-8"
+}
+
+@inproceedings{Bang2016,
+    author = {Bang, Lucas and Aydin, Abdulbaki and Phan, Quoc-Sang and P\u{a}s\u{a}reanu, Corina S. and Bultan, Tevfik},
+    title = {String Analysis for Side Channels with Segmented Oracles},
+    year = {2016},
+    isbn = {9781450342186},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/2950290.2950362},
+    doi = {10.1145/2950290.2950362},
+    booktitle = {Proceedings of the 2016 24th ACM SIGSOFT International Symposium on Foundations of Software Engineering},
+    pages = {193–204},
+    numpages = {12},
+    keywords = {String constraints, Symbolic execution, Side-channel analysis},
+    location = {Seattle, WA, USA},
+    series = {FSE 2016}
+}
+
+@article{Fromherz2017,
+    author = {Fromherz, Aymeric and Luckow, Kasper S. and P\u{a}s\u{a}reanu, Corina S.},
+    title = {Symbolic Arrays in Symbolic PathFinder},
+    year = {2017},
+    issue_date = {January 2017},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {41},
+    number = {6},
+    issn = {0163-5948},
+    url = {https://doi.org/10.1145/3011286.3011296},
+    doi = {10.1145/3011286.3011296},
+    journal = {SIGSOFT Softw. Eng. Notes},
+    month = jan,
+    pages = {1–5},
+    numpages = {5},
+    keywords = {Symbolic PathFinder, Software Engineering, Symbolic Execution, Test-case Generation, Java PathFinder}
+}
+
+@InProceedings{Heizmann2017,
+    doi="10.1007/978-3-662-54580-5_30",
+    author="Heizmann, Matthias and Chen, Yu-Wen and Dietsch, Daniel and Greitschus, Marius and Nutz, Alexander and Musa, Betim and Sch{\"a}tzle, Claus and Schilling, Christian and Sch{\"u}ssele, Frank and Podelski, Andreas",
+    editor="Legay, Axel and Margaria, Tiziana",
+    title="Ultimate Automizer with an On-Demand Construction of Floyd-Hoare Automata",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2017",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="394--398",
+    abstract="Ultimate Automizer is a software verifier that implements an automata-based approach for the verification of safety and liveness properties. A central new feature that speeded up the abstraction refinement of the tool is an on-demand construction of Floyd-Hoare automata.",
+    isbn="978-3-662-54580-5"
+}
+
+@InProceedings{Heizmann2013,
+    doi="10.1007/978-3-642-39799-8_2",
+    author="Heizmann, Matthias and Hoenicke, Jochen and Podelski, Andreas",
+    editor="Sharygina, Natasha
+    and Veith, Helmut",
+    title="Software Model Checking for People Who Love Automata",
+    booktitle="Computer Aided Verification",
+    year="2013",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="36--52",
+    abstract="In this expository paper, we use automata for software model checking in a new way. The starting point is to fix the alphabet: the set of statements of the given program. We show how automata over the alphabet of statements can help to decompose the main problem in software model checking, which is to find the right abstraction of a program for a given correctness property.",
+    isbn="978-3-642-39799-8"
+}
+
+@InProceedings{Greitschus2017,
+    doi="10.1007/978-3-662-54580-5_31",
+    author="Greitschus, Marius and Dietsch, Daniel and Heizmann, Matthias and Nutz, Alexander and Sch{\"a}tzle, Claus and Schilling, Christian and Sch{\"u}ssele, Frank and Podelski, Andreas",
+    editor="Legay, Axel and Margaria, Tiziana",
+    title="Ultimate Taipan: Trace Abstraction and Abstract Interpretation",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2017",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="399--403",
+    abstract="Ultimate Taipan is a software model checker for C programs. It is based on a CEGAR variant, trace abstractionÂ [7], where program abstractions, counterexample selection and abstraction refinement are based on automata. Ultimate Taipan constructs path programs from counterexamples and computes fixpoints for those path programs using abstract interpretation. If the fixpoints are strong enough to prove the path program to be correct, they are guaranteed to be loop invariants for the path program. If they are not strong enough, Ultimate Taipan uses an interpolating SMT solver to obtain state assertions from the original counterexample, thus guaranteeing progress.",
+    isbn="978-3-662-54580-5"
+}
+
+@InProceedings{Nutz2015,
+    doi="10.1007/978-3-662-46681-0_44",
+    author="Nutz, Alexander and Dietsch, Daniel and Mohamed, Mostafa Mahmoud and Podelski, Andreas",
+    editor="Baier, Christel
+    and Tinelli, Cesare",
+    title="ULTIMATE KOJAK with Memory Safety Checks",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2015",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="458--460",
+    abstract="Ultimate Kojak is a symbolic software model checker implemented in the Ultimate framework. It follows the CEGAR approach and uses Craig interpolants to refine an overapproximation of the program until it can either prove safety or has found a real counterexample.",
+    isbn="978-3-662-46681-0"
+}
+
+@InProceedings{Chalupa2018,
+    doi="10.1007/978-3-319-94111-0_7",
+    author="Chalupa, Marek and Strej{\v{c}}ek, Jan and Vitovsk{\'a}, Martina",
+    editor="Gallardo, Mar{\'i}a del Mar and Merino, Pedro",
+    title="Joint Forces for Memory Safety Checking",
+    booktitle="Model Checking Software",
+    year="2018",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="115--132",
+    abstract="The paper describes a successful approach to checking computer programs for standard memory handling errors like invalid pointer dereference or memory leaking. The approach is based on four well-known techniques, namely pointer analysis, instrumentation, static program slicing, and symbolic execution. We present a particular very efficient combination of these techniques, which has been implemented in the tool Symbiotic and won by a large margin the MemSafety category of SV-COMP 2018. We explain the approach and provide a detailed analysis of effects of particular components.",
+    isbn="978-3-319-94111-0"
+}
+
+@InProceedings{Dietsch2015,
+    doi="10.1007/978-3-319-21690-4_4",
+    author="Dietsch, Daniel and Heizmann, Matthias and Langenfeld, Vincent and Podelski, Andreas",
+    editor="Kroening, Daniel and P{\u{a}}s{\u{a}}reanu, Corina S.",
+    title="Fairness Modulo Theory: A New Approach to LTL Software Model Checking",
+    booktitle="Computer Aided Verification",
+    year="2015",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="49--66",
+    abstract="The construction of a proof for unsatisfiability is less costly than the construction of a ranking function. We present a new approach to LTL software model checking (i.e., to statically analyze a program and verify a temporal property from the full class of LTL including general liveness properties) which aims at exploiting this fact. The idea is to select finite prefixes of a path and check these for infeasibility before considering the full infinite path. We have implemented a tool which demonstrates the practical potential of the approach. In particular, the tool can verify several benchmark programs for a liveness property just with finite prefixes (and thus without the construction of a single ranking function).",
+    isbn="978-3-319-21690-4"
+}
+
+@InProceedings{Berdine2006,
+    doi="10.1007/11817963_35",
+    author="Berdine, Josh and Cook, Byron and Distefano, Dino and O'Hearn, Peter W.",
+    editor="Ball, Thomas and Jones, Robert B.",
+    title="Automatic Termination Proofs for Programs with Shape-Shifting Heaps",
+    booktitle="Computer Aided Verification",
+    year="2006",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="386--400",
+    abstract="We describe a new program termination analysis designed to handle imperative programs whose termination depends on the mutation of the program's heap. We first describe how an abstract interpretation can be used to construct a finite number of relations which, if each is well-founded, implies termination. We then give an abstract interpretation based on separation logic formul{\ae}which tracks the depths of pieces of heaps. Finally, we combine these two techniques to produce an automatic termination prover. We show that the analysis is able to prove the termination of loops extracted from Windows device drivers that could not be proved terminating before by other means; we also discuss a previously unknown bug found with the analysis.",
+    isbn="978-3-540-37411-4"
+}
+
+@article{Cook2007,
+    author = {Cook, Byron and Gotsman, Alexey and Podelski, Andreas and Rybalchenko, Andrey and Vardi, Moshe Y.},
+    title = {Proving That Programs Eventually Do Something Good},
+    year = {2007},
+    issue_date = {January 2007},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {42},
+    number = {1},
+    issn = {0362-1340},
+    url = {https://doi.org/10.1145/1190215.1190257},
+    doi = {10.1145/1190215.1190257},
+    journal = {SIGPLAN Not.},
+    month = jan,
+    pages = {265–276},
+    numpages = {12},
+    keywords = {termination, liveness, software model checking, formal verification}
+}
+
+@article{Cook2006,
+    author = {Cook, Byron and Podelski, Andreas and Rybalchenko, Andrey},
+    title = {Termination Proofs for Systems Code},
+    year = {2006},
+    issue_date = {June 2006},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {41},
+    number = {6},
+    issn = {0362-1340},
+    url = {https://doi.org/10.1145/1133255.1134029},
+    doi = {10.1145/1133255.1134029},
+    journal = {SIGPLAN Not.},
+    month = jun,
+    pages = {415–426},
+    numpages = {12},
+    keywords = {formal verification, model checking, program termination, program verification}
+}
+
+@InProceedings{Hensel2017,
+    doi="10.1007/978-3-662-54580-5_21",
+    author="Hensel, Jera and Emrich, Frank and Frohn, Florian and Str{\"o}der, Thomas and Giesl, J{\"u}rgen",
+    editor="Legay, Axel and Margaria, Tiziana",
+    title="AProVE: Proving and Disproving Termination of Memory-Manipulating C Programs",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2017",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="350--354",
+    abstract="AProVE is a system for automatic termination and complexity analysis of C, Java, Haskell, Prolog, and several forms of rewrite systems. The new contributions in this version of AProVE are its capabilities to prove non-termination of C programs and to handle recursive C programs, even if these programs use pointer arithmetic combined with direct memory accesses. Moreover, in addition to mathematical integers, AProVE can now also handle fixed-width bitvector integers.",
+    isbn="978-3-662-54580-5"
+}
+
+@article{Giesl2017,
+    doi={10.1007/s10817-016-9388-y},
+    title={Analyzing program termination and complexity automatically with AProVE},
+    author={Giesl, J{\"u}rgen and Aschermann, Cornelius and Brockschmidt, Marc and Emmes, Fabian and Frohn, Florian and Fuhs, Carsten and Hensel, Jera and Otto, Carsten and Pl{\"u}cker, Martin and Schneider-Kamp, Peter and others},
+    journal={Journal of Automated Reasoning},
+    volume={58},
+    number={1},
+    pages={3--31},
+    year={2017},
+    publisher={Springer}
+}
+

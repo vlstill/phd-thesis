@@ -164,7 +164,7 @@ with native code, for example in order to access operating system primitives
 directly.}
 In addition to scheduling nondeterminism, JPF can use explicit choice as an
 additional source of nondeterminism.
-The symbolic extension, Symbolic Pathfinder (SPF)~\cite{Pasareanu2013} adds
+The symbolic extension, Symbolic Pathfinder (SPF)~\cite{Pasareanu2013}, \cite{Noller2019} adds
 support for symbolic data representation using symbolic execution.
 It supports test generation and detection of assertions and concurrency errors.
 It primarily targets unit tests and sub-system level testing and has a
@@ -177,7 +177,8 @@ can miss many behaviours).
 Interestingly, SPF is able to handle certain cases of dynamically allocated
 linked symbolic data by \emph{lazy initialization} -- when a symbolic pointer
 is accessed it can be expanded to either null pointer or another node of
-symbolic data.
+symbolic data \cite{Khurshid2003}.
+SPF has support for symbolic arrays~\cite{Fromherz2017} and symbolic strings~\cite{Bang2016}.
 
 DIVINE~\cite{DIVINEToolPaper2017} is an explicit-state model checker developed
 by our research group.
@@ -279,7 +280,7 @@ unsafe state -- i.e., the equivalence preserves safety properties.
 
 For sequential consistency, multiple DPOR techniques were introduced.
 \TODO{Verisoft, CHESS, techniky} \cite{TODO,TODO}, among these \cite{Abdulla2014} is interesting by providing an optimal algorithm for equivalence based on \emph{Mazurkiewicz traces}~\cite{Mazurkiewicz1987} (where traces are considered equivalent if one of them can be obtained from the other by swapping adjacent non-conflicting execution steps).
-While the original implementation of the is technique was used for verification of Erlang programs (which use message passing instead of shared variables) using the Concuerror tool, it was later successfully applied also to verification of C programs under TSO and PSO memory models using the Niddhugg SMC \cite{Abdulla2017tso}, a simpler, non-optimal version proposed in the original paper is also implemented in the Skink SMC~\cite{Cassez2017}.
+While the original implementation of the is technique was used for verification of Erlang programs (which use message passing instead of shared variables) using the Concuerror tool, it was later successfully applied also to verification of C programs under TSO and PSO memory models using the Niddhugg SMC \cite{Abdulla2017tso}.
 
 It is important to note that the optimal DPOR presented by \cite{Abdulla2014}
 is optimal for the given trace equivalence.
@@ -404,6 +405,22 @@ or heuristics, checking for termination is not the same as checking for
 nontermination as the tool might simply return \emph{unknown} result if it
 fails to prove its objective (i.e., termination or nontermination).}
 
+\TODO{Most BMC tools build formula from SSA form of the program… 
++ bound on the number of times each loop might be executed (unwinding),
+bounded recursion depth
+… Rabinovitz2005}
+
+We have identified three broad approaches to support of concurrent programs in
+BMC.
+The conceptually simplest is to explicitly enumerate symbolic context-switch
+bounded runs of the program and then encode them to resolve symbolic data.
+This is the approach used by ESBMC~\cite{Cordeiro2011} and by
+\cite{Rabinovitz2005} for an early concurrent extension of CBMC.
+Another approach is to encode control flow of threads separately and add scheduling constraints which specify inter-thread ordering.
+This approach is used by CBMC~\cite{Alglave2013po} and also proposed in~\cite{Ganai2008}.
+The last approach is sequentialization, which makes use of a BMC for sequential programs and a pre-processing step which converts a parallel program into a nondeterministic sequential program.
+Many sequentialization schemes were proposed, differing both in the size of the encoding and the way they limit thread interaction (e.g., limit to the number of context switches, to the number of shared-variable interactions, …)~\cite{Qadeer2004?,TODO...}.
+
 The main limitation of BMC is that it explores only runs up to some length
 bound $k$.
 Therefore, BMC alone cannot prove correctness unless it shows that the loop
@@ -436,15 +453,6 @@ For this reason, the induction can be strengthen by invariants derived from the 
 \TODO{\cite{Cordeiro2016:23-27}}
 
 \paragraph{IC3} \TODO{TODO}
-
-\paragraph{Sequentialization}
-
-Most BMC tools for parallel programs have native notion of parallelism, that
-is, the tool takes threads into account when encoding the program.
-An alternative approach is to take advantage of BMC for sequential programs and
-its ability to handle nondeterministic data and use preprocessing step to
-convert a parallel program into a nondeterministic sequential program.
-Many sequentialization schemes were proposed, differing both in the size of the encoding and the way they limit thread interaction (e.g., limit to the number of context switches, to the number of shared-variable interactions, …)~\cite{Qadeer2004?,TODO...}.
 
 
 \paragraph{Tools}
@@ -597,6 +605,36 @@ and synchronization primitives of the given memory model.
 
 \TODO{- eager = threads are executed separately, with nondeterministic values for shared memory reads, runs are pruned}
 
+
+---
+
+BLITZ~\cite{Cho2013}
+- decomposes the verification instance using approximations of preconditions of property violation which are gradually refined
+- the proofs of unsatisfiability (for the under-approximated instance) provide information used for the refinement
+- aimed to larger programs (100kloc)
+- C programs, including assertions and memory safety
+- no mention of paralelism
+
+TCBMC~\cite{Rabinovitz2005}
+- context-switch bounded
+- extension of CBMC to concurrent programs
+- adds support for race and deadlock detection
+- only two threads and no deadlocks detection in the implementation
+
+CheckFence~\cite{Burckhardt2007}
+- a tool for checking implementations of concurrent data structures in C against a memory model
+- Uses a test program as a specification -- it checks if the set of all executions under the given memory model is a subset of a set of \emph{serial executions} which are sequentially consistent executions in which each operation with the data structure is atomic.
+- encodes threads and scheduling separately
+
+
+NBIS~\cite{Gunther2016}
+- incremental BMC - can change bounds without throwing away the formula
+- uses incremental solvers
+- LLVM IR based, for C sequential programs
+- not maintained
+
+Corral
+
 \paragraph{Limitations of BMC}
 
 - bounded depth
@@ -612,16 +650,83 @@ and synchronization primitives of the given memory model.
 -> extension of Boogie
 - \TODO{...}
 
+\section{TODO: Misc}
+
+VVT~\cite{Gunther2016}
+- CTIGAR = SMT-based IC3 with CEGAR (Counterexample-Guided Abstraction Refinement \TODO{\cite{Birgmeier2014}, \cite{Bradley2011}}
+- parallel C programs
+- can analyze infinite-state systems (with finite number of threads, arrays with statically known bounds)
+- no unwinding of transition relation
+- uses LLVM IR, clang for translation on C
+- blocks of instructions which can be executed atomically are identified, context-switch points are instrumented into code
+- uses linear arithmetic (to allow interpolation)
+- uses a BMC for fast counterexample detection
+- not maintained
+
+VIAP~\cite{Rajkhowa2019},~\cite{Rajkhowa2017}
+- aims at programs with loops, does not need invariants
+- C programs without dynamic memory, floats, concurrency
+- uses integral arithmetic
+- translates to quantified first-order formulas over integers
+- non-bounded loops
+- can use preconditions and postconditions, or assertions
+
+\textsc{Ultimate Automizer}~\cite{Heizmann2017}, \cite{Heizmann2013}
+- C programs, including concurrency
+- CEGAR
+- automata-theoretic verification approach
+- assertion reachability, memory safety, absence of integral overflows, termination
+- converts programs to automata (starting with automaton derived from control-flow graph), checks reachability of error states by checking feasibility of error traces
+  - the abstraction is refined by counterexample to error trace feasibility
+  - refinement by construction of automaton of spurious traces -- Floyd-Hoare automaton (constructed on-demand)
+  - uses SMT solver in the refinement
+- uses nested words automata for interprocedural analysis~\cite{TODO}
+- (non)termination checking~\cite{TODO: Buchy automizer} uses ranking functions and nontermination arguments
+
+\textsc{Ultimate Taipan}~\cite{Greitschus2017}
+- combines the approach of UA with abstract interpretation which aims to improve hanlding of loops
+- uses \emph{path programs} (projects the original program into an error trace to obtain a corresponding path program which can contain loops (and only contains statements found on the trace), attempts to trace infeasibility by proving unreachability of the error location in the path program
+
+\textsc{Ultimate Kojak}~\cite{Nutz2015} is another related tool which uses a different algorithm for the refinement step.
+
+Skink~\cite{Cassez2017}
+- C programs, supports concurrency
+- uses LLVM IR
+- uses refinement of trace abstraction algotithm \TODO{(like UAutomizer), cite}
+  - uses automata refinement, starting from control-flow automata
+  - SMT used to check feasibility of traces
+  - for concurrency uses product of thread automata
+    - uses POR (based on source-DPOR by \cite{Abdulla2014})
+- requires full inlining (no function calls)
+- uses integer arithmetic, not bit-precise
+- assertion reachability
+
 
 \section{Symbolic Execution}
 
-\section{Abstraction-Based Techniques}
+Symbiotic~\cite{Chalupa2018}, \cite{TODO:Svc2020}
+- for sequential C programs
+- assertions, memory safety, memory leaks, integral overflows
+- uses instrumentation to add checks where needed (pointer analysis to limit number of inserted checks)
+  - pointer analysis has to account for deallocation
+- slicing to remove code irrelevant for the property
+- uses Klee symbolic executor as a backend
+- TODO termination category
+- sequential programs
 
-\section{Sequentialization Techniques}
+\section{Abstraction-Based Techniques}
 
 \section{Systematic Testing}
 
 \section{Control-Flow Analysis Techniques}
+
+\section{??? Termination and Temporal Logics}
+
+- sequential LTL (inf systems, inc. termination analysis): \cite{Dietsch2015}
+- other liveness in sequential C (inf sys, Terminator): \cite{Cook2007} (drivers)
+- termination (seq, ptr, inf, \textsc{Terminator}): \cite{Cook2006}
+- termination (inc. heap): \cite{Berdine2006}
+- termination+nontermination (C, Java, Haskell, Prolog, recurstion, ptr, bitvectors; seq no structs): AProVe \cite{Hensel2017, Giesl2017}
 
 \section{XXX}
 
@@ -731,6 +836,9 @@ SACO~\cite{Albert2017}
 - http://www.cprover.org/wmm/
 - ESBMC (\cite{Cordeiro2011}): http://users.ecs.soton.ac.uk/lcc08r/esbmc/
 - ESBMC++ \cite{Ramalho2016:19,6,27,.} (sec. IV.A. Experimental Setup)
+- BLITZ:
+  - Bugbench: % https://scholar.google.com/scholar?as_q=Bugbench%3A+Benchmarks+for+evaluating+bug+detection+tools&as_occt=title&hl=en&as_sdt=0%2C31
+  - tools from http://www.isc.org/
 
 \section{MISC}
 
