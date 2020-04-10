@@ -94,6 +94,7 @@
 \usepackage{tabularx}
 \newcolumntype{C}{>{\centering\arraybackslash}X}
 \newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+\newcolumntype{L}{>{}X}
 \usepackage{booktabs}
 \usepackage{arydshln}
 \newcommand{\dg}{\textsuperscript{\dag}}
@@ -225,6 +226,10 @@
 \newcommand{\mnotemark}{\stepcounter{mnote}\hyperlink{mnote:\thechapter:\themnote}{${}^\arabic{mnote}$}\xspace}
 \newcommand{\mnotetext}[1]{\marginnote{\hypertarget{mnote:\thechapter:\themnote}{${}^\arabic{mnote}\,$}\footnotesize{}#1}}
 \newcommand{\mnote}[1]{\mnotemark\mnotetext{#1}\xspace}
+
+%%
+
+\newcommand{\srcnote}[1]{\emph{#1}}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
