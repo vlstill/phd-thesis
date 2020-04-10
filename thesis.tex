@@ -65,7 +65,22 @@
 \usepackage{xspace}
 \usepackage{pgf}
 \usepackage{tikz}
-\usetikzlibrary{arrows,positioning,shapes,snakes,automata,backgrounds,petri,fit}
+\usetikzlibrary{arrows,positioning,shapes,snakes,automata,backgrounds,petri,fit,decorations.pathreplacing}
+\tikzset{
+    *|/.style={
+        to path={
+            (perpendicular cs: horizontal line through={(\tikztostart)},
+                                 vertical line through={(\tikztotarget)})
+            % is the same as (\tikztostart -| \tikztotarget)
+            % but just to be safe: http://tex.stackexchange.com/a/29781/16595
+            -- (\tikztotarget) \tikztonodes
+        }
+    },
+	|*/.style={to path={
+		(\tikztostart) -- (perpendicular cs: vertical line through={(\tikztostart)},
+											 horizontal line through={(\tikztotarget)})
+  	}}
+}
 \usepackage{pdfpages}
 
 \usepackage{float}

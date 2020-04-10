@@ -2,163 +2,320 @@
 
 - compilation, libraries + threading, exceptions
 
+\bigskip
 
-  An important step toward adoption of formal methods in software
-  development is support for mainstream programming languages.
-  Unfortunately, these languages are often rather complex and come with
-  substantial standard libraries. However, by choosing a suitable
-  intermediate language, most of the complexity can be delegated to
-  existing execution-oriented (as opposed to verification-oriented)
-  compiler frontends and standard library implementations. In this paper,
-  we describe how support for C++ exceptions can take advantage of the
-  same principle. Our work is based on \divm{}, an \llvm{}-derived,
-  verification-friendly intermediate language.
-  
-  Our implementation consists of 2 parts: an implementation of the
-  \texttt{libunwind} platform API which is linked to the program under
-  test and consists of 9 C functions. The other part is a preprocessor for
-  \llvm{} bitcode which prepares exception-related metadata and replaces
-  associated special-purpose \llvm{} instructions.
+An important step toward adoption of formal methods in software development is
+support for mainstream programming languages.
+These languages are often rather complex and come with substantial standard
+libraries.
+However, by choosing a suitable intermediate language, most of the complexity
+can be delegated to existing execution-oriented (as opposed to
+verification-oriented) compiler frontends and standard library implementations.
+In this chapter, we describe how support for the C and C++ including their
+standard librararies and for C++ exceptions in DIVINE can be done by using
+these principles.
+
+% Our implementation consists of 2 parts: an implementation of the
+% \texttt{libunwind} platform API which is linked to the program under
+% test and consists of 9 C functions. The other part is a preprocessor for
+% \llvm{} bitcode which prepares exception-related metadata and replaces
+% associated special-purpose \llvm{} instructions.
+
+As we have already outlined in \autoref{sec:prelim:programs}, realistic
+programs have many features not present in verification-centric modelling
+languages.
+For example C has dynamic memory and pointer arithmetic (i.e., it is possible
+to access elements of arrays and data structures by numberic manipulation of
+pointer values) and function pointers.
+Languages with support for object-oriented programming like C++, C\#, and Java
+have inheritance and dynamic dispatch of member functions based on the runtime
+type of the object they are caled on.
+Many languages also have exceptions which allow for non-local transfer of
+control between functions.
+C++ is particualrly complex, featuring things like function and class
+templates,
+\mnote{Templates allow the programmer to write a generic code which
+    does not depend on the concrete type, the compiler is then responsible for
+    generation of implementations for concrete types the code is used with.}
+inheritance with multiple base classes, runtime type information (RTTI),
+compiler-generated special member functions,
+\mnote{C++ compiler can auto-generate code which handles copying, creation and
+    destruction of objects, and since C++20 also comparison of objects. Of
+    course the programmer can override the default behaviour in case it is not
+    sufficient, for example when implementing resource abstractions.}
+and support for concurrency including low-level atomic access.
+To make work for developers of analysis tools (and compiler and standard
+libraries) harder, many of these languages are also under constant development,
+for example C++ releases a new standardy every three years since 2011, with
+major new language and library features added in each new revision.
+C++ compilers and standard libraries which keep up-to-date with the standard
+are usually developed either by big companies like Microsoft or Intel, or by
+large community efforts like GCC and clang (whith clang being also supported by
+Apple).
+
+Considering the efforst put into compiler development and the complexity of
+programming languages like C++, it makes sence to reuse as much of the existing
+execution-oriented infrastructure which exists around thse programming
+languages.
+Re-implementing this infrastructure could easily consume large portion of the
+limited resources of developers of verification tools.
+For example, DIVINE and many other tool for analysis of C and C++, use the
+clang compiler to translate C and C++ into LLVM intermediate representation
+(IR).
+Similar approach can be applied to any language which uses LLVM in its
+translation (e.g., Rust, Swift, Objective-C), to Java (by tranalating it to
+Java Virtual Machine bytecode), or to C\# (by translating it to Common Language
+Infrastructure).
+For libraries existing open-source versions can also be used for verification to some extend.
+
+The rest of this chapter is structured as follows: \autoref{sec:lang:adv} takes a deeper look at advantages and disadvantages of reusal of execution-oriented components for program verification.
+\autoref{sec:lang:divine} then describes how DIVINE uses existing components in analysis of C and C++ and why the C standard library cannot be fully re-used from execution-oriented implementations.
+\autoref{sec:lang:except} then takes more detailed look at the particular case of excetion support in DIVINE 4, which was originally published in~\cite{SRB2017}.
+
+% The paper is structured as follows: the remainder of
+% Section~\ref{sec:introduction} gives motivation, context and
+% contribution of this work. Section~\ref{sec:exceptions} describes the
+% mechanisms that C++ implementations typically use in order to support
+% exceptions. The following Section~\ref{sec:execution} then details how
+% \llvm{} is interpreted in \divine{} 4, in particular the parts relevant to
+% exception handling, such as the stack layout.
+% Section~\ref{sec:transform} and Section~\ref{sec:unwinder} discuss the
+% new components: the \llvm{} transformation and the unwinder, respectively.
+% Section~\ref{sec:related} surveys the related work and finally, in
+% Section~\ref{sec:evaluation}, we evaluate our approach and we summarise
+% our findings in Section~\ref{sec:conclusion}.
+
+\section{Component Reuse in Verification}\label{sec:lang:adv}
+
+Reusal of execution-oriented componenents (such as compilers and libraries) for
+program analysis is a compromise and it is important to know the advantages and
+disadvantages of component reuse.
+On one hand, reuse can save developement time and offload the significant cost
+of development and testing to a third parties and therefore enable support for the whole complexity of the given programming language.
+This is important as the whole reason for analysis of realistic programming languages is to enable the programmer to use the the tool for analysis of the code they normally write, not a code written in a small subset of their language of choice.
+Furthermore, reusal can also increase precision of program analysis for the cases where the same components are used for analysis and execution -- for example if the same optimizing compiler is used in both situations and an optimized intermediate representation is used for the analysis, the analysis tool can now also find problems introduced by the compiler's optimizer (which is quite complex and error-prone) which were not in the original code.
+On the other hand, potential problems whith the reused components can also
+impact verification precisiton negatively, especially if they are able to hide
+problems is the analysed code.
+Even if there were no bugs in the reused components and they adhered to specification, the problem is that these components can under-approximate all behaviours allowed by the standard.
+The execution-oriented components are also usually performance oriented, which might make the task of program analysis harder.
+
+\subsection{Compilation}
+
+Compilers are now routinely re-used in verifiers, with the LLVM toolchain and
+clang compiler being especially populer in the are of C (and C++) analysis.
+Many program analysis tools are in fact analysing the LLVM IR and not C
+directly (for example DIVINE~\cite{DIVINEToolPaper2017},
+Skink~\cite{Cassez2017}, VVT~\cite{Gunther2016}, Symbiotic~\cite{Chalupa2018},
+and many more).
+Building a verfier for LLVM IR is simpler since LLVM IR abstracts from many of
+the high-level concepts and presents only a reasonable amount of instructions
+which has to be implemented.
+The clang compiler (which can compile C and C++ to LLVM IR) can handle many
+features of the progamming languages in such a way that the program analysis
+tools does not need to know about them.
+For example template instantiation, function overloading, dynamic dispatch, and
+local variable lifetime (in absence of exceptions) are handled in this way.
+The complete problem of parsing the rich grammar of the language such as C++ is
+also handled by the compiler and various control-flow constructs are translated
+to simple jumps.
+
+One of the disadvantages of this approach is that the analysis tool loses some
+information present in the original code.
+For example, a loop condition is often more clearly represented in the original
+code than in the LLVM IR where it has to be extracted from the value used in
+the conditional branch.
+Another disadvantage is the loss of possible behaviours -- for example the C++ standards leaves the order of evaluation of function argument uspecified, letting the compiler to optimize the code by evaluating them in any order necessary.
+However, on the level of LLVM IR, the evaluation order is already fixed.
+
+Some of these disadvantages can be mitigated by reusing less of the compilation
+infastructure, for example using an approach similar to the one taked by
+ESBMC~\cite{Gadelha2018}, which uses only the C and C++ parser from clang,
+building their own intermediate represenation from the abstract systax tree.
+\TODO{However, it does not appear that ESBMC takes advantage of the additional information to check for bugs caused by reliance on unspecified behaviour defined in the C/C++ standards.}
+Nevertheless, there is a cost to pay for the increased precision -- for example, ESBMC has to be able to handle many of the language features which are abstracted away in the compilation.
+
+\subsection{Libaries}
+
+Programmers expect not only the language features, but also the standard
+libraries to work in the program analyser.
+The standard libraries provide the basic features such as the data structures, algorithms, access to the filesystem, and in C and C++ also for exmaple threading support and memory allocation.
+
+Clearly, any program analysis tool for C which has support for dynamic memory
+will need to support at least the parts of library which allow its management
+(\cpp{malloc}, \cpp{free}, …) and any tool which supports threading will need
+the support for thread spawning.
+These parts of the library will be specific to the analysis tool -- which in
+this context plays the same role as the operating system in the program
+exection.
+Nevertheless, large parts of the C standard library, and almost all of the C++
+standard library is independent of the operating system it executes on and by
+extension is also independent on whether it is used in the context of execution
+or program analysis.
+
+The advantages and disadvantages of library reusal are in part similar to the
+once mentioned for compilers -- the library is already tested and developed by
+an external entidy, but it can contain bugs, or it may use design choices which
+are correct implementation of the standard, but limit possible behaviours of
+the program to a subset of behaviours allowed by te standard.
+However, there are some specifics to library reusal.
+Many of the bugs potentially present in a library can be actually caught if the
+library is treated by the analysis tool as a part of the analysed program -- in
+this way reusal of libraries can lead to discovery of bugs in the library and
+therefore help to ensure correctness of the code which uses the
+library.\mnote{An example is the data race in initialization of C++ threads in
+\texttt{libc++} discovered by DIVINE which was later fixed by the
+\texttt{libc++} developers.}
+Sadly, the same aspect of library reusal increases the complexity of the
+verification task, as the analysis tool now also has to analyse the code of the
+library itself.
+This can be especially a problem as the libraries are ususally performance-tuned making the code more complex to analyse.
+
+An important point in library reusal is that libraries often take full advantage of the available language features.
+Therefore, good support for the language is usually a prerequisite for library reuse.
+
+Overall, we believe that reusal of (parts of) existing library implementations is crucial for good language support.
+To the best of our knowedge, there are no program analysis tools which
+re-implement libraries which have complete or nearly complete support of the
+respective programming languages -- examples of these tools are
+ESBMC++~\cite{Ramalho2013} for C++ and JPF~\cite{Artho2019} for Java, both of
+which mention that they support only parts of the repsective standard
+libraries.
+
+\section{Component Reuse in DIVINE}\label{sec:lang:divine}
+
+In DIVINE, we use the clang compiler to produce LLVM IR, which is then linked
+with implementations of libraries and instrumented for the verification.
+The LLVM IR with verification-specific instrumentation will be called \divm IR,
+mathching the naming introduced by~\cite{DIVINEToolPaper2017}.
+The overview of this process can be seen in \autoref{fig:lang:divineworkflow}.
+
+\begin{figure}[tp]
+\center
+\begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, node distance=3cm
+                   , semithick
+                   , style={ node distance = 2em }
+                   , state/.style={ rectangle, draw=black, very thick,
+                     minimum height=1.7em, minimum width = 4.4em, inner
+                     sep=2pt, text centered, node distance = 1.9em }
+                   ]
+  \node[state, minimum width = 6em] (code) {C++ code};
+  \node[state, minimum width = 10.4em, right = 11.7em of code] (prop) {property and options};
+
+  \node[state, below = 3.8em of code, rounded corners] (clang) {compiler};
+  \node[state, right = of clang, rounded corners] (link) {linker};
+  \node[state, below = 1.5em of link.south, anchor = north] (runtime) {libraries \& runtime};
+  \node[state, right = of link, rounded corners, minimum width = 8em] (lart) {instrumentation};
+  \node[state, right = of lart.north east, anchor = north west, rounded corners, text width = 8em, align = center] (verifier) {verification core\\(\divm)};
+  \node[above = 0.5em of lart] (pverify) {};
+
+  \node[state, below = 4.5em of verifier.south east, anchor = north east] (valid) {\color{green!40!black}Valid};
+  \node[state, left = 1em of valid, minimum width = 8em] (ce) {\color{red}Counterexample};
+
+  \begin{pgfonlayer}{background}
+      \node[state, fit = (pverify) (clang) (runtime) (lart) (verifier),
+            inner sep = 0.8em, thick, rounded corners, dashed] (verify) {};
+  \end{pgfonlayer}
+
+  \node[above = 0.1em] at (verify.north) {DIVINE};
+
+  \path (prop.348) edge[|*] (verifier.north)
+        (prop.192) edge[|*] (lart.north)
+        (code) edge (clang)
+        (clang.north east) edge[bend left] node {LLVM IR} (link.north west)
+        (runtime) edge[|*] (link.south)
+        (link.north east) edge[bend left] node {LLVM IR} (lart.north west)
+        (lart.north east) edge[bend left] node {\divm IR} (verifier.north west)
+        (verifier.310) edge[|*] (valid.north)
+        (verifier.200) edge[|*] (ce.north)
+        ;
+\end{tikzpicture}
+\caption{Workflow of processing of a C++ program by DIVINE.
+    Boxes with rounded corners represent stages of input processing.
+}\label{fig:lang:divineworkflow}
+\end{figure}
+
+To make the compilation as easy as possible, the clang compiler is integrated
+into DIVINE as a library, and the libraries which are linked with the program
+are built at the time of built of DIVINE.
+The original integration of clang into DIVINE 4 and the adaptation of LLVM
+linker for use with DIVINE was done by me, with the work then taken over by
+other memebers of the team.
+The current state of the compilation for DIVINE can is described
+in~\cite{BR2020}.
+
+As for the libraries, DIVINE has support for the C and C++ standard libraries,
+and for the POSIX thread library (\texttt{pthreads}), which is used on POSIX
+systems for implementation of threading in C/C++ code prior to the 2011
+standards and for the implementation of the standard threading in the later
+versions of C/C++.
+The threading library is written specifically for verfication with DIVINE --
+indeed the whole idea of verification of parallel programs requires that that
+at some level of the abstaction a verification-specific semantics of threads is
+given.
+In the case of DIVINE, \divm provides explicit nondeterministic choice
+primitives, which are used by the core of DIVINE's runtime (\dios) to implement
+thread spawning, which is in turn used by implementation of POSIX thread
+library to start threads.
+Mutexes, condition variables, and other syncronization primitives, which in
+execution environment use operating system for the waiting and signalling are
+implemented using atomic sections. 
+
+Similarly to threading support, parts of the C standard library have to be
+implemented specifically for the verifier.
+In our case these parts are mostly memory allocation and deallocation, which
+takes memory directly from \divm.
+The rest of the standard C library originates mostly from
+PDClib~\cite{TODO:pdclib}, with some parts from various other open-source C
+library implementations and contributions from DIVINE developers.
+
+The C++ standard library usually builds on top of a C standard library.
+This allowed us to re-use existing implementation of C++ standard library,
+namely the \texttt{libc++abi} (which takes care of low-level features such as
+memory allocation and run-time type support) and \texttt{libc++} (which
+represents all the user-facing features of the C++ standard library).
+Both of these libraries are part of the LLVM project and used for example on
+macOS and certain BSD flavours as the default C++ library implementations.
+Reusing of these libraries takes care of most of the C++ features which require
+library support, with the sole exception of exceptions, which require a special
+library for stack manipulation -- an \emph{unwinder}.
+The unwinder library used in DIVINE is \divm specific and is described,
+together with more details about exception support in DIVINE in the next
+section.
+Nevertheless, by adhering to the interface of the unwiner library used normally
+on POSIX systems, we were able to make use of all the exception handling code
+in \texttt{libc++abi} without any changes to it.
 
 
-\section{Introduction}\label{sec:introduction}
-
-Today, formal verification methods are not commonly used in software
-development, even though they are superior to traditional testing
-approaches in many respects. One particular example is model checking,
-which can be used to control non-determinism in programs, especially
-when it arises from parallelism. Formal methods can also be used to
-extend testing coverage (e.g.~via systematic fault injection),
-verification of liveness properties or verification of global safety
-properties (such as global assertions). However, to make those
-advantages actually available to software developers, verification tools
-must be easy to integrate into existing workflows. If the use of
-verification tools requires substantial effort (as compared to testing),
-the costs associated with formal methods can outweigh the savings they
-provide. This is especially true for modern development processes
-(especially in commodity software), where there is little time for a
-separate modeling and design phases.
-
-For this reason, both the academic and industrial
-communities~\cite{beyer16:reliab.reprod} increasingly seek to develop
-and use tools which work with mainstream programming languages. However,
-support for these programming languages -- especially when compared to
-special-purpose modelling formalisms -- brings new complexity to
-verification tools. Programs written in such languages are usually more
-complex and on a lower level of abstraction than models specifically
-built for analysis tools. Additionally, many programming languages
-contain features with no counterparts in a typical modeling language,
-such as dynamic memory, run-time type information and introspection
-(RTTI), exception handling, or template instantiation. Moreover,
-programs written in these languages usually make use of extensive
-standard libraries. Therefore, the verifier either has to include all of
-the language and library functionality as primitives, or it has to
-provide an implementation which is added to the verified program just
-like a traditional library.
-
-The paper is structured as follows: the remainder of
-Section~\ref{sec:introduction} gives motivation, context and
-contribution of this work. Section~\ref{sec:exceptions} describes the
-mechanisms that C++ implementations typically use in order to support
-exceptions. The following Section~\ref{sec:execution} then details how
-\llvm{} is interpreted in \divine{} 4, in particular the parts relevant to
-exception handling, such as the stack layout.
-Section~\ref{sec:transform} and Section~\ref{sec:unwinder} discuss the
-new components: the \llvm{} transformation and the unwinder, respectively.
-Section~\ref{sec:related} surveys the related work and finally, in
-Section~\ref{sec:evaluation}, we evaluate our approach and we summarise
-our findings in Section~\ref{sec:conclusion}.
-
-\subsection{Motivation}\label{sec:motivation}
-
-In many cases, it is impractical to re-implement the entire programming
-language and its support libraries. Verification tools can, however,
-take advantage of existing compilers or libraries to deal with some of
-the complexity. For example, verification can be substantially
-simplified by translating the source code into an intermediate
-representation (IR) using an existing compiler frontend. If the compiler
-in question can emit intermediate representation after it has been
-optimised, the verification result is independent of the correctness of
-the (complex and error-prone) optimiser: any problems introduced by the
-optimiser will be caught by the verification tool.
-
-In case of C++, a suitable frontend is the clang compiler, which uses
-\llvm{} as its IR. Since \llvm{} can optimise the IR and produce executable
-code on many platforms from a single optimised IR file, the verification
-effort does not need to be repeated for each target platform separately.
-Of course, the code generator (which is comparatively simple when
-compared to the platform-neutral optimiser) still needs to preserve the
-semantics of the program -- otherwise, it would invalidate the
-verification result.
-
-As an alternative to re-using finished, execution-oriented components,
-one could only support a subset of a programming language (i.e.~exclude
-the parts that are hard to support in a verification tool). However,
-this weakens the case for supporting mainstream programming languages:
-it prevents developers from verifying production code. This is
-especially true for standard libraries, as programming without them
-requires the programmer to implement everything from scratch. Finally,
-the standard library is often implemented in the programming language it
-is part of, and is therefore another good candidate for sharing code
-with execution-oriented implementations of the language. Unfortunately,
-upstream implementations of standard libraries usually make extensive
-use of advanced language features. Consequently, in order to re-use
-existing standard library implementations, more complete language
-support is required in the verifier.
+\section{C++ Exceptions in DIVINE}\label{sec:lang:except}
 
 Exceptions are among the features that are both widely used (including
-by the standard library) and tricky to implement. Their use is, however,
-also common outside of the standard library: libraries like
-\texttt{boost} and application-level code often take advantage of this
-capability. This is natural, since exceptions simplify error handling
-and usually require less boilerplate code than any of the alternatives.
+by the standard library) and tricky to implement.
+Their use is, however, also common outside of the standard library: libraries
+like \texttt{boost} and application-level code often take advantage of this
+capability.
+This is natural, since exceptions simplify error handling and usually require
+less boilerplate code than any of the alternatives.
 Furthermore, even though many C++ standard library implementations can
-be built without exception support\footnote{There are cases where not
+be built without exception support\mnote{There are cases where not
   using exceptions makes sense: if the end-user code makes no use of
   them but the standard library is compiled with exception support, the
   requisite metadata tables only serve to increase the size of the
   compiled program.}, this change can significantly affect its behaviour
-(and as such, validity of the verification result). Finally, error
-handling paths, including exception propagation, are an important target
-for analysis by verification tools, as they are both hard to test by
-more conventional means and likely to contain errors -- this naturally
-arises from the fact that their purpose is to handle unlikely side cases
-which can be hard to accurately reproduce with testing. A model checker,
-on the other hand, can take advantage of its built-in support for
-non-determinism to rigorously explore error paths.\footnote{This is a
-  form of fault injection. When using a model checker, it is only
-  necessary to modify the function where the error may arise (e.g.~the
-  \texttt{malloc} function may be modified to return a \texttt{NULL}
-  pointer non-deterministically). The model checker will then take care
-  of exploring all possible combinations of succeeding and failing
-  memory allocations in the program.}
-
-\subsection{Component Re-Use}\label{component-re-use}
-
-Unfortunately, off-the-shelf components from execution-oriented language
-kits do not provide a complete toolbox that would allow verification
-tool developers to simply concentrate on verification. The difficulties
-roughly fall into two categories: first, the components interact with
-each other and with the system for which they were originally designed
-and second, it is often not at all obvious which components are suitable
-for re-use and which are not. When a component C is re-used, all the
-interfaces it uses must be provided as well. There are 3 basic ways in
-which this can be arranged:
-
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\tightlist
-\item
-  re-use another component, D, which provides this interface; this is
-  only possible if all interfaces D uses are already available or can be
-  provided
-\item
-  modify component C to avoid its dependency on the interface in
-  question
-\item
-  re-implement the interface as a new, possibly tool- or
-  verification-specific component
-\end{enumerate}
+(and as such, validity of the verification result).
+Finally, error handling paths, including exception propagation, are an
+important target for analysis by verification tools, as they are both hard to
+test by more conventional means and likely to contain errors -- this naturally
+arises from the fact that their purpose is to handle unlikely side cases which
+can be hard to accurately reproduce with testing.
+A model checker, on the other hand, can take advantage of its built-in support
+for non-determinism to rigorously explore error paths.\mnote{This is a
+  form of fault injection. When using a model checker, it is only necessary to
+  modify the function where the error may arise (e.g.~the \cpp{malloc}
+  function may be modified to return a \cpp{NULL} pointer
+  non-deterministically). The model checker will then take care of exploring
+  all possible combinations of succeeding and failing memory allocations in the
+  program.}
 
 \subsection{Contribution}\label{contribution}
 
