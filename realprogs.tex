@@ -1,4 +1,8 @@
-\srcnote{Text of this chapter is in part extension of~\cite{SRB2017}}
+\srcnote{Text of this chapter is in part extension of~\cite{SRB2017}.
+The text was brought up to date with certain implementation details of DIVINE
+and extended with the wider context of analysis of realistic programs in
+DIVINE.
+The benchmarks are unmodified from the original paper.}
 
 - compilation, libraries + threading, exceptions
 
@@ -73,17 +77,17 @@ The rest of this chapter is structured as follows: \autoref{sec:lang:adv} takes 
 \autoref{sec:lang:except} then takes more detailed look at the particular case of excetion support in DIVINE 4, which was originally published in~\cite{SRB2017}.
 
 % The paper is structured as follows: the remainder of
-% Section~\ref{sec:introduction} gives motivation, context and
-% contribution of this work. Section~\ref{sec:exceptions} describes the
+% \autoref{sec:introduction} gives motivation, context and
+% contribution of this work. \autoref{sec:exceptions} describes the
 % mechanisms that C++ implementations typically use in order to support
-% exceptions. The following Section~\ref{sec:execution} then details how
+% exceptions. The following \autoref{sec:execution} then details how
 % \llvm{} is interpreted in \divine{} 4, in particular the parts relevant to
 % exception handling, such as the stack layout.
-% Section~\ref{sec:transform} and Section~\ref{sec:unwinder} discuss the
+% \autoref{sec:transform} and \autoref{sec:unwinder} discuss the
 % new components: the \llvm{} transformation and the unwinder, respectively.
-% Section~\ref{sec:related} surveys the related work and finally, in
-% Section~\ref{sec:evaluation}, we evaluate our approach and we summarise
-% our findings in Section~\ref{sec:conclusion}.
+% \autoref{sec:related} surveys the related work and finally, in
+% \autoref{sec:evaluation}, we evaluate our approach and we summarise
+% our findings in \autoref{sec:conclusion}.
 
 \section{Component Reuse in Verification}\label{sec:lang:adv}
 
@@ -166,10 +170,13 @@ therefore help to ensure correctness of the code which uses the
 library.\mnote{An example is the data race in initialization of C++ threads in
 \texttt{libc++} discovered by DIVINE which was later fixed by the
 \texttt{libc++} developers.}
+The same feature also makes library reusal preferable to implementation of given features in the verifier itself -- a bug in the verifier will can go unnoticed, while a bug in the library has much higher chance to be caught by the verifier itself.
+Library reusal also keeps the verifier itself as small as possible, making it easier to ensure its correctness.
 Sadly, the same aspect of library reusal increases the complexity of the
 verification task, as the analysis tool now also has to analyse the code of the
 library itself.
 This can be especially a problem as the libraries are ususally performance-tuned making the code more complex to analyse.
+
 
 An important point in library reusal is that libraries often take full advantage of the available language features.
 Therefore, good support for the language is usually a prerequisite for library reuse.
@@ -188,6 +195,8 @@ In DIVINE, we use the clang compiler to produce LLVM IR, which is then linked
 with implementations of libraries and instrumented for the verification.
 The LLVM IR with verification-specific instrumentation will be called \divm IR,
 mathching the naming introduced by~\cite{DIVINEToolPaper2017}.
+\divm is the core of DIVINE which handles execution of LLVM in a memory-safe
+way and is able to save and restore state of the execution.
 The overview of this process can be seen in \autoref{fig:lang:divineworkflow}.
 
 \begin{figure}[tp]
@@ -244,11 +253,12 @@ other memebers of the team.
 The current state of the compilation for DIVINE can is described
 in~\cite{BR2020}.
 
-As for the libraries, DIVINE has support for the C and C++ standard libraries,
-and for the POSIX thread library (\texttt{pthreads}), which is used on POSIX
-systems for implementation of threading in C/C++ code prior to the 2011
-standards and for the implementation of the standard threading in the later
-versions of C/C++.
+In order to provide support for most of C and C++, DIVINE has to also provide
+standard libraries for these languages.
+DIVINE has support for the C and C++ standard libraries, and for the POSIX
+thread library (\texttt{pthreads}), which is used on POSIX systems for
+implementation of threading in C/C++ code prior to the 2011 standards and for
+the implementation of the standard threading in the later versions of C/C++.
 The threading library is written specifically for verfication with DIVINE --
 indeed the whole idea of verification of parallel programs requires that that
 at some level of the abstaction a verification-specific semantics of threads is
@@ -258,13 +268,13 @@ primitives, which are used by the core of DIVINE's runtime (\dios) to implement
 thread spawning, which is in turn used by implementation of POSIX thread
 library to start threads.
 Mutexes, condition variables, and other syncronization primitives, which in
-execution environment use operating system for the waiting and signalling are
-implemented using atomic sections. 
+execution environment usually use operating system for the waiting and
+signalling are implemented using atomic sections. 
 
 Similarly to threading support, parts of the C standard library have to be
 implemented specifically for the verifier.
 In our case these parts are mostly memory allocation and deallocation, which
-takes memory directly from \divm.
+takes memory directly from \divm, and program startup and exit which is \dios specific.
 The rest of the standard C library originates mostly from
 PDClib~\cite{TODO:pdclib}, with some parts from various other open-source C
 library implementations and contributions from DIVINE developers.
@@ -272,12 +282,14 @@ library implementations and contributions from DIVINE developers.
 The C++ standard library usually builds on top of a C standard library.
 This allowed us to re-use existing implementation of C++ standard library,
 namely the \texttt{libc++abi} (which takes care of low-level features such as
-memory allocation and run-time type support) and \texttt{libc++} (which
-represents all the user-facing features of the C++ standard library).
+memory allocation and run-time type support, which can be viewed as part of the
+language itself, but need a library implementation in practice) and
+\texttt{libc++} (which represents all the user-facing features of the C++
+standard library).
 Both of these libraries are part of the LLVM project and used for example on
 macOS and certain BSD flavours as the default C++ library implementations.
 Reusing of these libraries takes care of most of the C++ features which require
-library support, with the sole exception of exceptions, which require a special
+library support, with the sole exception of exceptions, that require a special
 library for stack manipulation -- an \emph{unwinder}.
 The unwinder library used in DIVINE is \divm specific and is described,
 together with more details about exception support in DIVINE in the next
@@ -286,182 +298,16 @@ Nevertheless, by adhering to the interface of the unwiner library used normally
 on POSIX systems, we were able to make use of all the exception handling code
 in \texttt{libc++abi} without any changes to it.
 
+The libraries used for verification are shipped with DIVINE source code and
+compiled into LLVM IR libraries at the time of compilation of DIVINE.
+These LLVM IR libraries are then linked to the program at the time of its
+compilation for DIVINE.
+The verification workflow and the execution workflow are rather similar in the
+case of DIVINE (especially on POSIX systems) -- the program is in both cases
+compiled and then linked with an implementation of C and C++ standard
+librarires, POSIX thread library, and an stack unwinder.
 
-\section{C++ Exceptions in DIVINE}\label{sec:lang:except}
-
-Exceptions are among the features that are both widely used (including
-by the standard library) and tricky to implement.
-Their use is, however, also common outside of the standard library: libraries
-like \texttt{boost} and application-level code often take advantage of this
-capability.
-This is natural, since exceptions simplify error handling and usually require
-less boilerplate code than any of the alternatives.
-Furthermore, even though many C++ standard library implementations can
-be built without exception support\mnote{There are cases where not
-  using exceptions makes sense: if the end-user code makes no use of
-  them but the standard library is compiled with exception support, the
-  requisite metadata tables only serve to increase the size of the
-  compiled program.}, this change can significantly affect its behaviour
-(and as such, validity of the verification result).
-Finally, error handling paths, including exception propagation, are an
-important target for analysis by verification tools, as they are both hard to
-test by more conventional means and likely to contain errors -- this naturally
-arises from the fact that their purpose is to handle unlikely side cases which
-can be hard to accurately reproduce with testing.
-A model checker, on the other hand, can take advantage of its built-in support
-for non-determinism to rigorously explore error paths.\mnote{This is a
-  form of fault injection. When using a model checker, it is only necessary to
-  modify the function where the error may arise (e.g.~the \cpp{malloc}
-  function may be modified to return a \cpp{NULL} pointer
-  non-deterministically). The model checker will then take care of exploring
-  all possible combinations of succeeding and failing memory allocations in the
-  program.}
-
-\subsection{Contribution}\label{contribution}
-
-The main contribution of this paper is twofold: first, we identify the
-components that are best re-used and those which are best re-implemented
-and show that this decision crucially depends on the underlying
-intermediate language. Second, we provide implementations of the
-components which cannot be re-used in a form that is easy to integrate
-into both existing and future verification tools. One of the components
-works as an \llvm{} transformation pass, and could be used with any
-\llvm{}-based tool. The other component targets the \divm{}
-language~\cite{rockai17:divm} specifically, and will therefore only
-work with tools which understand this language.\footnote{\divm{} is a
-  relatively small extension of the \llvm{} IR, therefore extending tools
-  which work with pure \llvm{} to also support \divm{} may be quite easy.}
-
-The goal of this paper, especially in the context of our previous work
-on the topic of C++ exceptions in
-verification~\cite{rockai16:model.checkin}, is to aid authors of
-verification tools to minimise costs and effort associated with
-inclusion of exception support. Depending on the characteristics of the
-tool, either the approach described in~\cite{rockai16:model.checkin} or
-the one in this paper might be more suitable. Overall, in a verifier
-which can handle the \divm{} language or equivalent, the approach given in
-this paper is simpler to implement and more robust. A more detailed
-comparison of the two approaches is given in Section~\ref{sec:cmpD3}.
-
-All source code related to this paper, along with more detailed
-benchmark results and other supplementary material, are available online
-under a permissive open-source licence.\footnote{\url{https://divine.fi.muni.cz/2017/exceptions}}
-
-\subsection{Implementation}\label{implementation}
-
-Our primary implementation platform is the \divine{} model
-checker~\cite{barnat13:divine}. The C++ support in \divine{} has several
-components: first, \divine{} uses clang to translate C++ into \llvm{} IR. As
-outlined above, the verifier does not need to handle complex syntactical
-features of C++ this way. A few verification-specific transformations
-are done on the \llvm{} IR before it is converted into the \divm{} language
-for execution in \divine{}'s Virtual Machine. The VM executes instructions
-and performs safety checks, such as bound checking. Alone, these
-components provide basic support for C++. In order to support features
-such as RTTI and exceptions, it is also necessary to provide a runtime
-support library and an implementation of the standard library. These
-libraries in turn rely on a C standard library and on a threading
-library (\texttt{pthreads} on POSIX compatible systems). Those libraries
-are provided by \dios{}, a small, verification-oriented operating system
-which runs inside \divm{}.
-
-As discussed above, building those libraries into the verifier is
-impractical due to cost and time constraints. There is, however, another
-important reason why these should be kept out of the verification core:
-any extension of the verifier increases risks of implementation errors,
-and the more complex these extensions are, the higher are the associated
-risks. Moreover, any such errors in the verifier can lead to incorrect
-verification results. For this reason, \divine{} ships source code
-implementing these libraries as separate modules; this source code is
-later compiled into \llvm{} IR and linked to the verified program. This
-way, the libraries are subject to the same error checking as user code,
-and any errors in their implementation that are exposed by the user
-program will be detected by the verifier.
-
-Additionally, whenever off-the-shelf components are re-used, it is
-preferable to keep verification-specific changes at minimum. The
-standard C library in \divine{} is based on PDCLib, a small, portable,
-public domain C library. The copy of PDCLib in \divine{} includes a few
-modifications (the C library interfaces directly with the operating
-system in many cases, therefore it is necessary to port it to work with
-the verifier, much like it would be necessary to port it to a new
-operating system). For threading support, \divine{} ships with a custom
-implementation of the \texttt{pthread} library (so far, no existing
-implementation of the \texttt{pthread} interface which could be re-used
-has been identified). For C++ support, \texttt{libc++abi} (the runtime
-library) and \texttt{libc++} (the standard library) are used. Both of
-these libraries are maintained by the \llvm{} project and work on many
-Unix-like systems.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.47000\textwidth]{except-components}
-\caption{Components involved in exception support in the standard
-clang/\llvm{} stack. Under the scheme proposed in this paper, the
-highlighted elements are shared between verification and execution
-environments.}\label{fig:components}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.47000\textwidth]{except-divine}
-\caption{Components involved in exception support in the \divine{} 4 C++
-verification stack. The solid-filled elements are re-used without
-modification from the execution-oriented clang/\llvm{} stack (cf.
-Figure~\ref{fig:components}). The hatch-filled components are the
-additions described in this paper.}\label{fig:divine}
-\end{figure}
-
-\subsection{Components for Exception
-Support}\label{components-for-exception-support}
-
-Unlike other features of C++, exceptions are neither handled by the
-standard or runtime libraries alone, nor delegated to the C standard
-library (as C has no support for exceptions). Instead,
-\texttt{libc++abi} provides exception support with the help of a
-platform-specific \emph{unwinder library} which is responsible for stack
-introspection and unwinding (removal of stack frames and transfer of
-control to exception-handling code). The interaction of these components
-is illustrated in Figure~\ref{fig:components}.
-
-For this reason, \divine{} has to either provide an unwinder implementation
-compatible with \texttt{libc++abi}, or modify \texttt{libc++abi} to use
-custom code for exception handling. In \divine{} 3, the latter approach was
-used, as it was deemed easier at the
-time~\cite{rockai16:model.checkin}. However, while basic exception
-support was easier to achieve this way, the approach also had its
-disadvantages. First, the \llvm{} interpreter in \divine{} 3 had special
-support for exception-related functionality. Second, the
-\texttt{libc++abi} code for exception handling was replaced, which had 2
-important consequences: first, the replacement code was not
-comprehensive enough\footnote{That is, some of the less frequently used
-  features of C++ exceptions were handled either incorrectly or not at
-  all. That is to say, the size of the \texttt{libc++abi} portion that
-  would have needed to be re-implemented was initially underestimated.}
-and second, this meant that the replaced part of \texttt{libc++abi} was
-not taken into account during verification.
-
-In this paper, we instead take the first approach: re-use
-\texttt{libc++abi} in its entirety and provide the interfaces it
-requires. Therefore, we have implemented the \texttt{libunwind}
-interface used by \texttt{libc++abi} for stack unwinding and an \llvm{}
-transformation which builds metadata tables that \texttt{libc++abi}
-needs to decide which exceptions should be caught, how they should be
-handled and which functions on the stack need to perform cleanup
-actions. The situation is illustrated in Figure~\ref{fig:divine}.
-
-Using the original \texttt{libc++abi} code means that all features of
-the C++ exception system are fully supported and verification results
-also cover the low-level exception support code. That is, this portion
-of the code is identical in both the bitcode which is verified and in
-the natively executing program.\footnote{Clearly, the \texttt{libunwind}
-  implementation is different in those two environments, and therefore
-  correctness of the platform-specific implementation of
-  \texttt{libunwind} must be established separately.} Finally, the
-proposed design is easier to extend to other programming languages.
-
-\subsection{Other Components in Use}\label{sec:components}
-
+\TODO{
 In line with the principles outlined so far, the implementation of the C
 and C++ standard libraries (and the C++ runtime library) used in \divine{}
 are third party code with only minimal modifications. The C standard
@@ -501,39 +347,202 @@ management and the verification algorithm), amounts to roughly 6
 thousand lines of C++. Finally, there is about 2500 lines of code which
 implement various transformations on the \llvm{} bitcode. Out of these 2500
 lines, less than 300 are part of the exception-related extension
-described in this paper.
+described in this paper.}
+
+\section{C++ Exceptions in DIVINE}\label{sec:lang:except}
+
+Exceptions are among the features that are both widely used (including
+by the standard library) and tricky to implement.
+Their use is, however, also common outside of the standard library: libraries
+like \texttt{boost} and application-level code often take advantage of this
+capability.
+This is natural, since exceptions simplify error handling and usually require
+less boilerplate code than any of the alternatives.
+Furthermore, even though many C++ standard library implementations can
+be built without exception support\mnote{There are cases where not
+  using exceptions makes sense: if the end-user code makes no use of
+  them but the standard library is compiled with exception support, the
+  requisite metadata tables only serve to increase the size of the
+  compiled program.}, this change can significantly affect its behaviour
+(and as such, validity of the verification result).
+Finally, error handling paths, including exception propagation, are an
+important target for analysis by verification tools, as they are both hard to
+test by more conventional means and likely to contain errors -- this naturally
+arises from the fact that their purpose is to handle unlikely side cases which
+can be hard to accurately reproduce with testing.
+A model checker, on the other hand, can take advantage of its built-in support
+for non-determinism to rigorously explore error paths.\mnote{This is a
+  form of fault injection. When using a model checker, it is only necessary to
+  modify the function where the error may arise (e.g.~the \cpp{malloc}
+  function may be modified to return a \cpp{NULL} pointer
+  non-deterministically). The model checker will then take care of exploring
+  all possible combinations of succeeding and failing memory allocations in the
+  program.}
+
+\subsection{Contribution}\label{contribution}
+
+\TODO{The apporach to exception support described in this section, and originally published in \cite{SRB2017} bringhs the following contributions:
+first, we identify the
+components that are best re-used and those which are best re-implemented
+and show that this decision crucially depends on the underlying
+intermediate language. Second, we provide implementations of the
+components which cannot be re-used in a form that is easy to integrate
+into both existing and future verification tools. One of the components
+works as an \llvm{} transformation pass, and could be used with any
+\llvm{}-based tool. The other component targets the \divm{}
+language~\cite{RSCB2018} specifically, and will therefore only
+work with tools which understand this language.\mnote{\divm{} is a
+  relatively small extension of the \llvm{} IR, therefore extending tools
+  which work with pure \llvm{} to also support \divm{} may be quite easy.}
+
+The goal of this paper, especially in the context of our previous work
+on the topic of C++ exceptions in
+verification~\cite{RBB16}, is to aid authors of
+verification tools to minimise costs and effort associated with
+inclusion of exception support. Depending on the characteristics of the
+tool, either the approach described in~\cite{RBB16} or
+the one in this paper might be more suitable. Overall, in a verifier
+which can handle the \divm{} language or equivalent, the approach given in
+this paper is simpler to implement and more robust. A more detailed
+comparison of the two approaches is given in \autoref{sec:cmpD3}.
+
+All source code related to this work, along with more detailed
+benchmark results and other supplementary material, are available online
+under a permissive open-source licence.\mnote{\url{https://divine.fi.muni.cz/2017/exceptions}}
+The implementation is also fully integrated part of the DIVINE model checker
+and therefore present in its current versions.}
+
+\subsection{Components for Exception
+Support}
+
+Unlike other features of C++, exceptions are neither handled by the
+standard or runtime libraries alone, nor delegated to the C standard
+library (as C has no support for exceptions). Instead,
+\texttt{libc++abi} provides exception support with the help of a
+platform-specific \emph{unwinder library} which is responsible for stack
+introspection and unwinding (removal of stack frames and transfer of
+control to exception-handling code).
+
+For this reason, \divine{} has to either provide an unwinder implementation
+compatible with \texttt{libc++abi}, or modify \texttt{libc++abi} to use
+custom code for exception handling. In \divine{} 3, the latter approach was
+used, as it was deemed easier at the
+time~\cite{RBB16}. However, while basic exception
+support was easier to achieve this way, the approach also had its
+disadvantages. First, the \llvm{} interpreter in \divine{} 3 had special
+support for exception-related functionality. Second, the
+\texttt{libc++abi} code for exception handling was replaced, which had 2
+important consequences: first, the replacement code was not
+comprehensive enough\mnote{That is, some of the less frequently used
+  features of C++ exceptions were handled either incorrectly or not at
+  all. That is to say, the size of the \texttt{libc++abi} portion that
+  would have needed to be re-implemented was initially underestimated.}
+and second, this meant that the replaced part of \texttt{libc++abi} was
+not taken into account during verification.
+
+In this work, we instead take the first approach: reuse
+\texttt{libc++abi} in its entirety and provide the interfaces it
+requires. Therefore, we have implemented the \texttt{libunwind}
+interface used by \texttt{libc++abi} for stack unwinding and an \llvm{}
+instrumentation which builds metadata tables that \texttt{libc++abi}
+needs to decide which exceptions should be caught, how they should be
+handled and which functions on the stack need to perform cleanup
+actions.
+To put this into perspective, the code which drives exception handling in \texttt{libc++abi} is about 1300 lines of code, while the code related to \texttt{libunwind} implementation in DIVINE is about 210 lines and the instrumentaton for C++ specific metadata is about 300 lines of code.
+
+Using the original \texttt{libc++abi} code means that all features of
+the C++ exception system are fully supported and verification results
+also cover the low-level exception support code. That is, this portion
+of the code is identical in both the bitcode which is verified and in
+the natively executing program.\mnote{Clearly, the \texttt{libunwind}
+  implementation is different in those two environments, and therefore
+  correctness of the platform-specific implementation of
+  \texttt{libunwind} must be established separately.}
+Furthermore, should the need arise to use different C++ runtime library then
+\texttt{libc++abi} (for example to provide additional guarantees for programs
+which use this different library), our solution should work without any
+modification of the given C++ runtime library, provided it uses the
+(semi-standard) unwinder interface.
+Finally, proposed design is easier to extend to other programming
+languages as the \texttt{libunwind} implementation is generic and language
+independend and only the instrumentation which provides language-specific
+metadata needs to be provided to different languages.
 
 \section{Exceptions in C++}\label{sec:exceptions}
 
-Throwing an exception requires removal of all the stack frames\footnote{The
-  execution stack of a (C++) program consists of stack frames, each
-  holding context of a single entry into some function. It contains
-  local variables, a return address and register values which need to be
-  restored upon return.} between the throwing and catching function from
-the stack (\emph{unwinding}). Therefore, exception handling is closely
-tied to the particular platform and is described by ABI\footnote{\emph{Application
-  Binary Interface}, a low-level interface between program components on
-  a given platform.} for the platform. Commonly, exception handling is
-split into two parts, one which is tied to the platform (the
-\emph{unwinder library} which handles stack unwinding) and one which is
-tied to the language and provided by the language's runtime
-library.\footnote{There are many implementations of the C++ runtime
+The process of exception handling in C++ is illustrated by \autoref{fig:lang:exceptcpp}.
+
+\begin{figure}[tp]
+  \begin{cppcode}
+    int max(std::vector<int> &vec) {
+      if (vec.empty())
+        throw std::invalid_argument("empty vector");
+      /* ... */
+    }
+    void foo() {
+      std::vector<int> a = { 1, 2, 3 };
+      std::vector<int> b = {};
+      auto x = max(b);
+      /* ... */
+    }
+    int main() {
+      try {
+        foo();
+      }
+      catch (std::range_error &) {
+        std::cout << "range error\n";
+      }
+      catch (std::invalid_argument &) {
+        std::cout << "invalid argument\n";
+      }
+    }
+  \end{cppcode}
+\caption{Exception handling in C++ (with the zero-cost exceptions).
+  A the moment the execution is thrown in \texttt{max}, there are three frames
+  on the stack \texttt{max}, \texttt{foo}, and \texttt{main}.
+  The exception can be caught by \texttt{main}, but the first the cleanup code
+  in \texttt{foo} has to be executed -- this code will deallocate memory owned
+  by the vectors present in this function.
+  Therefore, first only the stack frame of \texttt{max} is removed and the
+  cleanup in \texttt{foo} is executed.
+  After the cleanup, the stack frame of \texttt{foo} will be removed from
+  stack.
+  Finally in \texttt{main} the unwinder will transfer control to the second
+  catch statement.
+}\label{fig:lang:exceptcpp}
+\end{figure}
+
+Throwing an exception requires removal of all the stack frames\mnote{The
+execution stack of a (C++) program consists of stack frames, each holding
+context of a single entry into some function. It contains local variables, a
+return address and register values which need to be restored upon return.}
+between the throwing and catching function from the stack (\emph{unwinding}).
+Therefore, exception handling is closely tied to the particular platform and is
+described by ABI\mnote{\emph{Application Binary Interface}, a low-level
+interface between program components on a given platform.} for the platform.
+Commonly, exception handling is split into two parts, one which is tied to the
+platform (the \emph{unwinder library} which handles stack unwinding) and one
+which is tied to the language and provided by the language's runtime
+library.\mnote{There are many implementations of the C++ runtime
   library, which, besides exception support code, provides additional
-  features such as RTTI. Each implementation is usually tied to a
-  particular C++ standard library. Commonly used implementations on
-  Unix-like systems are \texttt{libsupc++}, which comes with
-  \texttt{libstdc++} and the GCC compiler, and \texttt{libc++abi}, which
-  is tied to \texttt{libc++} used by some builds of clang and by \divine{}.}
+  features such as RTTI.
+  Each implementation is usually tied to a particular implementation of C++
+  standard library.
+  Commonly used implementations on Unix-like systems are \texttt{libsupc++},
+  which comes with \texttt{libstdc++} and the GCC compiler, and
+  \texttt{libc++abi}, which is tied to \texttt{libc++} used by some builds of
+  clang and by \divine{}.}
 These two parts cooperate in order to provide exception handling for a
 given language; however, this communication is not standardised in any
-cross-platform fashion. For this reason, we will now focus on zero-cost
-exceptions based on the Itanium ABI, an approach which is used across
-various Unix-like systems on \texttt{x86} and \texttt{x86\_64} processor
-architectures and is the preferred basis for \llvm{} exceptions.
+cross-platform fashion.
+For this reason, we will now focus on zero-cost exceptions based on the Itanium
+ABI, an approach which is used across various Unix-like systems on \texttt{x86}
+and \texttt{x86\_64} processor architectures and is the preferred basis for
+\llvm{} exceptions.
 Nevertheless, it is possible to generalize our results to other
 implementations.
 
-\subsection{Zero-Cost Exceptions}\label{sec:zerocost}
+\subsection{Zero-Cost Exceptions}\label{sec:lang:zerocost}
 
 The so-called zero-cost exceptions are designed to incur no overhead
 during normal execution, at the expense of relatively costly mechanism
@@ -543,7 +552,8 @@ library, with the help of \emph{unwind tables}, finds an appropriate
 \emph{handler} for the exception and uses the \emph{unwinder} to
 manipulate the stack so that this handler can be executed. The search
 for the handler is driven by a \emph{personality function}, which is
-provided by the implementation of the particular programming language.
+provided by the implementation of the particular programming language
+and associated in the metadata with each function which can participate in exception handling.
 
 The personality function is responsible for deciding which handler
 should execute (the handler selection can be complex and
@@ -556,7 +566,7 @@ between those two types of handlers is that catch handlers stop the
 propagation of the exception, while cleanup handlers let propagation
 continue after the cleanup is performed. While cleanup handlers are
 usually run unconditionally, the catch handler to be executed, if any,
-is determined by the personality function.\footnote{In fact, the
+is determined by the personality function.\mnote{In fact, the
   personality function can also decide to skip cleanup handlers, but
   this is not common.} In C++, the personality function selects the
 closest \texttt{catch} statement which matches the thrown type (the
@@ -568,9 +578,10 @@ handlers.
 When an exception is thrown, the runtime library of the language creates
 an \emph{exception object} and passes it to the unwinder library. The
 actual stack unwinding is, on platforms which build on the Itanium ABI,
-performed in two phases. First, the stack is inspected (without
+performed in two phases (\emph{two phase handler lookup}).
+First, the stack is inspected (without
 modification) in search for a catch handler. Each stack frame is
-examined by the relevant personality function.\footnote{Different
+examined by the relevant personality function.\mnote{Different
   personality functions can be called for different frames, for example
   if the program consists of code written in different languages with
   exception support.} If an appropriate catch handler is found in this
@@ -588,9 +599,9 @@ unwinder continues performing phase 2 from the point of the last
 executed handler. This is facilitated by storing the state of the
 unwinder within the exception object.
 
-\subsection{Unwind Tables}\label{unwind-tables}
+\subsection{Unwind Tables}\label{sec:lang:unwind-tables}
 
-As mentioned in Section~\ref{sec:zerocost}, both the unwinder library
+As mentioned in \autoref{sec:lang:zerocost}, both the unwinder library
 and the language runtime depend on unwind tables for their work. The
 unwinder uses these tables to get information about stack layout in
 order to be able to unwind frames from it, and for detection which
@@ -605,7 +616,7 @@ the \llvm{} IR; instead, they are generated by the appropriate code
 generator for any given platform, based on information in the
 \texttt{landingpad} instructions, and the personality attribute of
 functions. On Unix-like systems, the unwind tables are in the
-DWARF\footnote{DWARF is a standard for debugging information designed
+DWARF\mnote{DWARF is a standard for debugging information designed
   for use with ELF executables. It is used on most modern Unix-like
   systems.} format.
 
@@ -621,22 +632,23 @@ instructions can be implemented in the simplest possible way:
 followed by an unconditional branch. The \texttt{landingpad} instruction
 can be simply ignored by the verifier and \texttt{resume} instructions
 and calls of the \texttt{llvm.eh.typeid.for} intrinsic are both removed
-by the transformation described in Section~\ref{sec:transform}.
+by the LLVM transformation and instrumentation described in
+\autoref{sec:lang:transform}.
 Moreover, the metadata required by \texttt{libc++abi} are likewise
 generated by the \llvm{} transformation and this process is completely
 transparent to the verifier.
 
 In addition to support for \llvm{}, the unwinder (described in more detail
-in Section~\ref{sec:unwinder}) requires the ability to traverse and
+in \autoref{sec:lang:unwinder}) requires the ability to traverse and
 manipulate the stack and read and write \llvm{} registers associated with a
 given stack frame. Finally, it needs access to a representation of the
 bitcode for a given function. All those abilities are part of the \divm{}
-specification~\cite{rockai17:divm} and are generally useful, regardless
+specification~\cite{RSCB2018} and are generally useful, regardless
 of their role in exception support.
 
 The \divm{} implementation in \divine{} 4 handles execution of \llvm{}
 instructions, \llvm{} intrinsic functions and \divm{}-specific
-\emph{hypercalls}.\footnote{Intrinsic functions are provided by \llvm{} as
+\emph{hypercalls}.\mnote{Intrinsic functions are provided by \llvm{} as
   a light-weight alternative to new instructions. Such functions are
   recognized and translated by \llvm{} itself, as opposed to ``normal''
   functions that come from libraries or the program. Likewise, \divm{}
@@ -658,10 +670,11 @@ deciding which thread should execute next. This scheduler is invoked
 repeatedly by the verifier to construct the state space. The scheduler
 fully determines the behaviour (or even presence) of concurrency in the
 verified program: while \dios{} provides asynchronous, preemptive
-parallelism typical of modern operating systems, it is also possible to
-implement cooperative or synchronous schedulers instead.
+parallelism typical of modern operating systems by default, it has also support
+for a synchronous scheduler and it would be possible to implement a
+cooperative scheduler too.
 
-\subsection{Stack Layout and Control Registers}\label{sec:stack-layout}
+\subsection{Stack Layout and Control Registers}\label{sec:lang:stack-layout}
 
 A \divm{} program can have multiple stacks, but only one of them can be
 active at any given time (a pointer to the active stack is kept in a
@@ -679,7 +692,7 @@ advantages: first, it is easy to create a stack frame for a function,
 for example when \dios{} needs to create a new thread; additionally, the
 linked-list-organized stack is a natural match for the graph
 representation of memory which \divm{} mandates, and therefore can be saved
-more efficiently~\cite{rockai17:divm}. Additionally, this way the stack
+more efficiently~\cite{RSCB2018}. Additionally, this way the stack
 may be nonlinear, and the unwinder can use this feature to safely
 transfer control to a cleanup block while the unwinder frame is still on
 the stack. Later, the handler can return control to the unwinder frame
@@ -688,25 +701,111 @@ with a continuous stack since cleanup code is allowed to call arbitrary
 functions and frames of those functions would overwrite the frame of the
 unwinder. For this reason, on traditional platforms, the unwinder needs
 to store its entire state in the exception object, while in \divm{}, it can
-simply retain its own activation frame. An illustration of how the stack
-looks while the unwinder is active is shown in
-Figure~\ref{fig:treestack}.
+simply retain its own activation frame, which simplifies the unwinder.
+An illustration of how the stack looks while the unwinder is active is shown in
+\autoref{fig:lang:treestack}.
 
 \begin{figure}
-\centering
-\includegraphics[width=0.47000\textwidth]{except-treestack}
+\small
+\begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, node distance=3cm
+                   , semithick
+                   , common/.style={rectangle, draw=black, inner sep=2pt,
+                                    node distance = 0em}
+                   , framepart/.style={common, minimum height=1.7em,
+                                       minimum width = 9.2em, text centered} 
+                   , vmreg/.style={common, minimum height=2em, minimum width = 3em}
+                   , frame/.style={matrix of nodes, nodes={framepart},
+                                   node distance = 1em}
+                   , box/.style={draw, dashed, rounded corners}
+                   ]
+
+    \matrix[matrix of nodes, nodes={vmreg}] (vmreg) {
+        \strut … &
+        \strut PC &
+        \strut frame &
+        \strut …\\};
+    \node[above = 0 of vmreg.north, anchor = south] (vmreg-l) {VM Registers};
+    \node[box, fit = (vmreg) (vmreg-l)] {};
+
+    \matrix[frame, below = 3em of vmreg] (close) {%
+        \cpp{close()} \\
+        caller \\
+        PC = … \\
+        …\\};
+
+    \matrix[frame, below = of close] (dFile) {%
+        \cpp{~File()} \\
+        caller \\
+        PC = \li{call @close} \\
+        … \\};
+
+    \matrix[frame, below = of dFile] (main) {%
+        \cpp{main()} \\
+        caller \\
+        PC = \li{call @~File} \\
+        … \\
+        exception \\
+        … \\};
+
+    \matrix[frame, below = of main] (start) {%
+        \cpp{_start()} \\
+        caller = \cpp{NULL} \\
+        PC = \li{call @main} \\
+        … \\};
+
+    \node[above = 0 of close.north, anchor = south] (pstack-l) {Program Stack};
+    \node[box, fit = (pstack-l) (close) (dFile) (main) (start)] {};
+
+    \matrix[frame, nodes={minimum width=13em}, right = 5em of close] (unwind) {%
+        \cpp{_Unwind_RaiseException()} \\
+        caller \\
+        PC = … \\
+        … \\};
+
+    \matrix[frame, nodes={minimum width=18em}, below = of unwind] (throw) {%
+        \cpp{__cxa_throw()} \\
+        caller \\
+        PC = \li{call @_Unwind_RaiseException} \\
+        … \\};
+
+    \node[above = 0 of unwind.north, anchor = south] (uwstack-l) {Unwinder Stack};
+    \node[box, fit = (uwstack-l) (unwind) (throw)] {};
+
+    \matrix[frame, nodes={minimum width=14em}, below = 7em of throw] (exception) {%
+        exception object \\
+        exception class = \texttt{0x}… \\
+        … \\
+        private\_1 \\
+        private\_2 = \li{landingpad} … \\
+        … \\
+        C++ Exception Object \\};
+          
+    \draw (vmreg-1-3) edge[out=310, in=47, looseness=2] (close)
+
+        (close-2-1.east) edge[bend left] (dFile-1-1.east)
+        (dFile-2-1.east) edge[bend left] (main-1-1.east)
+        (main-2-1.east) edge[bend left] (start-1-1.east)
+
+        (throw-2-1.west) edge[out=180, in=0] (main-1-1.east)
+        (unwind-2-1.east) edge[bend left] (throw-1-1.6)
+
+        (exception-4-1.east) edge[bend right] (unwind-1-1.east)
+        (main-5-1.east) edge[out=0, in=180] (exception-1-1.west)
+      ;
+\end{tikzpicture}
 \caption{In this figure we can see a stack of a program which is running
 cleanup block in the \texttt{main} function. The cleanup block calls the
 destructor of \texttt{File} structure, which in turn calls the
 \texttt{close} function (which is the current active function).
 Furthermore, the cleanup handler can access the exception object which
-contains a pointer to the stack of the unwinder. This pointer is used by
-the implementation of the \texttt{resume} instruction to jump back to
-the unwinder and continue phase 2 of the
-unwinding.}\label{fig:treestack}
+contains a pointer to the stack of the unwinder (and the program counter of the catch block).
+The frame pointer in the exception is used by the implementation of the
+\texttt{resume} instruction to jump back to the unwinder and continue phase 2
+of the unwinding.
+}\label{fig:lang:treestack}
 \end{figure}
 
-\section{The \llvm{} Transformation}\label{sec:transform}
+\section{The \llvm{} Transformation}\label{sec:lang:transform}
 
 The C++ runtime library (\texttt{libc++abi} in our case), needs access
 to the LSDA section of unwind tables (a pointer to this metadata section
@@ -715,18 +814,34 @@ DWARF-encoded exception tables, which are normally generated together
 with the executable by the compiler backend (code generator).
 Unfortunately, the generator of DWARF exception tables in \llvm{} is
 closely tied to the machine code generator and cannot be used to
-generate DWARF-formatted exception tables for verification purposes. For
+generate DWARF-formatted exception tables for the \llvm{} IR used for
+verification purposes.
+For
 this reason, we have implemented a small \llvm{} transformation which
 processes the information in \texttt{landingpad} instructions and
 generates \llvm{} constants which contain the DWARF-formatted LSDA data. A
 reference to one such constant is attached to each function in the
 bitcode file.
 
-To improve efficiency, \llvm{} does not directly use RTTI type info
-pointers within the landing blocks to decide which exception handlers
-should run. RTTI objects are special C++ objects which are used to
-identify types at runtime and are emitted by the C++ frontend as
-constants. Due to the complexities of C++ type system, matching RTTI
+The choice of catch block in C++ depends on the actual type the exception has
+at runtime.
+This type can be inspected thanks to run-time type information (RTTI).
+The RTTI can also be used to determine if one class inherits from other class,
+which is needed to decide which catch block can be used (as catch blocks can
+catch exceptions of derived types).
+The RTTI is avaible through RTTI type info pointers, special C++ objects which
+are used to identify types at runtime and are emitted by the C++ frontend as
+constants. 
+Type info pointers can be obtained from an object using the \texttt{typeof}
+operator in C++ and in \llvm{} they are saved in the virtual member functions'
+table (\emph{vtable}; for objects which have virtual member functions, other
+objects do not have RTTI type info pointers saved in them and the corresponding
+type info is fully determied by their static type).
+
+To improve efficiency, \llvm{} and zero-cost exceptions do not directly use
+RTTI type info pointers within the landing blocks to decide which exception
+handlers should run.
+Due to the complexities of C++ type system, matching RTTI
 types against each other is expensive: a search in a pair of directed
 acyclic graphs is required. Moreover, since the RTTI matching must be
 already done in the personality function to decide which frames to
@@ -754,59 +869,52 @@ where personality function obtains them) and for
 
 Finally, the transformation rewrites all uses of the \texttt{resume}
 instruction to ordinary calls to \texttt{Resume}, a function which is
-part of \texttt{libunwind} (see also Table~\ref{tbl:libunwind}).
+part of \texttt{libunwind} (see also \autoref{tbl:lang:libunwind}).
 
-\section{The Unwinder}\label{sec:unwinder}
+\section{The Unwinder}\label{sec:lang:unwinder}
 
 The unwinder in \divine{} is designed around the interface described in the
-Itanium C++ ABI documentation,\footnote{\url{https://mentorembedded.github.io/cxx-abi/abi.html}}
+Itanium C++ ABI documentation,\mnote{\url{https://mentorembedded.github.io/cxx-abi/abi.html}}
 adopted by multiple vendors and across multiple architectures. The
 implementation is part of the runtime libraries shipped with
-\divine{}.\footnote{\texttt{runtime/libc/functions/unwind.cpp}} The
+\divine{}, in particular in file \texttt{dios/arch/divm/unwind.cpp}.
+The
 unwinder builds upon a lower-level stack access API which is provided by
-\dios{} under \texttt{sys/stack.h}.
+\dios{} under \texttt{dios/include/sys/stack.h} and implemented in \texttt{dios/arch/divm/stack.cpp}.
 
 \begin{table}[tp]
-\caption{A list of C functions provided by
-\texttt{libunwind}. In C, all the functions are prefixed with
-\texttt{\_Unwind\_} to prevent name conflicts with user code and other
-libraries (i.e.~the C name of \texttt{SetGR} is
-\texttt{\_Unwind\_SetGR}). }\label{tbl:libunwind}
+\caption{A list of C functions provided by \texttt{libunwind}. In C, all the
+functions are prefixed with \texttt{\_Unwind\_} to prevent name conflicts with
+user code and other libraries (i.e.~the C name of \texttt{SetGR} is
+\texttt{\_Unwind\_SetGR}). }\label{tbl:lang:libunwind}
+
 \begin{tabularx}{\textwidth}{lL}
 \toprule
-Function & Description\tabularnewline
+Function & Description\\
 \midrule
-\toprule
-Function & Description\tabularnewline
-\midrule
-\texttt{SetGR} & Store a value into a general-purpose
-register\tabularnewline
-\texttt{GetGR} & Read a value from a general-purpose
-register\tabularnewline
-\texttt{SetIP} & Stora a value into the program counter\tabularnewline
-\texttt{GetIP} & Read the value of the program counter\tabularnewline
-\texttt{RaiseException} & Unwind the stack\tabularnewline
-\texttt{Resume} & Continue unwinding the stack after a
-cleanup\tabularnewline
-\texttt{DeleteException} & Delete an exception object\tabularnewline
-\texttt{GetLSDA} & Obtain a pointer to the LSDA\tabularnewline
-\texttt{GetRegionStart} & Obtain a base for relative code
-pointers\tabularnewline
+\texttt{SetGR} & Store a value into a general-purpose register\\
+\texttt{GetGR} & Read a value from a general-purpose register\\
+\texttt{SetIP} & Stora a value into the program counter\\
+\texttt{GetIP} & Read the value of the program counter\\
+\texttt{RaiseException} & Unwind the stack\\
+\texttt{Resume} & Continue unwinding the stack after a cleanup\\
+\texttt{DeleteException} & Delete an exception object (free its resources)\\
+\texttt{GetLSDA} & Obtain a pointer to the LSDA\\
+\texttt{GetRegionStart} & Obtain a base for relative code pointers\\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 Due to the stack layout used in \divm{} (a linked list of frames, see also
-Section~\ref{sec:stack-layout}), our unwinder is much simpler than
+\autoref{sec:lang:stack-layout}), our unwinder is much simpler than
 usual. The main task of unwinding is handled by the
 \texttt{RaiseException} function, which is called by the language
 runtime when an exception is thrown. This function performs the two
-phase handler lookup described in Section~\ref{sec:zerocost} and it
+phase handler lookup described in \autoref{sec:lang:zerocost} and it
 adheres to the Itanium ABI specification, with the following exceptions:
 
 \begin{enumerate}
 \def\labelenumi{\roman{enumi}.}
-\tightlist
 \item
   it checks that an exception is not propagated out of a function which
   has the nounwind attribute set, and reports verification error if this
@@ -823,8 +931,8 @@ attribute as available in GCC and in clang). The second modification
 allows \divine{} to check both allowed behaviours of uncaught exceptions in
 C++: the C++ standard specifies that it is implementation-defined
 whether the stack is unwound (and destructors invoked) when an exception
-is not caught.\footnote{Section 15.5, paragraph 9 of the C++
-  standard~\cite{cxx14:standar.program}} Since the program may contain
+is not caught.\mnote{Section~15.5, paragraph 9~of the C++
+  \TODO{standard~\cite{cxx14:standar.program}}} Since the program may contain
 errors which manifest only under one of these behaviours, it is useful
 to be able to test both of them.
 
@@ -835,13 +943,13 @@ exception handlers; for the actual unwinding of frames, it uses a
 lower-level interface provided by \dios{}. This interface consists of two
 functions: \texttt{\_\_dios\_jump}, which performs a non-local jump,
 possibly affecting both the program counter and the active frame, and
-\texttt{\_\_dios\_unwind}, which removes stack frames from a given
-stack. \texttt{\_\_dios\_unwind} is designed in such a way that it can
+\texttt{\_\_dios\_stack\_free}, which removes stack frames from a given
+stack. \texttt{\_\_dios\_stack\_free} is designed in such a way that it can
 unwind any stack, not only the one it is running on, and is not limited
 to the topmost frames (effectively, it removes frames from the stack's
 singly-linked list, freeing all the memory allocated for local variables
 that belong to the unlinked frames, along with the frames
-themselves\footnote{When a function returns normally (due to a
+themselves\mnote{When a function returns normally (due to a
   \texttt{ret} instruction), \divm{} takes care of freeing the frame and
   its local variables (\texttt{alloca} memory).}). The unwinder
 identifies values as local variables by looking at the instructions of
@@ -889,16 +997,18 @@ directly.
 
 The unwinder performs rather complex operations and therefore throwing
 an exception can create many states, even when $\tau$
-reduction~\cite{rockai13:improv.state} is enabled. However, many of
+reduction~\cite{RBB13} is enabled. However, many of
 these states are not interesting from the point of view of verification,
 as the operations performed by the unwinder are mostly thread-local and
 only the exception handlers (and possibly personality function) can
 perform globally visible actions. For this reason, the unwinder uses
-\divm{}'s atomic sections to hide most of its complexity.
+\dios{} atomic sections to hide most of its complexity.
 
 Since an atomic section is implemented as an \emph{interrupt mask}
 (i.e.~a single flag indicating that an atomic section is executing) in
-\divm{}, it is necessary to correctly maintain the state of this flag. In
+\divm{}'s flag register, it is necessary to correctly maintain the state of
+this flag.
+In
 particular, it is required that the unwinder behaves reasonably even if
 it is called when the program is already in an atomic section.
 Consequently, care must be taken to restore the state of the atomic mask
@@ -915,16 +1025,19 @@ next call to a personality function. This way, it is possible to safely
 throw an exception out of an atomic section, provided that the atomic
 section is exception-safe (that is, it has an exception handler which
 ends the atomic section if an exception is propagated out of it).
+This is a reasoneble assumption because atomic sections are mostly used in the
+implementation of \dios itself, and they should use C++ guard objects to ensure
+exception safety.
 
-\subsection{\texorpdfstring{\texttt{longjmp}
-Support}{longjmp Support}}\label{longjmp-support}
+\subsection{\texorpdfstring{\texttt{longjmp} Support}{longjmp Support}}\label{sec:lang:longjmp-support}
 
 Using the low-level unwinder interface described in
-Section~\ref{sec:unwinder:ll}, it is easy to implement other mechanisms
+\autoref{sec:unwinder:ll}, it is easy to implement other mechanisms
 for non-local transfer of control. The functions \texttt{longjmp} and
 \texttt{setjmp}, specified as part of C89, are one such
-example.\footnote{Implemented in \texttt{runtime/libc/includes/setjmp.h}
-  and \texttt{runtime/libc/functions/setjmp/}.} The \texttt{setjmp}
+example.\mnote{Implemented in \texttt{dios/includes/setjmp.h}
+  and \texttt{dios/libc/setjmp/}.}
+The \texttt{setjmp}
 function can be used to save part of the state of the program, so that a
 later call to \texttt{longjmp} can restore the stack to the state it was
 in when \texttt{setjmp} was called. This way, \texttt{longjmp} can be
@@ -934,16 +1047,16 @@ this time it returns a different value (provided as an argument to
 \texttt{longjmp}).
 
 The \divine{} implementation of \texttt{setjmp} saves the program counter
-and the frame pointer of the caller of \texttt{setjmp}. The
-\texttt{longjmp} function then uses this saved state, along with access
-to the text of the program, to set the return value of the \texttt{call}
-instruction corresponding to the \texttt{setjmp}. Afterwards, it unwinds
-the stack using the low-level stack access API from \texttt{sys/stack.h}
-and transfers control to the instruction right after the call to
-\texttt{setjmp}.
+and the frame pointer of the caller of \texttt{setjmp}.
+The \texttt{longjmp} function then uses this saved state, along with access to
+metadata about stack frames, to set the return value of the \texttt{call}
+instruction corresponding to the \texttt{setjmp}.
+Afterwards, it unwinds the stack using the low-level stack access API and
+transfers control to the instruction right after the call to \texttt{setjmp}.
 
-\section{Related Work}\label{sec:related}
+\section{Related Work}\label{sec:lang:related}
 
+\TODO{
 Primarily, we have looked at existing tools which support verification
 of C++ programs. Existence of an implementation is, to a certain degree,
 an indication that a given approach is viable in practice. We have,
@@ -979,7 +1092,7 @@ most, but not all\footnote{ESBMC 3.0 is unable to determine that an
   suggests that ESBMC uses its own implementation of RTTI support code,
   which is somewhat incomplete, compared to production implementations.},
 types of exception handlers and even with exception specifications.
-Finally, \divine{} 3~\cite{rockai16:model.checkin} also comes close to
+Finally, \divine{} 3~\cite{RBB16} also comes close to
 full support for exceptions, but lacks support for exception
 specifications. Overall, this survey suggests that all current
 implementations of C++ exceptions in verification tools are incomplete
@@ -999,8 +1112,9 @@ not directly deal with exceptions (i.e.~it violates the zero-cost
 principle of modern exception handling). Unfortunately, we were unable
 to evaluate this approach, since there are no publicly available tools
 which would implement it.
+}
 
-\section{Evaluation}\label{sec:evaluation}
+\section{Evaluation}\label{sec:lang:evaluation}
 
 In order to asses the viability of our approach, we have executed a set
 of benchmarks in various configurations of \divine{}~4. The benchmarks were
@@ -1014,43 +1128,46 @@ The set of models we have used for this comparison consists of 831 model
 instances, out of which we picked the 794 that do not contain errors.
 The reason for this is that the execution time is much more variable
 when a given program contains an error, since the model checking
-algorithm works on the fly, stopping as soon as the error is discovered.
+algorithm works on the fly, stopping as soon as the error is discovered and
+explores the state space in parallel, which makes the exploration order vary
+between verification runs.
 
 Majority of the valid models (777) are C++ programs of varying
 complexity, while the 17 models in the svc-pthread category are
 concurrent programs written in plain C with pthreads. Since our
-implementation of the pthread API is done in C++, the impact of
+implementation of the POSIX thread API is done in C++, the impact of
 exception support on verification of C programs is also relevant. The
 ``alg'' category includes sequential algorithmic and data structure
 benchmarks, the ``pv264'' category contains unit tests for student
 assignments in a C++ course, the ``iv112'' category contains unit tests
-for concurrent data structures and other parallel programs (again
-assignment problems in a C++ course), ``libcxx'' contains a selection of
+for concurrent data structures and other parallel programs (again assignment
+problems in a course about concurrency in C++), ``libcxx'' contains a selection
+of tests from
 the \texttt{libc++} testsuite (with focus on exception support
 coverage), ``bricks'' contains unit tests for various C++ helper
 classes, including concurrent data structures, ``divine'' contains unit
 tests for a concurrent hashset implementation used in \divine{},
 ``cryptopals'' contains solutions of the cryptopals problem
-set\footnote{\url{http://cryptopals.com}}, the ``llvm'' category
-contains programs from the \llvm{} test-suite\footnote{\url{http://llvm.org/svn/llvm-project/test-suite/trunk/SingleSource/Benchmarks/Shootout}}
+set\mnote{\url{http://cryptopals.com}}, the ``llvm'' category
+contains programs from the \llvm{} test-suite\mnote{\url{http://llvm.org/svn/llvm-project/test-suite/trunk/SingleSource/Benchmarks/Shootout}}
 and finally, the ``svc-pthread'' category includes pthread-based C
 programs from the SV-COMP benchmark set. In most of the programs, it was
 assumed that \texttt{malloc} and \texttt{new} never fail, with the
 notable exception of part of the ``bricks'' category unit tests. The
 tests where \texttt{new} failures are allowed are especially suitable
-for evaluating exception code, in particular where multiple concurrent
+for evaluating exception code, in particular if multiple concurrent
 threads are running at the time of the possible failure.
 
 \subsection{Comparison to Builtin Exception Support}\label{sec:cmpD3}
 
 In addition to the approach presented in this paper, we have implemented
-the approach described in~\cite{rockai16:model.checkin} in the context
+the approach described in~\cite{RBB16} in the context
 of \divine{}~4. This allowed us to directly measure the penalty associated
 with the present approach, which is more thorough and less
 labour-intensive at the same time. Our expectation was that this would
 translate to slower verification, since the off-the-shelf code is more
 complex than the corresponding hand-tailored version used
-in~\cite{rockai16:model.checkin}. In line with this expectation, we set
+in~\cite{RBB16}. In line with this expectation, we set
 the criterion of viability: we would consider a slowdown of at most
 10\,\% to be an acceptable price for the improved verification fidelity,
 and convenience of implementation. Since other resource consumption
@@ -1065,34 +1182,29 @@ be about 2\,\% increase.
 \begin{table}[tp]
 \caption{\label{tbl:D4D3}Comparison of the new exception code with a
 \divine{}-3-style version. }
-\begin{tabularx}{\textwidth}{llllll}
+\begin{tabularx}{\textwidth}{llLLLL}
 \toprule
-category & \#mod & time (D4) & time (D3) & states (D4) & states
-(D3)\tabularnewline
+category & \# mod & time (D4) & time (D3) & \# states (D4) & \# states
+(D3)\\
 \midrule
-\toprule
-category & \#mod & time (D4) & time (D3) & states (D4) & states
-(D3)\tabularnewline
-\midrule
-alg & 9 & 3:52 & 3:51 & 543.3 k & 543.3 k\tabularnewline
-pv264 & 13 & 1:34 & 1:32 & 183.0 k & 183.0 k\tabularnewline
-iv112 & 11 & 25:58 & 25:57 & 3743 k & 3743 k\tabularnewline
-libcxx & 425 & 42:15 & 42:09 & 2182 k & 2182 k\tabularnewline
-bricks & 292 & 3:04:25 & 2:56:55 & 6271 k & 6251 k\tabularnewline
-divine & 3 & 6:20 & 6:18 & 1040 k & 1040 k\tabularnewline
-cryptopals & 3 & 0:01 & 0:01 & 1943 & 1943\tabularnewline
-llvm & 12 & 36:36 & 36:27 & 3865 k & 3865 k\tabularnewline
-svc-pthread & 17 & 16:47 & 16:41 & 1685 k & 1685 k\tabularnewline
-\textbf{total} & 794 & 5:21:44 & 5:13:49 & 20.1 M & 20.0
-M\tabularnewline
+alg & 9 & 3:52 & 3:51 & 543.3 k & 543.3 k\\
+pv264 & 13 & 1:34 & 1:32 & 183.0 k & 183.0 k\\
+iv112 & 11 & 25:58 & 25:57 & 3743 k & 3743 k\\
+libcxx & 425 & 42:15 & 42:09 & 2182 k & 2182 k\\
+bricks & 292 & 3:04:25 & 2:56:55 & 6271 k & 6251 k\\
+divine & 3 & 6:20 & 6:18 & 1040 k & 1040 k\\
+cryptopals & 3 & 0:01 & 0:01 & 1943 & 1943\\
+llvm & 12 & 36:36 & 36:27 & 3865 k & 3865 k\\
+svc-pthread & 17 & 16:47 & 16:41 & 1685 k & 1685 k\\
+\textbf{total} & 794 & 5:21:44 & 5:13:49 & 20.1 M & 20.0 M\\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-As can be seen in Table~\ref{tbl:D4D3}, the time penalty on our chosen
+As can be seen in \autoref{tbl:D4D3}, the time penalty on our chosen
 model set is very acceptable -- just shy of 2.6\,\% -- and the state
 space size is within 1\,\% of the older
-approach~\cite{rockai16:model.checkin}. We believe that this small
+approach~\cite{RBB16}. We believe that this small
 penalty is well justified by the superior verification properties of the
 new approach.
 
@@ -1105,7 +1217,7 @@ much more easily than real support for exceptions, since we can simply
 replace the entire \texttt{libunwind} interface with stubs which raise
 an error and refuse to continue. This approach only works for models
 which do not actually throw any exceptions during their execution. The
-results of this comparison are shown in Table~\ref{tbl:D4stub} -- the
+results of this comparison are shown in \autoref{tbl:D4stub} -- the
 verification time is nearly identical and the state spaces are entirely
 so. This is in line with expectations: in those models, catch blocks are
 present but never executed. Since the proposed approach does not incur
@@ -1114,26 +1226,23 @@ a substantial time difference.
 
 \begin{table}[tp]
 \caption{\label{tbl:D4stub}Comparison of the new exception code against
-stubbed exceptions. Compared to Table~\ref{tbl:D4D3}, in this case 133
-models failed due to the stubs. State counts are identical for all
+stubbed exceptions. Compared to \autoref{tbl:D4D3}, in this case 133
+models failed due to the stubs and were excluded. State counts are identical for all
 models. }
-\begin{tabularx}{\textwidth}{lllll}
+\begin{tabularx}{\textwidth}{llLLL}
 \toprule
-category & \#mod & time (D4) & time (stub) & states (D4)\tabularnewline
+category & \# mod & time (D4) & time (stub) & \# states\\
 \midrule
-\toprule
-category & \#mod & time (D4) & time (stub) & states (D4)\tabularnewline
-\midrule
-alg & 9 & 3:52 & 3:52 & 543.3 k\tabularnewline
-pv264 & 13 & 1:34 & 1:34 & 183.0 k\tabularnewline
-iv112 & 11 & 25:58 & 26:00 & 3743 k\tabularnewline
-libcxx & 392 & 41:56 & 41:54 & 2179 k\tabularnewline
-bricks & 192 & 35:30 & 35:21 & 2378 k\tabularnewline
-divine & 3 & 6:20 & 6:19 & 1040 k\tabularnewline
-cryptopals & 3 & 0:01 & 0:01 & 1943\tabularnewline
-llvm & 12 & 36:36 & 36:28 & 3865 k\tabularnewline
-svc-pthread & 17 & 16:47 & 16:43 & 1685 k\tabularnewline
-\textbf{total} & 661 & 2:52:30 & 2:52:08 & 16.2 M\tabularnewline
+alg & 9 & 3:52 & 3:52 & 543.3 k\\
+pv264 & 13 & 1:34 & 1:34 & 183.0 k\\
+iv112 & 11 & 25:58 & 26:00 & 3743 k\\
+libcxx & 392 & 41:56 & 41:54 & 2179 k\\
+bricks & 192 & 35:30 & 35:21 & 2378 k\\
+divine & 3 & 6:20 & 6:19 & 1040 k\\
+cryptopals & 3 & 0:01 & 0:01 & 1943\\
+llvm & 12 & 36:36 & 36:28 & 3865 k\\
+svc-pthread & 17 & 16:47 & 16:43 & 1685 k\\
+\textbf{total} & 661 & 2:52:30 & 2:52:08 & 16.2 M\\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -1147,7 +1256,7 @@ source code with the \texttt{-fno-exceptions} flag. In this case, the
 \llvm{} bitcode contains no exception-related artefacts at all, but many
 programs fail to build. Additionally, a number of programs in the
 ``bricks'' category contain exception handlers for memory allocation
-errors\footnote{In this case, the handler is installed using
+errors\mnote{In this case, the handler is installed using
   \texttt{std::set\_terminate}, which is available even when
   \texttt{-fno-exceptions} is given. The situation would be similar if
   only parts of the program were compiled with \texttt{-fno-execptions}.
@@ -1159,11 +1268,12 @@ though some of those programs can be compiled with
 \texttt{-fno-exceptions}, they now contain an error (a null pointer
 dereference) which is not present when they are compiled the standard
 way. Those programs were therefore excluded from the comparison. The
-summary of this comparison can be found in Table~\ref{tbl:D4nxc} -- the
+summary of this comparison can be found in \autoref{tbl:D4nxc} -- the
 time saved for models where \texttt{-fno-exceptions} is applicable is
 again quite small, less than 13\,\%. In this case, the difference is due
 to the changes in control flow of the resulting \llvm{} bitcode. Since
-\texttt{call} is not a terminator instruction (unlike \texttt{invoke}),
+\texttt{call} is not a terminator instruction (does not perform a jump; unlike
+\texttt{invoke}),
 the \emph{local} control flow in a function is negatively affected by
 the presence of \texttt{invoke} instructions: more branching is
 required, and this slows down the evaluator in \divm{}. While it is easy to
@@ -1178,12 +1288,9 @@ against a case where \texttt{-fno-exceptions} was used to compile the
 sources and libraries. In this case, it was only possible to verify 423
 models from the set (i.e.~371 models are missing from the comparison).
 State counts are identical for all models. }
-\begin{tabularx}{\textwidth}{lllll}
+\begin{tabularx}{\textwidth}{llLLL}
 \toprule
-category & \#mod & time (D4) & time (nxc) & states\tabularnewline
-\midrule
-\toprule
-category & \#mod & time (D4) & time (nxc) & states\tabularnewline
+category & \# mod & time (D4) & time (nxc) & \# states\tabularnewline
 \midrule
 alg & 1 & 0:24 & 0:23 & 34.2 k\tabularnewline
 pv264 & 1 & 0:00 & 0:00 & 57\tabularnewline
@@ -1195,9 +1302,9 @@ svc-pthread & 17 & 16:47 & 15:42 & 1685 k\tabularnewline
 \end{tabularx}
 \end{table}
 
-\subsection{Re-usability}\label{re-usability}
+\subsection{Re-usability}\label{sec:lang:re-usability}
 
-As outlined in Section~\ref{sec:components}, the two components directly
+As outlined in \autoref{sec:lang:components}, the two components directly
 involved in exception support are comparatively small and well isolated.
 The \llvm{} transformation is fully re-usable with any \llvm{}-based tool. The
 unwinder, on the other hand, relies on the capabilities of \divm{}.
@@ -1205,18 +1312,18 @@ However, there is no need for hypercalls specific to exception handling
 and therefore, the implementation work is essentially transparent to
 \divm{}. The capabilities of \divm{} required by the unwinder are limited to
 the following: linked-list stack representation, runtime access to the
-program bitcode and 2 hypercalls: \texttt{\_\_vm\_control} and
-\texttt{\_\_vm\_obj\_free}. More details about \divm{} can be found
-in~\cite{rockai17:divm}.
+program frame layout and 2 hypercalls:
+\texttt{\_\_vm\_control} and \texttt{\_\_vm\_obj\_free}. More details about
+\divm{} can be found in~\cite{RSCB2018}.
 
 Finally, adding support for a new type of exceptions is also much
 simpler in this approach -- no modifications to \divm{} (or any other host
 tool) are required: only the two components described in this paper may
 need to be modified.
 
-\section{Conclusion}\label{sec:conclusion}
+\section{Conclusion}\label{sec:lang:conclusion}
 
-In this paper, we have discussed an approach to extending an \llvm{}-based
+In this work, we have discussed an approach to extending an \llvm{}-based
 model checker with C++ exception support. We have found that re-using an
 existing implementation of the runtime support library is a viable
 approach to obtain complete, standards-compliant exception support. A
@@ -1232,12 +1339,12 @@ each tool, at least one edge case is not well supported. In contrast to
 this finding, with our approach, all those edge cases are covered ``for
 free'', that is, by the virtue of re-using an existing, complete
 implementation. Contrary to the prediction made
-in~\cite{rockai16:model.checkin}, we have found that with a suitable
+in~\cite{RBB16}, we have found that with a suitable
 target language, implementing a new unwinder can be relatively simple.
-The unwinder implementation described in this paper is only about 350
+The unwinder implementation described in this paper is only about 210
 lines of C++ code, while it would be impossible to implement without
 verifier modifications in \divine{}~3. Therefore, we can conclude that with
-the advent of the \divm{} specification~\cite{rockai17:divm} and its
+the advent of the \divm{} specification~\cite{RSCB2018} and its
 implementation in \divine{} 4, re-implementing the \texttt{libunwind} API
 and re-using \texttt{libc++abi} became a viable strategy to provide
 exception support.
