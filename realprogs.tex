@@ -89,7 +89,7 @@ The rest of this chapter is structured as follows: \autoref{sec:lang:adv} takes 
 % \autoref{sec:evaluation}, we evaluate our approach and we summarise
 % our findings in \autoref{sec:conclusion}.
 
-\section{Component Reuse in Verification}\label{sec:lang:adv}
+\section{Component Reuse in Program Analysis}\label{sec:lang:adv}
 
 Reusal of execution-oriented componenents (such as compilers and libraries) for
 program analysis is a compromise and it is important to know the advantages and
@@ -177,9 +177,22 @@ verification task, as the analysis tool now also has to analyse the code of the
 library itself.
 This can be especially a problem as the libraries are ususally performance-tuned making the code more complex to analyse.
 
-
 An important point in library reusal is that libraries often take full advantage of the available language features.
 Therefore, good support for the language is usually a prerequisite for library reuse.
+
+It is also important to consider what degree of library reusal makes sence.
+For example a C standard library uses low-level operating system API (such as
+\texttt{sbrk} and \texttt{mmap} on on POSIX) to implement memory allocation.
+It would therefore be possible to reuse the allocation implementation from a C
+standard library implementation, provided this API was supported by the
+verifier.
+This, however, is probably not a good idea -- the OS level API provides large
+blocks of memory which are then subdivided by the allocation functions, which
+make it imposible to discern boundaries of different allocations or even if the
+memory is allocated or freed without a detailed knowledge of the allocation
+algorithm.
+If the memory is instead provided in a seprated unit for each allocation it is
+relatively easy to detect out-of-bouds accesses and access to freed memory.
 
 Overall, we believe that reusal of (parts of) existing library implementations is crucial for good language support.
 To the best of our knowedge, there are no program analysis tools which
@@ -250,8 +263,8 @@ are built at the time of built of DIVINE.
 The original integration of clang into DIVINE 4 and the adaptation of LLVM
 linker for use with DIVINE was done by me, with the work then taken over by
 other memebers of the team.
-The current state of the compilation for DIVINE can is described
-in~\cite{BR2020}.
+The current state of the compilation for DIVINE is described in~\cite{BR2020}.
+
 
 In order to provide support for most of C and C++, DIVINE has to also provide
 standard libraries for these languages.
@@ -259,6 +272,8 @@ DIVINE has support for the C and C++ standard libraries, and for the POSIX
 thread library (\texttt{pthreads}), which is used on POSIX systems for
 implementation of threading in C/C++ code prior to the 2011 standards and for
 the implementation of the standard threading in the later versions of C/C++.
+DIVINE also has support for many POSIX standard functions, including large parts of the filesystem API.
+
 The threading library is written specifically for verfication with DIVINE --
 indeed the whole idea of verification of parallel programs requires that that
 at some level of the abstaction a verification-specific semantics of threads is
@@ -274,7 +289,7 @@ signalling are implemented using atomic sections.
 Similarly to threading support, parts of the C standard library have to be
 implemented specifically for the verifier.
 In our case these parts are mostly memory allocation and deallocation, which
-takes memory directly from \divm, and program startup and exit which is \dios specific.
+takes memory directly from \divm, program startup and exit which is \dios specific, and handling of the \texttt{errno} variable whic is also \dios specific.
 The rest of the standard C library originates mostly from
 PDClib~\cite{TODO:pdclib}, with some parts from various other open-source C
 library implementations and contributions from DIVINE developers.
@@ -297,6 +312,14 @@ section.
 Nevertheless, by adhering to the interface of the unwiner library used normally
 on POSIX systems, we were able to make use of all the exception handling code
 in \texttt{libc++abi} without any changes to it.
+The changes in the source code of \texttt{libc++} and \texttt{libc++abi} are limited to changes to platform configuration macros and in \texttt{libc++abi} there is a change in allocation of thread-local backup storage for exception handling.
+
+The POSIX APIs, mainly concerning filesystem, are provided by \dios and were
+implemented for use with \divine or other program analysis
+tools~\cite{RBMKB2019}.
+This functionality makes it possible to analyze programs which use filesystem and other supported parts of POSIX, either with a simulated environment, or with recording and replay of interaction with real environment.
+
+The library support and the situation concerning library reuse is summarized by \autoref{tab:lang:reuse}.
 
 The libraries used for verification are shipped with DIVINE source code and
 compiled into LLVM IR libraries at the time of compilation of DIVINE.
@@ -307,47 +330,20 @@ case of DIVINE (especially on POSIX systems) -- the program is in both cases
 compiled and then linked with an implementation of C and C++ standard
 librarires, POSIX thread library, and an stack unwinder.
 
-\TODO{
-In line with the principles outlined so far, the implementation of the C
-and C++ standard libraries (and the C++ runtime library) used in \divine{}
-are third party code with only minimal modifications. The C standard
-library implementation (PDCLib) consists of approximately 38 thousand
-lines of code, while the C++ runtime library (\texttt{libc++abi}) and
-the C++ standard library (\texttt{libc++}) contain 8 and 12 thousand
-lines of code, respectively.
-
-Standard libraries inevitably contain platform-specific code, and this
-is also true of the implementations bundled with \divine{}. The
-modifications due to the porting effort were, however, quite minimal,
-since \dios{} already provides a very POSIX-like interface. The C library
-was, unsurprisingly, affected the most: changes in memory allocation,
-program startup- and exit-related functions and in handling of the
-\texttt{errno} variable were required. In \texttt{libc++}, however, the
-changes were limited to platform configuration macros and the only
-change in \texttt{libc++abi} was a \dios{}-specific tweak in allocation of
-thread-local storage for exception handling.
-
-Since user programs and libraries alike rely on the POSIX threading API
-(also known as \texttt{pthread}), this API is provided by \dios{} and is
-implemented in about 2000 lines of C++. The \texttt{libunwind}
-implementation introduced in this paper brings in additional 350 lines
-of code (the implementation is done in exception-free C++). Likewise,
-the C library and everything above also depends on low-level filesystem
-access routines provided by the operating system. In \dios{}, this IO and
-filesystem layer (VFS\footnote{Short for Virtual File System, since in a
-  verification environment, the system under test must not access the
-  real filesystem or any other part of the outside environment.}) is
-implemented in about 5500 lines of C++ code and uses exceptions heavily
-for error propagation.
-
-So far, all the components mentioned in this section are linked with the
-user program to form the final bitcode file for verification. For
-comparison, the verification core of \divine{} (the \divm{} evaluator, memory
-management and the verification algorithm), amounts to roughly 6
-thousand lines of C++. Finally, there is about 2500 lines of code which
-implement various transformations on the \llvm{} bitcode. Out of these 2500
-lines, less than 300 are part of the exception-related extension
-described in this paper.}
+\begin{table}[tp]
+  \begin{tabularx}{\textwidth}{>{\raggedright}p{5.5em}p{5.5em}L}
+      \toprule
+      Library    & Reused? & Comment \\\midrule\midrule
+      C standard & mostly (\mbox{PDClib}, other) & Platform dependent code such as allocation, program startup and exit, \texttt{errno} cannot be reused without replicating too many details of the operating system. \\\midrule
+      C++ standard & yes (\texttt{libc++}) & Only changes to of platform selection macros needed. \\\midrule
+      C++ runtime  & yes (\texttt{libc++abi}) & Platform selection + tweak of backup allocator for exceptions (to prevent performance penalty) \\\midrule
+      POSIX threads & no & Needs to be verification specific to allow exploration of all behaviours of a concurrent program. \\\midrule
+      POSIX filesystem & no & Normally requires operating system support and cannot revert into previous state. Verified program should not access outside environment directly. \\\midrule
+      stack unwinder & no & Platform specific (depends on stack layout and metadata format), cannot be reused without replicating too many details of the hardware platform. \\
+      \bottomrule
+  \end{tabularx}
+  \caption{Summary of reusal and reimplementation of libraries in DIVINE.}\label{tab:lang:reuse}
+\end{table}
 
 \section{C++ Exceptions in DIVINE}\label{sec:lang:except}
 
@@ -381,7 +377,7 @@ for non-determinism to rigorously explore error paths.\mnote{This is a
 
 \subsection{Contribution}\label{contribution}
 
-\TODO{The apporach to exception support described in this section, and originally published in \cite{SRB2017} bringhs the following contributions:
+The apporach to exception support described in this section, and originally published in \cite{SRB2017} bringhs the following contributions:
 first, we identify the
 components that are best re-used and those which are best re-implemented
 and show that this decision crucially depends on the underlying
@@ -395,7 +391,7 @@ work with tools which understand this language.\mnote{\divm{} is a
   relatively small extension of the \llvm{} IR, therefore extending tools
   which work with pure \llvm{} to also support \divm{} may be quite easy.}
 
-The goal of this paper, especially in the context of our previous work
+The goal of this work, especially in the context of our previous work
 on the topic of C++ exceptions in
 verification~\cite{RBB16}, is to aid authors of
 verification tools to minimise costs and effort associated with
@@ -404,16 +400,15 @@ tool, either the approach described in~\cite{RBB16} or
 the one in this paper might be more suitable. Overall, in a verifier
 which can handle the \divm{} language or equivalent, the approach given in
 this paper is simpler to implement and more robust. A more detailed
-comparison of the two approaches is given in \autoref{sec:cmpD3}.
+comparison of the two approaches is given in \autoref{sec:lang:cmpD3}.
 
 All source code related to this work, along with more detailed
 benchmark results and other supplementary material, are available online
 under a permissive open-source licence.\mnote{\url{https://divine.fi.muni.cz/2017/exceptions}}
 The implementation is also fully integrated part of the DIVINE model checker
-and therefore present in its current versions.}
+and therefore present in its current versions.
 
-\subsection{Components for Exception
-Support}
+\subsection{Components for Exception Support}
 
 Unlike other features of C++, exceptions are neither handled by the
 standard or runtime libraries alone, nor delegated to the C standard
@@ -1158,7 +1153,7 @@ tests where \texttt{new} failures are allowed are especially suitable
 for evaluating exception code, in particular if multiple concurrent
 threads are running at the time of the possible failure.
 
-\subsection{Comparison to Builtin Exception Support}\label{sec:cmpD3}
+\subsection{Comparison to Builtin Exception Support}\label{sec:lang:cmpD3}
 
 In addition to the approach presented in this paper, we have implemented
 the approach described in~\cite{RBB16} in the context
