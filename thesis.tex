@@ -240,7 +240,10 @@
 \newcounter{mnote}[chapter]
 \newcommand{\mnotemark}{\stepcounter{mnote}\hyperlink{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}$}\xspace}
 \newcommand{\mnotetext}[1]{\marginpar{\hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}\footnotesize{}#1}}
-\newcommand{\mnote}[1]{\mnotemark{}\mnotetext{#1}\xspace}
+\newcommand{\mnote}[1]{\mnotemark{}\mnotetext{#1}}
+
+
+\newcommand{\mcite}[2][]{\cite[#1]{#2}\ifcsname mcite: \thepage : #2\endcsname \else\expandafter\def\csname mcite: \thepage : #2\endcsname{}\marginpar{\footnotesize\cite{#2}: \citeauthor{#2}, \citetitle{#2}.}\fi}
 
 %%
 

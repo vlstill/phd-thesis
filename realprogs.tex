@@ -1,4 +1,4 @@
-\srcnote{Text of this chapter is in part extension of~\cite{SRB2017}.
+\srcnote{Text of this chapter is in part extension of~\mcite{SRB2017}.
 The text was brought up to date with certain implementation details of DIVINE
 and extended with the wider context of analysis of realistic programs in
 DIVINE.
@@ -74,7 +74,7 @@ For libraries existing open-source versions can also be used for verification to
 
 The rest of this chapter is structured as follows: \autoref{sec:lang:adv} takes a deeper look at advantages and disadvantages of reusal of execution-oriented components for program verification.
 \autoref{sec:lang:divine} then describes how DIVINE uses existing components in analysis of C and C++ and why the C standard library cannot be fully re-used from execution-oriented implementations.
-\autoref{sec:lang:except} then takes more detailed look at the particular case of excetion support in DIVINE 4, which was originally published in~\cite{SRB2017}.
+\autoref{sec:lang:except} then takes more detailed look at the particular case of excetion support in DIVINE 4, which was originally published in~\mcite{SRB2017}.
 
 % The paper is structured as follows: the remainder of
 % \autoref{sec:introduction} gives motivation, context and
@@ -109,8 +109,8 @@ The execution-oriented components are also usually performance oriented, which m
 Compilers are now routinely re-used in verifiers, with the LLVM toolchain and
 clang compiler being especially populer in the are of C (and C++) analysis.
 Many program analysis tools are in fact analysing the LLVM IR and not C
-directly (for example DIVINE~\cite{DIVINEToolPaper2017},
-Skink~\cite{Cassez2017}, VVT~\cite{Gunther2016}, Symbiotic~\cite{Chalupa2018},
+directly (for example DIVINE~\mcite{DIVINEToolPaper2017},
+Skink~\mcite{Cassez2017}, VVT~\mcite{Gunther2016}, Symbiotic~\mcite{Chalupa2018},
 and many more).
 Building a verfier for LLVM IR is simpler since LLVM IR abstracts from many of
 the high-level concepts and presents only a reasonable amount of instructions
@@ -134,7 +134,7 @@ However, on the level of LLVM IR, the evaluation order is already fixed.
 
 Some of these disadvantages can be mitigated by reusing less of the compilation
 infastructure, for example using an approach similar to the one taked by
-ESBMC~\cite{Gadelha2018}, which uses only the C and C++ parser from clang,
+ESBMC~\mcite{Gadelha2018}, which uses only the C and C++ parser from clang,
 building their own intermediate represenation from the abstract systax tree.
 \TODO{However, it does not appear that ESBMC takes advantage of the additional information to check for bugs caused by reliance on unspecified behaviour defined in the C/C++ standards.}
 Nevertheless, there is a cost to pay for the increased precision -- for example, ESBMC has to be able to handle many of the language features which are abstracted away in the compilation.
@@ -198,7 +198,7 @@ Overall, we believe that reusal of (parts of) existing library implementations i
 To the best of our knowedge, there are no program analysis tools which
 re-implement libraries which have complete or nearly complete support of the
 respective programming languages -- examples of these tools are
-ESBMC++~\cite{Ramalho2013} for C++ and JPF~\cite{Artho2019} for Java, both of
+ESBMC++~\mcite{Ramalho2013} for C++ and JPF~\mcite{Artho2019} for Java, both of
 which mention that they support only parts of the repsective standard
 libraries.
 
@@ -207,7 +207,7 @@ libraries.
 In DIVINE, we use the clang compiler to produce LLVM IR, which is then linked
 with implementations of libraries and instrumented for the verification.
 The LLVM IR with verification-specific instrumentation will be called \divm IR,
-mathching the naming introduced by~\cite{DIVINEToolPaper2017}.
+mathching the naming introduced by~\mcite{DIVINEToolPaper2017}.
 \divm is the core of DIVINE which handles execution of LLVM in a memory-safe
 way and is able to save and restore state of the execution.
 The overview of this process can be seen in \autoref{fig:lang:divineworkflow}.
@@ -263,7 +263,7 @@ are built at the time of built of DIVINE.
 The original integration of clang into DIVINE 4 and the adaptation of LLVM
 linker for use with DIVINE was done by me, with the work then taken over by
 other memebers of the team.
-The current state of the compilation for DIVINE is described in~\cite{BR2020}.
+The current state of the compilation for DIVINE is described in~\mcite{BR2020}.
 
 
 In order to provide support for most of C and C++, DIVINE has to also provide
@@ -291,7 +291,7 @@ implemented specifically for the verifier.
 In our case these parts are mostly memory allocation and deallocation, which
 takes memory directly from \divm, program startup and exit which is \dios specific, and handling of the \texttt{errno} variable whic is also \dios specific.
 The rest of the standard C library originates mostly from
-PDClib~\cite{TODO:pdclib}, with some parts from various other open-source C
+PDClib~\mcite{TODO:pdclib}, with some parts from various other open-source C
 library implementations and contributions from DIVINE developers.
 
 The C++ standard library usually builds on top of a C standard library.
@@ -316,7 +316,7 @@ The changes in the source code of \texttt{libc++} and \texttt{libc++abi} are lim
 
 The POSIX APIs, mainly concerning filesystem, are provided by \dios and were
 implemented for use with \divine or other program analysis
-tools~\cite{RBMKB2019}.
+tools~\mcite{RBMKB2019}.
 This functionality makes it possible to analyze programs which use filesystem and other supported parts of POSIX, either with a simulated environment, or with recording and replay of interaction with real environment.
 
 The library support and the situation concerning library reuse is summarized by \autoref{tab:lang:reuse}.
@@ -377,7 +377,7 @@ for non-determinism to rigorously explore error paths.\mnote{This is a
 
 \subsection{Contribution}\label{contribution}
 
-The apporach to exception support described in this section, and originally published in \cite{SRB2017} bringhs the following contributions:
+The apporach to exception support described in this section, and originally published in \mcite{SRB2017} bringhs the following contributions:
 first, we identify the
 components that are best re-used and those which are best re-implemented
 and show that this decision crucially depends on the underlying
@@ -386,17 +386,17 @@ components which cannot be re-used in a form that is easy to integrate
 into both existing and future verification tools. One of the components
 works as an \llvm{} transformation pass, and could be used with any
 \llvm{}-based tool. The other component targets the \divm{}
-language~\cite{RSCB2018} specifically, and will therefore only
+language~\mcite{RSCB2018} specifically, and will therefore only
 work with tools which understand this language.\mnote{\divm{} is a
   relatively small extension of the \llvm{} IR, therefore extending tools
   which work with pure \llvm{} to also support \divm{} may be quite easy.}
 
 The goal of this work, especially in the context of our previous work
 on the topic of C++ exceptions in
-verification~\cite{RBB16}, is to aid authors of
+verification~\mcite{RBB16}, is to aid authors of
 verification tools to minimise costs and effort associated with
 inclusion of exception support. Depending on the characteristics of the
-tool, either the approach described in~\cite{RBB16} or
+tool, either the approach described in~\mcite{RBB16} or
 the one in this paper might be more suitable. Overall, in a verifier
 which can handle the \divm{} language or equivalent, the approach given in
 this paper is simpler to implement and more robust. A more detailed
@@ -422,7 +422,7 @@ For this reason, \divine{} has to either provide an unwinder implementation
 compatible with \texttt{libc++abi}, or modify \texttt{libc++abi} to use
 custom code for exception handling. In \divine{} 3, the latter approach was
 used, as it was deemed easier at the
-time~\cite{RBB16}. However, while basic exception
+time~\mcite{RBB16}. However, while basic exception
 support was easier to achieve this way, the approach also had its
 disadvantages. First, the \llvm{} interpreter in \divine{} 3 had special
 support for exception-related functionality. Second, the
@@ -638,7 +638,7 @@ in \autoref{sec:lang:unwinder}) requires the ability to traverse and
 manipulate the stack and read and write \llvm{} registers associated with a
 given stack frame. Finally, it needs access to a representation of the
 bitcode for a given function. All those abilities are part of the \divm{}
-specification~\cite{RSCB2018} and are generally useful, regardless
+specification~\mcite{RSCB2018} and are generally useful, regardless
 of their role in exception support.
 
 The \divm{} implementation in \divine{} 4 handles execution of \llvm{}
@@ -687,7 +687,7 @@ advantages: first, it is easy to create a stack frame for a function,
 for example when \dios{} needs to create a new thread; additionally, the
 linked-list-organized stack is a natural match for the graph
 representation of memory which \divm{} mandates, and therefore can be saved
-more efficiently~\cite{RSCB2018}. Additionally, this way the stack
+more efficiently~\mcite{RSCB2018}. Additionally, this way the stack
 may be nonlinear, and the unwinder can use this feature to safely
 transfer control to a cleanup block while the unwinder frame is still on
 the stack. Later, the handler can return control to the unwinder frame
@@ -992,7 +992,7 @@ directly.
 
 The unwinder performs rather complex operations and therefore throwing
 an exception can create many states, even when $\tau$
-reduction~\cite{RBB13} is enabled. However, many of
+reduction~\mcite{RBB13} is enabled. However, many of
 these states are not interesting from the point of view of verification,
 as the operations performed by the unwinder are mostly thread-local and
 only the exception handlers (and possibly personality function) can
@@ -1059,21 +1059,21 @@ however, also looked at approaches proposed in the literature which have
 no implementations (or only a prototype) available.
 
 A number of verification tools are based on \llvm{} and therefore have some
-support for C++. LLBMC~\cite{sinz12:llbmc} and
-NBIS~\cite{gunther14:increm.bounded} are \llvm{}-based bounded model
+support for C++. LLBMC~\mcite{sinz12:llbmc} and
+NBIS~\mcite{gunther14:increm.bounded} are \llvm{}-based bounded model
 checkers which target mainly C and have no support for exceptions or the
-C++ standard library. VVT~\cite{gunther16:vienna.verific.tool} is a
+C++ standard library. VVT~\mcite{gunther16:vienna.verific.tool} is a
 successor of NBIS which uses either IC3 or bounded model checking and
 has limited C++ support, but it does not support exceptions.
-Furthermore, KLEE~\cite{cadar08:klee} and KLOVER~\cite{li11:klover}
+Furthermore, KLEE~\mcite{cadar08:klee} and KLOVER~\mcite{li11:klover}
 are \llvm{}-based tools for test generation and symbolic execution. KLOVER
-targets C++ and according to~\cite{li11:klover} has exception support,
+targets C++ and according to~\mcite{li11:klover} has exception support,
 but it is not publicly available. On the other hand, KLEE focuses
 primarily on C and its C++ support is rather limited and it has no
 exception support.
 
-Both CBMC~\cite{clarke04:tool.checkin, kroening14:cbmc} and
-ESBMC~\cite{ramalho13:smt.based} bounded model checkers support C++
+Both CBMC~\mcite{clarke04:tool.checkin, kroening14:cbmc} and
+ESBMC~\mcite{ramalho13:smt.based} bounded model checkers support C++
 (but neither appears to support the standard library) and they include
 support for exceptions. However, in CBMC, the support for exceptions is
 limited to throwing and catching fundamental types.\footnote{A simple
@@ -1087,7 +1087,7 @@ most, but not all\footnote{ESBMC 3.0 is unable to determine that an
   suggests that ESBMC uses its own implementation of RTTI support code,
   which is somewhat incomplete, compared to production implementations.},
 types of exception handlers and even with exception specifications.
-Finally, \divine{} 3~\cite{RBB16} also comes close to
+Finally, \divine{} 3~\mcite{RBB16} also comes close to
 full support for exceptions, but lacks support for exception
 specifications. Overall, this survey suggests that all current
 implementations of C++ exceptions in verification tools are incomplete
@@ -1096,7 +1096,7 @@ in a verification tool is indeed quite desirable.
 
 Finally, it is also possible to transform a C++ program with exceptions
 into an equivalent program which only uses more traditional control flow
-constructs. This approach was taken in~\cite{prabhu11:interp.except},
+constructs. This approach was taken in~\mcite{prabhu11:interp.except},
 with the goal of re-using existing analysis tools without exception
 support. While this approach is applicable to a wide array of
 verification tools, it is also incompatible with re-use of existing
@@ -1156,13 +1156,13 @@ threads are running at the time of the possible failure.
 \subsection{Comparison to Builtin Exception Support}\label{sec:lang:cmpD3}
 
 In addition to the approach presented in this paper, we have implemented
-the approach described in~\cite{RBB16} in the context
+the approach described in~\mcite{RBB16} in the context
 of \divine{}~4. This allowed us to directly measure the penalty associated
 with the present approach, which is more thorough and less
 labour-intensive at the same time. Our expectation was that this would
 translate to slower verification, since the off-the-shelf code is more
 complex than the corresponding hand-tailored version used
-in~\cite{RBB16}. In line with this expectation, we set
+in~\mcite{RBB16}. In line with this expectation, we set
 the criterion of viability: we would consider a slowdown of at most
 10\,\% to be an acceptable price for the improved verification fidelity,
 and convenience of implementation. Since other resource consumption
@@ -1199,7 +1199,7 @@ svc-pthread & 17 & 16:47 & 16:41 & 1685 k & 1685 k\\
 As can be seen in \autoref{tbl:D4D3}, the time penalty on our chosen
 model set is very acceptable -- just shy of 2.6\,\% -- and the state
 space size is within 1\,\% of the older
-approach~\cite{RBB16}. We believe that this small
+approach~\mcite{RBB16}. We believe that this small
 penalty is well justified by the superior verification properties of the
 new approach.
 
@@ -1309,7 +1309,7 @@ and therefore, the implementation work is essentially transparent to
 the following: linked-list stack representation, runtime access to the
 program frame layout and 2 hypercalls:
 \texttt{\_\_vm\_control} and \texttt{\_\_vm\_obj\_free}. More details about
-\divm{} can be found in~\cite{RSCB2018}.
+\divm{} can be found in~\mcite{RSCB2018}.
 
 Finally, adding support for a new type of exceptions is also much
 simpler in this approach -- no modifications to \divm{} (or any other host
@@ -1334,12 +1334,12 @@ each tool, at least one edge case is not well supported. In contrast to
 this finding, with our approach, all those edge cases are covered ``for
 free'', that is, by the virtue of re-using an existing, complete
 implementation. Contrary to the prediction made
-in~\cite{RBB16}, we have found that with a suitable
+in~\mcite{RBB16}, we have found that with a suitable
 target language, implementing a new unwinder can be relatively simple.
 The unwinder implementation described in this paper is only about 210
 lines of C++ code, while it would be impossible to implement without
 verifier modifications in \divine{}~3. Therefore, we can conclude that with
-the advent of the \divm{} specification~\cite{RSCB2018} and its
+the advent of the \divm{} specification~\mcite{RSCB2018} and its
 implementation in \divine{} 4, re-implementing the \texttt{libunwind} API
 and re-using \texttt{libc++abi} became a viable strategy to provide
 exception support.
