@@ -2721,3 +2721,31 @@ series = {POPL ’05}
     abstract="In this paper, we describe DiOS, a lightweight model operating system which can be used to execute programs that make use of POSIX APIs. Such executions are fully reproducible: running the same program with the same inputs twice will result in two exactly identical instruction traces, even if the program uses threads for parallelism.",
     isbn="978-3-030-30446-1"
 }
+
+@InProceedings{Prabhu2011,
+    doi="10.1007/978-3-642-22655-7_27",
+    author="Prabhu, Prakash and Maeda, Naoto and Balakrishnan, Gogul and Ivan{\v{c}}i{\'{c}}, Franjo and Gupta, Aarti",
+    editor="Mezini, Mira",
+    title="Interprocedural Exception Analysis for C++",
+    booktitle="ECOOP 2011 -- Object-Oriented Programming",
+    year="2011",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="583--608",
+    abstract="C++ Exceptions provide a useful way for dealing with abnormal program behavior, but often lead to irregular interprocedural control flow that complicates compiler optimizations and static analysis. In this paper, we present an interprocedural exception analysis and transformation framework for C++ that captures the control-flow induced by exceptions and transforms it into an exception-free program that is amenable for precise static analysis. Control-flow induced by exceptions is captured in a modular interprocedural exception control-flow graph (IECFG). The IECFG is further refined using a novel interprocedural dataflow analysis algorithm based on a compact representation for a set of types called the Signed-TypeSet domain. The results of the interprocedural analysis are used by a lowering transformation to generate an exception-free C++ program. The lowering transformations do not affect the precision and accuracy of any subsequent program analysis. Our framework handles all the features of synchronous C++ exception handling and all exception sub-typing rules from the C++0x standard. We demonstrate two applications of our framework: (a) automatic inference of exception specifications for C++ functions for documentation, and (b) checking the ``no-throw'' and ``no-leak'' exception-safety properties.",
+    isbn="978-3-642-22655-7"
+}
+
+@InProceedings{Li2011,
+    doi="10.1007/978-3-642-22110-1_49",
+    author="Li, Guodong and Ghosh, Indradeep and Rajan, Sreeranga P.",
+    editor="Gopalakrishnan, Ganesh and Qadeer, Shaz",
+    title="KLOVER: A Symbolic Execution and Automatic Test Generation Tool for C++ Programs",
+    booktitle="Computer Aided Verification",
+    year="2011",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="609--615",
+    abstract="We present the first symbolic execution and automatic test generation tool for C++ programs. First we describe our effort in extending an existing symbolic execution tool for C programs to handle C++ programs. We then show how we made this tool generic, efficient and usable to handle real-life industrial applications. Novel features include extended symbolic virtual machine, library optimization for C and C++, object-level execution and reasoning, interfacing with specific type of efficient solvers, and semi-automatic unit and component testing. This tool is being used to assist the validation and testing of industrial software as well as publicly available programs written using the C++ language.",
+    isbn="978-3-642-22110-1"
+}

@@ -4,10 +4,7 @@ and extended with the wider context of analysis of realistic programs in
 DIVINE.
 The benchmarks are unmodified from the original paper.}
 
-- compilation, libraries + threading, exceptions
-
-\bigskip
-
+\bigskip\noindent
 An important step toward adoption of formal methods in software development is
 support for mainstream programming languages.
 These languages are often rather complex and come with substantial standard
@@ -1051,7 +1048,6 @@ transfers control to the instruction right after the call to \texttt{setjmp}.
 
 \section{Related Work}\label{sec:lang:related}
 
-\TODO{
 Primarily, we have looked at existing tools which support verification
 of C++ programs. Existence of an implementation is, to a certain degree,
 an indication that a given approach is viable in practice. We have,
@@ -1059,35 +1055,40 @@ however, also looked at approaches proposed in the literature which have
 no implementations (or only a prototype) available.
 
 A number of verification tools are based on \llvm{} and therefore have some
-support for C++. LLBMC~\mcite{sinz12:llbmc} and
-NBIS~\mcite{gunther14:increm.bounded} are \llvm{}-based bounded model
+support for C++. LLBMC~\cite{Falke2013} and
+NBIS~\cite{Gunther2014} are \llvm{}-based bounded model
 checkers which target mainly C and have no support for exceptions or the
-C++ standard library. VVT~\mcite{gunther16:vienna.verific.tool} is a
+C++ standard library. VVT~\cite{Gunther2016} is a
 successor of NBIS which uses either IC3 or bounded model checking and
 has limited C++ support, but it does not support exceptions.
-Furthermore, KLEE~\mcite{cadar08:klee} and KLOVER~\mcite{li11:klover}
+Furthermore, KLEE~\cite{Cadar2008} and KLOVER~\cite{Li2011}
 are \llvm{}-based tools for test generation and symbolic execution. KLOVER
-targets C++ and according to~\mcite{li11:klover} has exception support,
+targets C++ and according to~\cite{Li2011} has exception support,
 but it is not publicly available. On the other hand, KLEE focuses
-primarily on C and its C++ support is rather limited and it has no
-exception support.
+primarily on C and its C++ support is rather limited.
+As of April 2020 there is ongoing work on exception support in KLEE.
 
-Both CBMC~\mcite{clarke04:tool.checkin, kroening14:cbmc} and
-ESBMC~\mcite{ramalho13:smt.based} bounded model checkers support C++
-(but neither appears to support the standard library) and they include
-support for exceptions. However, in CBMC, the support for exceptions is
-limited to throwing and catching fundamental types.\footnote{A simple
-  test which throws and tries to catch an exception object crashes CBCM
-  5.6.} In our survey of tools for verification of C++ programs, ESBMC
+Both CBMC~\cite{Clarke2004}, \cite{Kroening2014} and
+ESBMC~\cite{Gadelha2018} bounded model checkers support C++
+(but neither appears to support the standard library) and they appear to have some
+support for exceptions.
+However, in CBMC, the support for exceptions seems to be limited to recognition
+of the \cpp{try-catch} syntax, but throwing an exception triggers an error.\mnote{A
+simple test which throws and tries to catch an exception object crashes CBCM
+5.11 during verification and a code which attempts to catch exception by
+referrence (which is the recommended pracice in C++) results in spurious syntax error during program parsing.}
+\TODO{
+In our survey of tools for verification of C++ programs, ESBMC
 has by far the best exception support: the latest version can deal with
-most, but not all\footnote{ESBMC 3.0 is unable to determine that an
-  exception ought to be caught when the \texttt{catch} clause specifies
+most, but not all\mnote{ESBMC 3.0 is unable to determine that an
+  exception ought to be caught when the \cpp{catch} clause specifies
   a type which is a virtual base class in a diamond-shaped hierarchy and
   the object thrown is of the most-derived type of the diamond. This
   suggests that ESBMC uses its own implementation of RTTI support code,
   which is somewhat incomplete, compared to production implementations.},
 types of exception handlers and even with exception specifications.
-Finally, \divine{} 3~\mcite{RBB16} also comes close to
+}
+Finally, \divine{} 3~\cite{RBB16} also comes close to
 full support for exceptions, but lacks support for exception
 specifications. Overall, this survey suggests that all current
 implementations of C++ exceptions in verification tools are incomplete
@@ -1096,7 +1097,7 @@ in a verification tool is indeed quite desirable.
 
 Finally, it is also possible to transform a C++ program with exceptions
 into an equivalent program which only uses more traditional control flow
-constructs. This approach was taken in~\mcite{prabhu11:interp.except},
+constructs. This approach was taken in~\cite{Prabhu2011},
 with the goal of re-using existing analysis tools without exception
 support. While this approach is applicable to a wide array of
 verification tools, it is also incompatible with re-use of existing
@@ -1107,7 +1108,6 @@ not directly deal with exceptions (i.e.~it violates the zero-cost
 principle of modern exception handling). Unfortunately, we were unable
 to evaluate this approach, since there are no publicly available tools
 which would implement it.
-}
 
 \section{Evaluation}\label{sec:lang:evaluation}
 
