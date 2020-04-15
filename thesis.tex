@@ -180,7 +180,6 @@
 \addbibresource{thesis.bib}
 \addbibresource{my.bib}
 
-\usepackage{marginnote}
 \usepackage[pass]{geometry}
 \usepackage{setspace}
 % \addtolength\textwidth{5pt} % about 129mm
@@ -237,9 +236,10 @@
 \usepackage{pdfpages}
 
 %% MARGIN NOTES %%
+\usepackage{marginfix}
 \newcounter{mnote}[chapter]
 \newcommand{\mnotemark}{\stepcounter{mnote}\hyperlink{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}$}\xspace}
-\newcommand{\mnotetext}[1]{\marginnote{\hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}\footnotesize{}#1}}
+\newcommand{\mnotetext}[1]{\marginpar{\hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}\footnotesize{}#1}}
 \newcommand{\mnote}[1]{\mnotemark{}\mnotetext{#1}\xspace}
 
 %%
