@@ -2749,3 +2749,339 @@ series = {POPL ’05}
     abstract="We present the first symbolic execution and automatic test generation tool for C++ programs. First we describe our effort in extending an existing symbolic execution tool for C programs to handle C++ programs. We then show how we made this tool generic, efficient and usable to handle real-life industrial applications. Novel features include extended symbolic virtual machine, library optimization for C and C++, object-level execution and reasoning, interfacing with specific type of efficient solvers, and semi-automatic unit and component testing. This tool is being used to assist the validation and testing of industrial software as well as publicly available programs written using the C++ language.",
     isbn="978-3-642-22110-1"
 }
+
+@InProceedings{Dangl2015,
+    doi="10.1007/978-3-662-46681-0_34",
+    author="Dangl, Matthias and L{\"o}we, Stefan and Wendler, Philipp",
+    editor="Baier, Christel and Tinelli, Cesare",
+    title="CPAchecker with Support for Recursive Programs and Floating-Point Arithmetic",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2015",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="423--425",
+    abstract="We submit to SV-COMP'15 the software-verification framework CPAchecker. The submitted configuration is a combination of seven different analyses, based on explicit-value analysis, k-induction, predicate analysis, and concrete memory graphs. These analyses use concepts such as CEGAR, lazy abstraction, interpolation, adjustable-block encoding, bounded model checking, invariant generation, and block-abstraction memoization. Found counterexamples are cross-checked by a bit-precise analysis. The combination of several different analyses copes well with the diversity of the verification tasks in SV-COMP.",
+    isbn="978-3-662-46681-0"
+}
+
+@InProceedings{Beyer2011,
+    doi="10.1007/978-3-642-22110-1_16",
+    author="Beyer, Dirk and Keremoglu, M. Erkan",
+    editor="Gopalakrishnan, Ganesh and Qadeer, Shaz",
+    title="CPAchecker: A Tool for Configurable Software Verification",
+    booktitle="Computer Aided Verification",
+    year="2011",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="184--190",
+    abstract="Configurable software verification is a recent concept for expressing different program analysis and model checking approaches in one single formalism. This paper presents CPAchecker, a tool and framework that aims at easy integration of new verification components. Every abstract domain, together with the corresponding operations, implements the interface of configurable program analysis (CPA). The main algorithm is configurable to perform a reachability analysis on arbitrary combinations of existing CPAs. In software verification, it takes a considerable amount of effort to convert a verification idea into actual experimental results --- we aim at accelerating this process. We hope that researchers find it convenient and productive to implement new verification ideas and algorithms using this flexible and easy-to-extend platform, and that it advances the field by making it easier to perform practical experiments. The tool is implemented in Java and runs as command-line tool or as eclipse plug-in. CPAchecker implements CPAs for several abstract domains. We evaluate the efficiency of the current version of our tool on software-verification benchmarks from the literature, and compare it with other state-of-the-art model checkers. CPAchecker is an open-source toolkit and publicly available.",
+    isbn="978-3-642-22110-1"
+}
+
+@InProceedings{Andrianov2017,
+    doi="10.1007/978-3-662-54580-5_22",
+    author="Andrianov, Pavel and Friedberger, Karlheinz and Mandrykin, Mikhail and Mutilin, Vadim and Volkov, Anton",
+    editor="Legay, Axel and Margaria, Tiziana",
+    title="CPA-BAM-BnB: Block-Abstraction Memoization and Region-Based Memory Models for Predicate Abstractions",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2017",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="355--359",
+    abstract="Our submission to SV-COMP'17 is based on the software verification framework CPAchecker. Combined with value analysis and predicate analysis we use the concept of block-abstraction memoization with optimization and several fixes relative to the version of SV-COMP'16. A novelty of our approach is usage of BnB memory model for predicate analysis, which efficiently divides the accessed memory into memory regions and thus leads to smaller formulas.",
+    isbn="978-3-662-54580-5"
+}
+
+@InProceedings{Andrianov2018,
+    doi="10.1007/978-3-319-71734-0_2",
+    author="Andrianov, Pavel and Mutilin, Vadim and Khoroshilov, Alexey",
+    editor="Itsykson, Vladimir and Scedrov, Andre and Zakharov, Victor",
+    title="Predicate Abstraction Based Configurable Method for Data Race Detection in Linux Kernel",
+    booktitle="Tools and Methods of Program Analysis",
+    year="2018",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="11--23",
+    abstract="The paper presents a configurable method for static data race detection. The method is based on a lightweight approach that implements Lockset algorithm with a simplified memory model. The paper contributes two heavyweight extensions which allow to adjust required precision of the analysis by choosing the balance between spent resources and a number of false alarms. The extensions are (1) counterexample guided refinement based on predicate abstraction and (2) thread analysis. The approach was implemented in the CPALockator tool and was applied to Linux kernel modules. Real races found by the tool have been approved and fixed by Linux kernel developers.",
+    isbn="978-3-319-71734-0"
+}
+
+@InProceedings{Chaudhary2019,
+    doi="10.1007/978-3-030-17502-3_20",
+    author="Chaudhary, Eti and Joshi, Saurabh",
+    editor="Beyer, Dirk and Huisman, Marieke and Kordon, Fabrice and Steffen,
+    Bernhard",
+    title="Pinaka: Symbolic Execution Meets Incremental Solving",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2019",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="234--238",
+    abstract="Many modern-day solvers offer functionality for incremental SAT solving, which preserves the state of the solver across invocations. This is beneficial when multiple, closely related SAT queries need to be fed to the solver. Pinaka is a symbolic execution engine which makes aggressive use of incremental SAT solving coupled with eager state infeasibility checks. It is built on top of the CProver/Symex framework. Pinaka supports both Breadth First Search and Depth First Search as state exploration strategies along with partial and full incremental modes. For SVCOMP 2019, Pinaka is configured to use partial incremental mode with Depth First Search strategy.",
+    isbn="978-3-030-17502-3"
+}
+
+@article{King1976,
+    author = {King, James C.},
+    title = {Symbolic Execution and Program Testing},
+    year = {1976},
+    issue_date = {July 1976},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {19},
+    number = {7},
+    issn = {0001-0782},
+    url = {https://doi.org/10.1145/360248.360252},
+    doi = {10.1145/360248.360252},
+    journal = {Commun. ACM},
+    month = jul,
+    pages = {385–394},
+    numpages = {10},
+    keywords = {program proving, program debugging, program verification, program testing, symbolic interpretation, symbolic execution}
+}
+
+@InProceedings{Brockschmidt2016,
+    doi="10.1007/978-3-662-49674-9_22",
+    author="Brockschmidt, Marc and Cook, Byron and Ishtiaq, Samin and Khlaaf, Heidy and Piterman, Nir",
+    editor="Chechik, Marsha and Raskin, Jean-Fran{\c{c}}ois",
+    title="T2: Temporal Property Verification",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2016",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="387--393",
+    abstract="We present the open-source tool T2, the first public release from the TERMINATOR projectÂ [9]. T2 has been extended over the past decade to support automatic temporal-logic proving techniques and to handle a general class of user-provided liveness and safety properties. Input can be provided in a native format and in C, via the support of the LLVM compiler framework. We briefly discuss T2's architecture, its underlying techniques, and conclude with an experimental illustration of its competitiveness and directions for future extensions.",
+    isbn="978-3-662-49674-9"
+}
+
+@InProceedings{Kupriyanov2014,
+    doi="10.1007/978-3-319-08867-9_54",
+    author="Kupriyanov, Andrey and Finkbeiner, Bernd",
+    editor="Biere, Armin and Bloem, Roderick",
+    title="Causal Termination of Multi-threaded Programs",
+    booktitle="Computer Aided Verification",
+    year="2014",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="814--830",
+    abstract="We present a new model checking procedure for the termination analysis of multi-threaded programs. Current termination provers scale badly in the number of threads; our new approach easily handles 100 threads on multi-threaded benchmarks like Producer-Consumer. In our procedure, we characterize the existence of non-terminating executions as Mazurkiewicz-style concurrent traces and apply causality-based transformation rules to refine them until a contradiction can be shown. The termination proof is organized into a tableau, where the case splits represent a novel type of modular reasoning according to different causal explanations of a hypothetical error. We report on experimental results obtained with a tool implementation of the new procedure, called Arctor, on previously intractable multi-threaded benchmarks.",
+    isbn="978-3-319-08867-9"
+}
+
+@inproceedings{Cook2007thr,
+    doi="10.1145/1250734.1250771",
+    author = {Cook, Byron and Podelski, Andreas and Rybalchenko, Andrey},
+    title = {Proving Thread Termination},
+    year = {2007},
+    isbn = {9781595936332},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/1250734.1250771},
+    doi = {10.1145/1250734.1250771},
+    booktitle = {Proceedings of the 28th ACM SIGPLAN Conference on Programming Language Design and Implementation},
+    pages = {320–330},
+    numpages = {11},
+    keywords = {program verification, formal verification, concurrency, termination, model checking, threads},
+    location = {San Diego, California, USA},
+    series = {PLDI ’07}
+}
+
+@InProceedings{Haran2015,
+    doi="10.1007/978-3-662-46681-0_42",
+    author="Haran, Arvind and Carter, Montgomery and Emmi, Michael and Lal, Akash and Qadeer, Shaz and Rakamari{\'{c}}, Zvonimir",
+    editor="Baier, Christel and Tinelli, Cesare",
+    title="SMACK+Corral: A Modular Verifier",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2015",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="451--454",
+    abstract="SMACK and Corral are two components of a modular toolchain for verifying C programs. Together they exploit state-of-the-art compiler technologies and theorem provers to simplify and dispatch verification conditions.",
+    isbn="978-3-662-46681-0"
+}
+
+@InProceedings{Beyer2020svc,
+    doi="10.1007/978-3-030-45237-7_21",
+    author="Beyer, Dirk",
+    editor="Biere, Armin and Parker, David",
+    title="Advances in Automatic Software Verification: SV-COMP 2020",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="347--367",
+    isbn="978-3-030-45237-7"
+}
+
+@InProceedings{PonceDeLeon2020,
+    author="10.1007/978-3-030-45237-7_24",
+    author="Ponce-de-Le{\'o}n, Hern{\'a}n and Furbach, Florian and Heljanko, Keijo and Meyer, Roland",
+    editor="Biere, Armin and Parker, David",
+    title="Dartagnan: Bounded Model Checking for Weak Memory Models (Competition Contribution)",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="378--382",
+    abstract="Dartagnanis a bounded model checker for concurrent programs under weak memory models. What makes it different from other tools is that the memory model is not hard-coded inside Dartagnanbut taken as part of the input. For SV-COMP'20, we take as input sequential consistency (i.e. the standard interleaving memory model) extended by support for atomic blocks. Our point is to demonstrate that a universal tool can be competitive and perform well in SV-COMP. Being a bounded model checker, Dartagnan's focus is on disproving safety properties by finding counterexample executions. For programs with bounded loops, Dartagnanperforms an iterative unwinding that results in a complete analysis. The SV-COMP'20 version of Dartagnanworks on Boogiecode. The C programs of the competition are translated internally to Boogieusing SMACK.",
+    isbn="978-3-030-45237-7"
+}
+
+@InProceedings{Gavrilenko2019,
+    doi="10.1007/978-3-030-25540-4_19",
+    author="Gavrilenko, Natalia and Ponce-de-Le{\'o}n, Hern{\'a}n and Furbach, Florian and Heljanko, Keijo and Meyer, Roland",
+    editor="Dillig, Isil and Tasiran, Serdar",
+    title="BMC for Weak Memory Models: Relation Analysis for Compact SMT Encodings",
+    booktitle="Computer Aided Verification",
+    year="2019",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="355--365",
+    abstract="We present Dartagnan, a bounded model checker (BMC) for concurrent programs under weak memory models. Its distinguishing feature is that the memory model is not implemented inside the tool but taken as part of the input. Dartagnan reads CAT, the standard language for memory models, which allows to define x86/TSO, ARMv7, ARMv8, Power, C/C++, and Linux kernel concurrency primitives. BMC with memory models as inputs is challenging. One has to encode into SMT not only the program but also its semantics as defined by the memory model. What makes Dartagnan scale is its relation analysis, a novel static analysis that significantly reduces the size of the encoding. Dartagnan matches or even exceeds the performance of the model-specific verification tools Nidhugg and CBMC, as well as the performance of Herd, a CAT-compatible litmus testing tool. Compared to the unoptimized encoding, the speed-up is often more than two orders of magnitude.",
+    isbn="978-3-030-25540-4"
+}
+
+@InProceedings{Kahsai2019,
+    doi="10.1007/978-3-030-17502-3_16",
+    author="Kahsai, Temesghen and R{\"u}mmer, Philipp and Sch{\"a}f, Martin",
+    editor="Beyer, Dirk and Huisman, Marieke and Kordon, Fabrice and Steffen, Bernhard",
+    title="JayHorn: A Java Model Checker",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2019",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="214--218",
+    abstract="JayHorn is a model checker for verifying sequential Java programs annotated with assertions expressing safety conditions. JayHorn uses the Soot library to read Java bytecode and translate it to the Jimple three-address format, then converts the Jimple code in several stages to a set of constrained Horn clauses, and solves the Horn clauses using solvers like SPACER and Eldarica. JayHorn uses a novel, invariant-based representation of heap data-structures, and is therefore particularly useful for analyzing programs with unbounded data-structures and unbounded run-time. JayHorn is open source and distributed under MIT license (https://github.com/jayhorn/jayhorn).",
+    isbn="978-3-030-17502-3"
+}
+
+@inproceedings{Inverso2020,
+    author = {Inverso, Omar and Trubiani, Catia},
+    title = {Parallel and Distributed Bounded Model Checking of Multi-Threaded Programs},
+    year = {2020},
+    isbn = {9781450368186},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/3332466.3374529},
+    doi = {10.1145/3332466.3374529},
+    booktitle = {Proceedings of the 25th ACM SIGPLAN Symposium on Principles and Practice of Parallel Programming},
+    pages = {202–216},
+    numpages = {15},
+    keywords = {multithreading, sequentialization, concurrency, SAT, bounded model checking, parallel analysis, software verification},
+    location = {San Diego, California},
+    series = {PPoPP ’20}
+}
+
+@InProceedings{Chalupa2020,
+    doi="10.1007/978-3-030-45237-7_31",
+    author="Chalupa, Marek and Ja{\v{s}}ek, Tom{\'a}{\v{s}} and Tomovi{\v{c}}, Luk{\'a}{\v{s}} and Hru{\v{s}}ka, Martin and {\v{S}}okov{\'a}, Veronika and Ayaziov{\'a}, Paul{\'i}na and Strej{\v{c}}ek, Jan and Vojnar, Tom{\'a}{\v{s}}",
+    editor="Biere, Armin and Parker, David",
+    title="Symbiotic 7: Integration of Predator and More",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="413--417",
+    abstract="Symbiotic Â 7 brings improvements in all parts of the tool. In particular, we integrated the advanced shape analysis implemented in Predator to our instrumentation process for memory safety checking. Further, we extended our slicer to correctly handle non-terminating programs. This new slicing is applied in termination analysis, where we also added instrumentation for detection of simple cycles in the program state space. The witness generation process changed as well.",
+    isbn="978-3-030-45237-7"
+}
+
+@InProceedings{Mues2020,
+    doi="10.1007/978-3-030-45237-7_28",
+    author="Mues, Malte and Howar, Falk",
+    editor="Biere, Armin and Parker, David",
+    title="JDart: Dynamic Symbolic Execution for Java Bytecode (Competition Contribution)",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="398--402",
+    abstract="JDart performs dynamic symbolic execution of Java programs: it executes programs with concrete inputs while recording symbolic constraints on executed program paths. A constraint solver is then used for generating new concrete values from recorded constraints that drive execution along previously unexplored paths. JDart is built on top of the Java PathFinder software model checker and uses the JConstraints library for the integration of constraint solvers.",
+    isbn="978-3-030-45237-7"
+}
+
+@InProceedings{Luckow2016,
+    doi="10.1007/978-3-662-49674-9_26",
+    author="Luckow, Kasper and Dimja{\v{s}}evi{\'{c}}, Marko and Giannakopoulou, Dimitra and Howar, Falk and Isberner, Malte and Kahsai, Temesghen and Rakamari{\'{c}}, Zvonimir and Raman, Vishwanath",
+    editor="Chechik, Marsha
+    and Raskin, Jean-Fran{\c{c}}ois",
+    title="JDart: A Dynamic Symbolic Analysis Framework",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2016",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="442--459",
+    abstract="We describe JDart, a dynamic symbolic analysis framework for Java. A distinguishing feature of JDart is its modular architecture: the main component that performs dynamic exploration communicates with a component that efficiently constructs constraints and that interfaces with constraint solvers. These components can easily be extended or modified to support multiple constraint solvers or different exploration strategies. Moreover, JDart has been engineered for robustness, driven by the need to handle complex NASA software. These characteristics, together with its recent open sourcing, make JDart an ideal platform for research and experimentation. In the current release, JDart supports the CORAL, SMTInterpol, and Z3 solvers, and is able to handle NASA software with constraints containing bit operations, floating point arithmetic, and complex arithmetic operations (e.g., trigonometric and nonlinear). We illustrate how JDart has been used to support other analysis techniques, such as automated interface generation and testing of libraries. Finally, we demonstrate the versatility and effectiveness of JDart, and compare it with state-of-the-art dynamic or pure symbolic execution engines through an extensive experimental evaluation.",
+    isbn="978-3-662-49674-9"
+}
+
+@InProceedings{Sharma2020,
+    doi="10.1007/978-3-030-45237-7_27",
+    author="Sharma, Vaibhav and Hussein, Soha and Whalen, Michael W.  and McCamant,Stephen and Visser, Willem",
+    editor="Biere, Armin and Parker, David",
+    title="Java Ranger at SV-COMP 2020 (Competition Contribution)",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="393--397",
+    abstract="Path-merging is a known technique for accelerating symbolic execution. One technique, named ``veritesting'' by Avgerinos et al. uses summaries of bounded control-flow regions and has been shown to accelerate symbolic execution of binary code. But, when applied to symbolic execution of Java code, veritesting needs to be extended to summarize dynamically dispatched methods and exceptional control-flow. Such an extension of veritesting has been implemented in Java Ranger by implementing as an extension of Symbolic PathFinder, a symbolic executor for Java bytecode. In this paper, we briefly describe the architecture of Java Ranger and describe its setup for SV-COMP 2020.",
+    isbn="978-3-030-45237-7"
+}
+
+@InProceedings{Peringer2020,
+    doi="10.1007/978-3-030-45237-7_30",
+    author="Peringer, Petr and {\v{S}}okov{\'a}, Veronika and Vojnar, Tom{\'a}{\v{s}}",
+    editor="Biere, Armin and Parker, David",
+    title="PredatorHP Revamped (Not Only) for Interval-Sized Memory Regions and Memory Reallocation (Competition Contribution)",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="408--412",
+    abstract="This paper concentrates on improvements of the PredatorHP shape analyzer in the past two years, including, e.g., improved handling of interval-sized memory regions or new support of memory reallocation. The paper characterizes PredatorHP's participation in SV-COMP 2020, pointing out its strengths and weakness and the way they were influenced by the latest changes in the tool.",
+    isbn="978-3-030-45237-7"
+}
+
+@InProceedings{Dudka2013,
+    doi="10.1007/978-3-642-38856-9_13",
+    author="Dudka, Kamil and Peringer, Petr and Vojnar, Tom{\'a}{\v{s}}",
+    editor="Logozzo, Francesco and F{\"a}hndrich, Manuel",
+    title="Byte-Precise Verification of Low-Level List Manipulation",
+    booktitle="Static Analysis",
+    year="2013",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="215--237",
+    abstract="We propose a new approach to shape analysis of programs with linked lists that use low-level memory operations. Such operations include pointer arithmetic, safe usage of invalid pointers, block operations with memory, reinterpretation of the memory contents, address alignment, etc. Our approach is based on a new representation of sets of heaps, which is to some degree inspired by works on separation logic with higher-order list predicates, but it is graph-based and uses a more fine-grained (byte-precise) memory model in order to support the various low-level memory operations. The approach was implemented in the Predator tool and successfully validated on multiple non-trivial case studies that are beyond the capabilities of other current fully automated shape analysis tools.",
+    isbn="978-3-642-38856-9"
+}
+
+@inproceedings{Afzal2019,
+    title={VeriAbs: Verification by Abstraction and Test Generation},
+    author={Afzal, Mohammad and Asia, A and Chauhan, Avriti and Chimdyalwar, Bharti and Darke, Priyanka and Datar, Advaita and Kumar, Shrawan and Venkatesh, R},
+    booktitle={2019 34th IEEE/ACM International Conference on Automated Software Engineering (ASE)},
+    pages={1138--1141},
+    year={2019},
+    doi="10.1109/ASE.2019.00121",
+    organization={IEEE}
+}
+
+@InProceedings{Basak2019,
+    doi="10.1007/978-3-030-17502-3_22",
+    author="Basak Chowdhury, Animesh
+    and Medicherla, Raveendra Kumar
+    and R, Venkatesh",
+    editor="Beyer, Dirk
+    and Huisman, Marieke
+    and Kordon, Fabrice
+    and Steffen, Bernhard",
+    title="VeriFuzz: Program Aware Fuzzing",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2019",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="244--249",
+    abstract="VeriFuzz is a program aware fuzz testing tool, which combines the power of feedback-driven evolutionary fuzz testing with static analysis. VeriFuzz deploys lightweight static analysis to extract meaningful information about program behavior that can aid fuzzing based test-input generation to achieve coverage goals quickly. We use constraint-solver to generate an initial population of test-inputs. VeriFuzz could generate the maximum number of counterexamples for reachsafety category benchmarks in SV-COMP 2019 and in Test-Comp 2019Â [16]. (All the terms in typewriter font are competition specific. SeeÂ [15].)",
+    isbn="978-3-030-17502-3"
+}

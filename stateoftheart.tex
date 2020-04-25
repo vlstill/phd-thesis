@@ -569,6 +569,15 @@ $k$-induction.
 It was presented before ESBMC gained ability to compute invariants itself and it uses an external tool for invariant generation.
 DepthK can analyze concurrent C programs.
 
+\TODO{\textsc{Dartagnan}~\cite{PonceDeLeon2020}, \cite{Gavrilenko2019}}
+- BMC for relaxed memory models, relaxed memory model can be specified on input, not encoded in the verifier
+- for C, internally uses \textsc{Boogie} intermediate language (translates using SMACK)
+- uses symbolic encoding which encodes relations such as program order, data dependencies, read-from -- memory model specification constraints them
+- safety properties
+- does not support pointer arithmetic
+- should support wide range of memory models including \xtso, ARMv8, POWER, C/C++11 + Linux kernel memory model including primitives such as RCU\mnote{Read-copy-update \TODO{…}}.
+- relation analysis to reduce size of the encoding -- determines which pairs of events may influence constraints specified by the memory model
+
 Lazy-CSeq~\cite{Inverso2015}, \cite{Nguyen2017} is a sequentialization-based
 tool for analysis of concurrent C programs which uses bounded model checker as
 a backend (CBMC by default).
@@ -585,6 +594,10 @@ deadlocks.
 In order to speed verification, Lazy-CSeq uses Frama-C~\cite{Canet2009} to
 infer  bounds of integral variables and shrink the corresponding bitvector
 formulas.
+\TODO{\cite{Inverso2020}
+- parallelization by partitioning the set of execution traces into independent instances
+-
+}
 
 \TODO{- the formula size if O(|orig prog.| * |n threads| * |n rounds|)
 - Lazy = explores only reachable state space (compared to Akash Lal \& Thomas Reps: Reducing concurrent analysis under a context bound to sequential analysis), does not start after each context switch from nondeterministic values}
@@ -701,18 +714,98 @@ Skink~\cite{Cassez2017}
 - uses integer arithmetic, not bit-precise
 - assertion reachability
 
+JayHorn~\cite{Kahsai2019}
+-- encoding to horn-clauses, not conucerrency, not bitprecise, basic library (mostly assumes library calls return arbitrary values- can handle certain cases of unbounded heap data structures by deriving invariants, nonterminating programs
+
+CPAchecker~\cite{Dangl2015},~\cite{Beyer2011}
+- C
+- a tool and a modular framework which aims at easy integration of new components
+- multiple abstract domains can be combined together
+- intended as a platform for research of new verification ideas
+- k-induction, predicate analysis, …
+- bit-precise validation of counterexamples
+- memory graphs for memory safety as of~\cite{Dangl2015} (but later in SV-COMP yes)
+- reachability, memory safety
+- multiple derived tools in SV-COMP
+  - CPA-BAM-BnB~\cite{Andrianov2017}
+    - BAM = Block Abstraction Memoization: divides program into blocks and analyzes them separately (block = function), cache to reuse block abstractions, uses value analysis and predicate analysis + refinement on spuroious conterexamples
+    - BnB -- modelling of memory using predicate analysis, uses uninterpreted functions to map memory locations to memory values, memory is split into regions, each region has its own mapping function.
+  - CPALockator~\cite{Andrianov2018}
+    - for concurrency, detects race conditions
+    - aims to be lightweight at the cost of missed errors
+    - tracks locks, which thread are active at given time
+    - predicate analysis, CEGAR to exclude spurious race conditions
+  - CPA-Seq
+
+
+SMACK~\cite{Rakamaric2014}, \cite{Haran2015}
+- translates LLVM IR into Boogie intermediate verification language
+- uses Boogie and Corral as backends
+- can use bitvectors or arbitrary-precision ingegers
+- boogie does not have dynamic memory -> memory is partitioned into disjoint regions which are represented by maps in boogie
+- bug-finder for C
+
+GACAL
+- generates potential invariants from traces and verifies them using the ACL2 theorem prover
+- only a subset of C (no arrays, only 32 bit integers, …)
+
+Predator/PredatorHP~\cite{Peringer2020}, \cite{Dudka2013}
+- shape analysis of sequential C -- targets memory errors, assertions -> can handle unbounded lists
+  - targets programs which use lists (singly/doubly-linked, circular, nested)
+  - uses symbolic representation of the memory (symbolic memory graphs)
+- only limited handling of non-list types
+- uses function summaries, recursion depth bound
+- uses GCC compiler
+- PredatorHP is an extension which runs several configurations of Predator in parallel (a verifier which can prove correctness but overapproximates and several bug hunters which can show incorrectness)
+
+VeriAbs~\cite{Afzal2019}
+- portfolio verifier -- uses different independent techniques for program analysis
+- targets sequential C programs with loops
+- lightweight analysis to infer which technique should be used, based on the type of loops and data used in them
+- techniques include: random fuzz testing, array abstractions, explicit-state model checking, loop invariant generation, CEGAR, loop abstraction, loop summarization, BMC, k-induction
+
+VeriFuzz~\cite{Basak2019}
+- fuzz testing with lightweight analaysis and instrumentation to extract useful infromation about the program
+- coverage driven
+- uses evolutionary algorithm to generate test inputs and learning algorithm based on decision trees to decide which techniques to use for fuzzing
+- uses loop unrolling (with increasing bounds)
 
 \section{Symbolic Execution}
 
-Symbiotic~\cite{Chalupa2018}, \cite{TODO:Svc2020}
+Introduced in~\cite{King1976}.
+
+Concolic execution = dynamic symbolic execution: programs runs with concrete values but tracks symbolic constraints on branches which are used to generate new concrete values to explore different paths
+
+
+Symbiotic~\cite{Chalupa2018}, \cite{Chalupa2020}
 - for sequential C programs
 - assertions, memory safety, memory leaks, integral overflows
 - uses instrumentation to add checks where needed (pointer analysis to limit number of inserted checks)
   - pointer analysis has to account for deallocation
-- slicing to remove code irrelevant for the property
+- slicing to remove code irrelevant for the property 
 - uses Klee symbolic executor as a backend
-- TODO termination category
+- integrates shape analysis based on Predator\cite{TODO} for memory safety checking
+- basic non/termination
+    - can detect simple cycles in the program state space and therefore in some cases decide the program does not terminate (non-nested loops which preserve values of all variables)
+    - can conclude the program is termingating if all paths were explored
 - sequential programs
+
+Pinaka~\cite{Chaudhary2019}
+- C
+- uses incremental solver to check path feasibility (either fully incremental -- reuses one solver instance for the whole program, which can cause big formulas, or partially incremental -- creates new instance on backtracking)
+- may not terminate on nonterminating programs, option for unwinding limit
+- can be used to show termination -- if program is found to be safe without any unwinding limit, then all its paths terminate
+
+\textsc{JDart}~\cite{Mues2020}, \cite{Luckow2016}
+- java, assertion checking, uncaught exceptions
+- concolic execution, test generation
+- attempts to find small values for symbolic variables (can make loops depending on symbolic values shorter)
+- built on JPF
+- no concurrency
+
+Java Ranger~\cite{Sharma2020}
+- symbolic execution with path merging by summarization of regions with multiple paths (e.g., branches of an \texttt{if} statement) (\TODO{veritesting})
+- extension of SPF
 
 \section{Abstraction-Based Techniques}
 
@@ -726,7 +819,12 @@ Symbiotic~\cite{Chalupa2018}, \cite{TODO:Svc2020}
 - other liveness in sequential C (inf sys, Terminator): \cite{Cook2007} (drivers)
 - termination (seq, ptr, inf, \textsc{Terminator}): \cite{Cook2006}
 - termination (inc. heap): \cite{Berdine2006}
-- termination+nontermination (C, Java, Haskell, Prolog, recurstion, ptr, bitvectors; seq no structs): AProVe \cite{Hensel2017, Giesl2017}
+- termination+nontermination (C, Java, Haskell, Prolog, recurstion, ptr, bitvectors (bit-precise); seq no structs): AProVe \cite{Hensel2017, Giesl2017}
+
+T2~\cite{Brockschmidt2016}
+- open source release of the Terminator
+- liveness + safety
+- no concurrency, heap, recursion
 
 \section{XXX}
 
@@ -829,6 +927,18 @@ SACO~\cite{Albert2017}
 - lexicographic linear ranking functions
 - bit-precise
 - no recursion, strings, arrays
+
+Arctor~\cite{Kupriyanov2014}
+- for concurrency
+- based on abstraction and refinement
+- based on well-founded relations
+- can show termination, or possibly non-terminating execution
+
+
+~\cite{Cook2007thr}
+- Other threads are abstracted into a model of environment which is incrementally refined
+- termination proving for threads (thread termination proving)
+
 
 \section{Benchmark Suites}
 
