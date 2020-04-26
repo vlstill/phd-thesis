@@ -3085,3 +3085,105 @@ series = {POPL ’05}
     abstract="VeriFuzz is a program aware fuzz testing tool, which combines the power of feedback-driven evolutionary fuzz testing with static analysis. VeriFuzz deploys lightweight static analysis to extract meaningful information about program behavior that can aid fuzzing based test-input generation to achieve coverage goals quickly. We use constraint-solver to generate an initial population of test-inputs. VeriFuzz could generate the maximum number of counterexamples for reachsafety category benchmarks in SV-COMP 2019 and in Test-Comp 2019Â [16]. (All the terms in typewriter font are competition specific. SeeÂ [15].)",
     isbn="978-3-030-17502-3"
 }
+
+@InProceedings{Richter2019,
+    doi="10.1007/978-3-030-17502-3_19",
+    author="Richter, Cedric and Wehrheim, Heike",
+    editor="Beyer, Dirk and Huisman, Marieke and Kordon, Fabrice and Steffen, Bernhard",
+    title="PeSCo: Predicting Sequential Combinations of Verifiers",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2019",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="229--233",
+    abstract="PeSCo is a tool for predicting a (likely best) sequential combination of verifiers on a given verification task and then running it. The approach is based on machine learning, more precisely on learning rankings of verifiers on verification tasks (where the ordering of verifiers is based on the SV-COMP scoring schema). The learning part employs Support Vector Machines; as base verifiers we use CPAchecker in 6 different configurations.",
+    isbn="978-3-030-17502-3"
+}
+
+@inproceedings{Czech2017,
+    author = {Czech, Mike and H\"{u}llermeier, Eyke and Jakobs, Marie-Christine and Wehrheim, Heike},
+    title = {Predicting Rankings of Software Verification Tools},
+    year = {2017},
+    isbn = {9781450351577},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/3121257.3121262},
+    doi = {10.1145/3121257.3121262},
+    booktitle = {Proceedings of the 3rd ACM SIGSOFT International Workshop on Software Analytics},
+    pages = {23–26},
+    numpages = {4},
+    keywords = {Software verification, ranking, machine learning},
+    location = {Paderborn, Germany},
+    series = {SWAN 2017}
+}
+
+@InProceedings{Malik2020,
+    doi="10.1007/978-3-030-45237-7_22",
+    author="Mal{\'i}k, Viktor and Schrammel, Peter and Vojnar, Tom{\'a}{\v{s}}",
+    editor="Biere, Armin
+    and Parker, David",
+    title="2LS: Heap Analysis and Memory Safety",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="368--372",
+    abstract="2LS is a framework for analysis of sequential C programs based on the CPROVER infrastructure and template-based synthesis techniques for checking both safety and termination. The paper presents the main improvements done in 2LS since 2018, which concern mainly the way 2LS handles dynamically allocated objects and structures as well as combinations ofÂ abstractÂ domains.",
+    isbn="978-3-030-45237-7"
+}
+
+@InProceedings{Visser2020,
+    doi="10.1007/978-3-030-45237-7_23",
+    author="Visser, Willem and Geldenhuys, Jaco",
+    editor="Biere, Armin and Parker, David",
+    title="COASTAL: Combining Concolic and Fuzzing for Java (Competition Contribution)",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="373--377",
+    abstract="COASTAL is a program analysis tool for Java programs. It combines concolic execution and fuzz testing in a framework with built-in concurrency, allowing the two approaches to cooperate naturally.",
+    isbn="978-3-030-45237-7"
+}
+
+@InProceedings{Rocha2020,
+    doi="10.1007/978-3-030-45237-7_29",
+    author="Rocha, Herbert and Menezes, Rafael and Cordeiro, Lucas C.  and Barreto, Raimundo",
+    editor="Biere, Armin and Parker, David",
+    title="Map2Check: Using Symbolic Execution and Fuzzing",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="403--407",
+    abstract="Map2Check is a software verification tool that combines fuzzing, symbolic execution, and inductive invariants. It automatically checks safety properties in C programs by adopting source code instrumentation to monitor data (e.g., memory pointers) from the program's executions using LLVM compiler infrastructure. For SV-COMP 2020, we extended Map2Check to exploit an iterative deepening approach using LibFuzzer and Klee to check for safety properties. We also use Crab-LLVM to infer program invariants based on reachability analysis. Experimental results show that Map2Check can handle a wide variety of safety properties in several intricate verification tasks from SV-COMP 2020.",
+    isbn="978-3-030-45237-7"
+}
+
+@InProceedings{Rocha2015,
+    doi="10.1007/978-3-319-22969-0_18",
+    author="Rocha, Herbert and Barreto, Raimundo and Cordeiro, Lucas",
+    editor="Calinescu, Radu and Rumpe, Bernhard",
+    title="Memory Management Test-Case Generation of C Programs Using Bounded Model Checking",
+    booktitle="Software Engineering and Formal Methods",
+    year="2015",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="251--267",
+    abstract="We describe a novel method to automatically generate and verify memory management test cases for unit tests, which are based on assertions extracted from safety properties typically generated by bounded model checking (BMC) tools. In particular, the proposed method checks for properties related to pointer safety, memory leaks, and invalid deallocation. To investigate our method's effectiveness, we developed a tool called Map2Check that adopts the ESBMC model checker and the CUnit testing framework. Additionally, Map2Check provides an integration of BMC tools with unit testing frameworks, which helps developers not very familiar with formal methods to verify large C programs. We use Map2Check to perform an empirical evaluation over publicly available benchmarks and compare the results to recognized tools, e.g., Valgrind's Memcheck, CBMC, LLBMC, CPAChecker, Predator, and ESBMC. Experimental results show that our proposed method detects at least as many memory management defects as existing tools; and it does not report any false positive and negative. We compared Map2Check with tools on the Competition on Software Verification 2014 (SVCOMP), in the MemorySafety category. Map2Check would have the same score than the 1st place and it would win the 2st place when ranking the evaluated tools on memory consumption.",
+    isbn="978-3-319-22969-0"
+}
+
+@InProceedings{Dietsch2020,
+    doi="10.1007/978-3-030-45237-7_32",
+    author="Dietsch, Daniel and Heizmann, Matthias and Nutz, Alexander and Sch{\"a}tzle, Claus and Sch{\"u}ssele, Frank",
+    editor="Biere, Armin and Parker, David",
+    title="Ultimate Taipan with Symbolic Interpretation and Fluid Abstractions",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="418--422",
+    abstract="Ultimate Taipan is a software model checker that combines trace abstraction with abstract interpretation on path programs. In this year's version, we replaced our abstract interpretation engine and now use a combination of multiple abstraction functions, fixpoint computation, algebraic program analysis, and SMT solving. Our new approach will allow us to integrate new techniques more easily.",
+    isbn="978-3-030-45237-7"
+}
