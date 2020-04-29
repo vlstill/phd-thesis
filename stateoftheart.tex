@@ -432,8 +432,10 @@ IC3~\cite{TODO}.
 
 \paragraph{$k$-Induction}
 
-$k$-induction is an extension of bounded model checking which allows it to find bugs faster and to prove correctness of programs without unwinding loops fully.
-A BMC with $k$-induction repeatedly performs three steps with an increasing bound $k$.
+$k$-induction~\cite{Donaldson2011}, \cite{Gadelha2017} is an extension of
+bounded model checking which allows it to find bugs faster and to prove
+correctness of programs without unwinding loops fully.
+Multiple $k$-inductions schemes exists, in the one proposed in~\cite{Gadelha2017} a verifier with $k$-induction repeatedly performs three steps with an increasing bound $k$.
 \begin{description}
     \item[Base Case] checks if an error is reachable in $k$ steps.
     \item[Forward Condition] checks if all program's paths had terminated in
@@ -448,9 +450,9 @@ A BMC with $k$-induction repeatedly performs three steps with an increasing boun
         body is entered and that after the given number of iterations the
         condition for loop termination holds.}
 \end{description}
+\TODO{Nested loops are unwound recursively}
 One of the problems with $k$-induction is that the induction argument is not strong enough to prove the inductive step.
 For this reason, the induction can be strengthen by invariants derived from the original program (i.e., the nondeterministic values of loop variables are constrained by the invariants).
-\TODO{\cite{Cordeiro2016:23-27}}
 
 \paragraph{IC3} \TODO{TODO}
 
@@ -646,6 +648,13 @@ NBIS~\cite{Gunther2016}
 - LLVM IR based, for C sequential programs
 - not maintained
 
+F-Soft~\cite{Ivancic2005}
+- for sequential C programs, safety
+- uses BMC (and BDD-based model checking)
+- program slicing, predicate abstraction
+- generates executable counterexamles
+
+
 Corral
 
 \paragraph{Limitations of BMC}
@@ -738,12 +747,22 @@ CPAchecker~\cite{Dangl2015},~\cite{Beyer2011}
     - predicate analysis, CEGAR to exclude spurious race conditions
   - CPA-Seq
 
-SMACK~\cite{Rakamaric2014}, \cite{Haran2015}
+SMACK~\cite{Rakamaric2014}, \cite{Carter2016}, \cite{Garzella2020}
 - translates LLVM IR into Boogie intermediate verification language
-- uses Boogie and Corral as backends
+- uses Boogie and Corral (default) as backends, intended to allow easy prototyping of backend verifiers
 - can use bitvectors or arbitrary-precision ingegers
 - boogie does not have dynamic memory -> memory is partitioned into disjoint regions which are represented by maps in boogie
-- bug-finder for C
+- bug-finder for C and Rust
+  - only basic library support (allocation, C string and math operations, pthreads, models of most common Rust libraries)
+- \cite{Garzella2020} provides a large study of adding support for C++, Objective-C, D, Fortran, Swift, and Kotlin to SMACK
+  - they state models of standard libraries need to be written manually (i.e. reusal not considered)
+  - heavy reliance on LLVM for basic support
+  - shows limits of SMACK's handling of LLVM
+  - only limited support for runtime and libraries (especially in runtime-heavy languages like Swift, Objective-C and Kotlin)
+    - pratialy reuse of existing library (Kotlin arithmetics)
+    - partly rudimentary models
+  - cross-language verification (mostly for free due to LLVM)
+- with concurrency-enabled backend (e.g. Corral) supports concurrency
 
 GACAL
 - generates potential invariants from traces and verifies them using the ACL2 theorem prover
@@ -821,12 +840,27 @@ COASTAL~\cite{Visser2020}
 - uses models for some Java classses, but seems to be able to handle original java bitecode libraries (?)
 - no symbolic arrays
 
-Map2Check~\cite{Rocha2020}, \cite{Rocha2015}
+Map2Check~\cite{Rocha2020}
 - fuzzing, symbolic execution, inductive invariants for safety checking C programs
 - uses LLVM, Klee
 - no concurrency
 - fuzzing used to find shallow bugs, symbolic execution for deep
 - can use multiple fuzzers in parallel
+
+Map2Check~\cite{Rocha2015} (previous version)
+- memory safety + memory safety unit test generation for C using ESBMC
+  - including memory leaks, invalid free
+- ESBMC used to extract verification conditions (e.g., conditions of memory safety violation)
+- program is then instrumented convert memory safety to assertions about pointers
+- tests are executed (with concrete data)
+
+Threader~\cite{Gupta2011}
+- compositional verification of parallel programs, thread-modular proofs for C programs
+- Horn clause encoding
+- uses compositional proof rules for concurrent programs~\cite{Jones1983}, \cite{Owicki1976}
+- abstract reachability + refinement
+- not limited to specific synchronization primitives
+- safety (assertions), can also prove termination properties
 
 \section{Abstraction-Based Techniques}
 
@@ -929,8 +963,9 @@ SACO~\cite{Albert2017}
 - for modelling language (with shared memory)
 - generates constraints on how the shared state can be modified in order for the loop to terminate and than checks that this will eventually hold
 
-2LS~\cite{Malik2020}, \cite{Malik2018}
+2LS~\cite{Malik2020}, \cite{Malik2018}, \cite{Chen2017}
 - built on CPROVER (the backend of CBMC)
+- interprocedural termination analysis for sequential programs
 - bounded model checking with k-induction and abstract interpretation
 - sequential C programs
 - bit-precise
@@ -943,13 +978,6 @@ SACO~\cite{Albert2017}
 - termination analysis based on lexicographical linear orders
 - simple nontermination proofs for loops (repeated loop state; loops which iterate over numerical variables with constant increments in a way they cannot end)
 - no recursion, arrays, concurrency
-
-2LS~\cite{Chen2017}
-- interprocedural termination analysis for sequential programs
-- template-based interprocedural summarization (preconditions)
-- lexicographic linear ranking functions
-- bit-precise
-- no recursion, strings, arrays
 
 Arctor~\cite{Kupriyanov2014}
 - for concurrency
