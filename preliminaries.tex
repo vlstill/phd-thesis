@@ -334,19 +334,17 @@ For example, on x86 processors (which are used in most laptop, desktop and
 server computers) a memory store can be delayed and appear, from the point of
 view of the other threads, later than a subsequent load.
 Some processors (for example POWER and higher-performance ARM processors) allow
-even more reordering, for example two memory stores executed sequentially by
-some thread can appear to be preformed in different order by two independent
-observer threads.
+even more reordering, for example reordering independent loads.
 
 In this section, we describe the basic model of parallelism we assume for our
 programs and follow some of its implications.
-We also outline describe basics of relaxed memory behaviour and memory models
+We also outline basics of relaxed memory behaviour and memory models
 which describe it.
 
 \subsection{Basic Threading Model \& Memory Models}
 
-We assume that a program consists of threads which interact using a shared
-memory.
+We assume that a program consists of one or more threads which interact using a
+shared memory.
 We also assume that execution of a thread can be interrupted at any point by a
 \emph{thread scheduler} (of the operating system on which the program runs) and
 will be later eventually resumed (unless the program exits in the meantime or
@@ -357,13 +355,14 @@ device.
 If a thread cannot be resumed because it is blocked and does never cease to be
 blocked we say there is a \emph{deadlock}.
 
-\begin{definition}[Dealock, Partial Dealock]\label{def:deadlock}
+\begin{definition}[Dealock, Partial Dealock, Global Deadlock]\label{def:deadlock}
     A \emph{deadlock} happens if a scheduler never allows the thread to run
     because it waits for a resource which never becomes available.
     Sometimes, when we need to distinguish between all the threads being
     blocked and only some of them being blocked, we will use the notion of
     \emph{partial deadlock} to signify a situation in a program where some
-    threads are blocked (in deadlock) but other can still proceed.
+    threads are blocked (in deadlock) but other can still proceed and
+    \emph{global deadlock} for a deadlock which blocks all threads.
 \end{definition}
 
 It is important to note that our definition of deadlock does not include
@@ -373,11 +372,9 @@ Busy waiting can be used for example to implement exclusive sections without
 operating system support.
 
 \begin{definition}[Livelock]\label{def:livelock}
-    \TODO{
     A \emph{livelock} is a situation in which a thread is allowed to run (by
     the scheduler), but does not proceed in any meaningful way because it
     executes a loop which is waiting for an event which ever happens.
-    }
 \end{definition}
 
 \paragraph{Interleaving of Threads, Sequential Consistency}
@@ -392,15 +389,12 @@ Instead, we consider that threads are interleaved (\emph{interleaving
 semantics}) or we consider execution based on some relaxed memory model.
 
 \begin{definition}[Interleaving Semantics of Threads]
-    \TODO{
     With the \emph{interleaving semantics} we assume that all possible
     executions of parallel program can be obtained by interleaving.
     That is, at any point in execution of the program we consider which threads
     are allowed to run and explore all possible selections, after a thread
     performs an action, we again consider all possible actions of all threads
     and so on.
-    …
-    }
 \end{definition}
 
 When considering relaxed memory models, it is also useful to consider memory
@@ -423,7 +417,7 @@ it can also exhibit other behaviour.
 \paragraph{Relaxed Memory Models}
 
 Interleaving is not a sufficient abstraction in presence of relaxed memory
-behaviour, which is manifested by modern processors.
+behaviour, which is manifested by many modern processors.
 The relaxed behavior of processors arises from optimizations in cache
 consistency protocols and observable effects of instructions reordering and
 speculation.
@@ -431,19 +425,20 @@ The effect of this behavior is that memory-manipulating instructions can appear
 to be executed in a different order than the order in which they appear in the
 thread, and their effect can even appear to be in different order on different
 threads.
-For efficiency reasons, virtually all modern processors (except for very simple
-ones in embedded microcontroller) exhibit relaxed behavior.
+For efficiency reasons, virtually most modern processors (except for simple
+ones in embedded microcontrollers and low-cost mobile devices) exhibit relaxed
+behavior.
 The extent of this relaxation is dependent on the processor architecture (e.g.,
 x86, ARM, POWER) but also on the concrete processor model.
 Furthermore, the actual behavior of the processor is often not precisely
-described by the processor vendor~\cite{x86tso}.
+described by the processor vendor~\mcite{x86tso}.
 To abstract from the details of particular processor models, \emph{relaxed
 memory models} are used to describe (often formally) behavior of a given
 processor architecture.
 Examples of relaxed memory models of modern processors are the memory model of
-x86 and x86\_64 CPUs described formally as \xtso~\cite{x86tso} and the multiple
-variants of POWER~\cite{Sarkar2011,Mador-Haim2012} and
-ARM~\cite{Flur2016,Alglave2014,Pulte2017} memory models.
+x86 and x86-64 CPUs described formally as \xtso~\mcite{x86tso} and the multiple
+variants of POWER~\mcite{Sarkar2011},\mcite{MadorHaim2012} and
+ARM~\mcite{Alglave2014}, \mcite{Flur2016}, \mcite{Pulte2017} memory models.
 
 For the description of a memory model, it is sufficient to consider operations
 which affect the memory.
@@ -451,6 +446,10 @@ These operations include loads (reading of data from the memory to a register
 in the processor), stores (writing of data from a register to the memory),
 memory barriers (which constrain memory relaxation), and \emph{atomic compound
 operations} (read-modify-write operations and compare-and-swap operation).
+Compound non-atomic instruction exist on some architectures (e.g., the
+\texttt{add} instruction in x86 which can have one memory operand), but they
+might be rewritten to equivalent sequence of load to register, register
+modification, and store and therefore need not be considered.
 
 \subsection{The \xtso Memory Model}
 
@@ -462,7 +461,7 @@ It is one of the strongest relaxed memory models -- it is relaxed compared to
 sequential consistency, but not nearly as relaxed as some of the other common
 memory models such as memory models of ARM and POWER processors.
 The \xtso is very similar to the SPARC Total Store Order (TSO) memory
-model~\cite{SPARC94}.
+model~\mcite{SPARC94}.
 It does not reorder stores with each other, and it also does not reorder loads
 with other loads.
 The only relaxation allowed by \xtso is that a store can appear to be executed
@@ -473,20 +472,20 @@ found in Figure~\ref{fig:xtso}.
 
 \begin{figure}[th] % fig:xtso
     \begin{minipage}[b]{0.25\textwidth}
-    \tt
-    \textcolor{gray}{int} x = 0, y = 0;
-    \par\smallskip
-    \textcolor{gray}{void} thread0() \{ \\
-    \indent{}y = 1; \\
-    \indent{}\textcolor{gray}{int} a = x; \\
-    \indent{}\textcolor{gray}{int} c = y; \\
-    \}
-    \par\smallskip
-    \textcolor{gray}{void} thread1() \{ \\
-    \indent{}x = 1; \\
-    \indent{}\textcolor{gray}{int} b = y; \\
-    \indent{}\textcolor{gray}{int} d = x; \\
-    \}
+      \begin{cppcode}
+        int x = 0;
+        int y = 0;
+        void thr0() {
+          y = 1;
+          int a = x;
+          int c = y;
+        }
+        void thr1() {
+          x = 1;
+          int b = y;
+          int d = x;
+        }
+      \end{cppcode}
     \end{minipage}
     %
     \hfill
@@ -495,6 +494,7 @@ found in Figure~\ref{fig:xtso}.
     \begin{center}
     \noindent
     Is $a = 0 \land b = 0$ reachable?\\[2.5ex]
+    \medskip
     \begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, node distance=3cm
                        , semithick
                        , scale=0.5
@@ -552,13 +552,15 @@ found in Figure~\ref{fig:xtso}.
   A load consults only shared memory and the store buffer of the given thread, which means it can load data from the memory and ignore newer values from the other thread (\textcolor{blue}{blue}).
   Therefore \texttt{a} and \texttt{b} will contain old values from the memory.
   On the other hand, \texttt{c} and \texttt{d} will contain local values from the store buffers (locally read values are marked \textcolor{frombuf}{green}).
+  The figure depicts state of the memory and buffer after the code of both
+  threads executed, but before the data was propagated from store buffers to
+  the main memory.
   }
 
   \label{fig:xtso}
 \end{figure}
 
-The operational semantics of \xtso is described by Sewell et al.
-in~\cite{x86tso}.
+The operational semantics of \xtso is described in~\mcite{x86tso}.
 The corresponding machine has hardware threads (or cores), each with associated
 local store buffer, a shared memory subsystem, and a shared memory lock.
 Store buffers are first-in-first-out caches into which store entries are saved
@@ -705,7 +707,85 @@ presence of mixed-size memory operations.
 
 \subsection{Memory Models of Programming Languages}
 
-\cite{Pulte2019:29} C11
+Not all programming languages have concurrency and memory model defined in the
+language.
+Indeed, C and C++ prior to the 2011 revisions of their respective standards did
+not define concurrency and therefore majority of concurrent C code relies on
+non-standard concurrency.
+In absence of programming language support, the programmers wishing to use
+concurrency have to rely on combination of library and compiler support which
+provides (platform-specific) means to support concurrency.
+For example, on Linux and most POSIX-compatible operating systems, the POSIX
+threads library (\texttt{pthreads}) defines ways to launch threads, wait for
+them, and synchronize their execution using various (blocking) synchronization
+primitives such as mutexes and condition variables.
+A compiler compatible with this library then guarantees that its optimizations
+will not break this functionality, for example that it will not reorder
+operations around the calls to synchronization functions.
+The compiler also usually defines low-level synchronization primitives which correspond to common atomic compound operations.
+For example, the GCC and clang compilers both define builtin functions such as \texttt{\_\_atomic\_compare\_exchange} and \texttt{\_\_atomic\_add\_fetch }.
+These buitins allow semi-portable use of atomic operations, in the sense they are not specific to the concrete hardware platform (as would be the case if inline assembly was used to invoke the atomic instruction), but they are instead bound to the given compiler or a group of compilers (such as GCC and clang).
+
+The downside of the library and compiler approach to concurrency is that it
+makes it hard to write truly platform-independent code in the given language.
+For this reason, many programming languages (eventually) define a memory model, with various degree of access to relaxed behaviour of the processors.
+
+\paragraph{C and C++}\mnote{\srcnote{Based on TEDI}}
+The C++11~\cite{cpp11} and C11~\cite{c11} standards introduced support for
+threading and atomic operations to C++ and C.
+The memory model of both languages is the same, but they differ in the
+syntactic ways in which its features are used\mnote{For example, C++ defines
+\cpp{atomic} template class for atomic variable, but C relies on the
+\cpp{_Atomic} keyword, as it has no support for (templated) classes.
+The C threading API is mostly similar to the API of POSIX threads, while the
+C++ threading has a more modern API which uses classes}.
+
+The C++ memory model was revised in the subsequent standards, with the most
+notable changes in the C++20~\cite{cpp20}, including changes to the strongest sequentially-consistent version of atomic operations.
+These latest changes mostly remedy problems in interaction between the
+sequentially consistent operations and weaker memory orderings presented
+in~\mcite{Lahav2017}.
+The actual changes are described in~\mcite{P0668R4}.
+
+Overall, the C++ memory model is complex and complicated by its intention to
+allow high-performance on various existing or hypothetical future hardware
+platforms.
+
+The C++ memory model is not formalized in C++11 standard, an attempt to
+formalize it was given in \mcite{cppmemmod}, formalizing the N3092 draft of the
+standard \cite{N3092}.
+While this formalization precedes the final C++11 standard, it seems that there were no changes in the specification of atomic operations after N3092.
+Nevertheless, there are some differences between the formalization and N3092
+(which are justified in the paper).
+The formalization was later revised in~\mcite{Lahav2017}, which led to the aforementioned revision of concurrency in C++20.
+
+The central role in the C++ memory model is played by the atomic variables and
+operations which are defined in the atomic operations library.
+Atomic variables are variables of special types which define atomic operations
+such as as loads, stores, atomic read-modify-write, and compare-exchange.
+For any atomic operation, it is possible to specify the required memory
+ordering: C/C++ allows not only sequentially consistent atomic operations, but
+also weaker (low-level) atomic operations which allows implementation of
+efficient parallel data structures in a platform-independent way.
+
+A notable feature of the C++ memory model is that any program which contains a
+data race on a non-atomic variable\mnote{Data race is defined as two accesses
+to the same non-atomic variable, at least one of them being a write, which are
+not synchronized so that they cannot happen concurrently.} has undefined
+behaviour.
+This means that synchronization is possible only by atomic variables and
+concurrency primitives such as mutexes and condition variables.
+
+\TODO{\cite{Pulte2019:29} C11}
+
+\paragraph{Java}\mnote{\srcnote{TEDI}}
+The Java memory model is rather different from the C/C++11 one.
+Its primary goal is to ensure that programs which cannot observe data races under sequential consistency will execute as if running under sequential consistency (the data race free guarantee) \cite{javamm_popl_Manson2005}.
+The primary means of synchronization in Java are mutexes (called monitors in Java), synchronized sections of code (which use monitors internally), and volatile variables, which roughly correspond to sequentially consistent atomics in C++11.
+
+Furthermore, as Java strives to be memory safe, it also defines behaviour of programs with data races.
+This behaviour is rather peculiar, as it is primarily concerned with prohibiting *out-of-thin-air* values -- values which, informally speaking, depend cyclically on themselves.
+These values are primarily prohibited to avoid forging pointers to invalid memory or memory which should be otherwise inaccessible to a given thread \cite{javamm_popl_Manson2005}.
 
 \section{??? Lock Free Programming ???}
 

@@ -1945,19 +1945,6 @@ series = {POPL ’05}
     isbn="978-3-319-32582-8"
 }
 
-@InProceedings{Donaldson2011,
-    author="Donaldson, Alastair F.  and Haller, Leopold and Kroening, Daniel and R{\"u}mmer, Philipp",
-    editor="Yahav, Eran",
-    title="Software Verification Using k-Induction",
-    booktitle="Static Analysis",
-    year="2011",
-    publisher="Springer Berlin Heidelberg",
-    address="Berlin, Heidelberg",
-    pages="351--368",
-    abstract="We present combined-case k-induction, a novel technique for verifying software programs. This technique draws on the strengths of the classical inductive-invariant method and a recent application of k-induction to program verification. In previous work, correctness of programs was established by separately proving a base case and inductive step. We present a new k-induction rule that takes an unstructured, reducible control flow graph (CFG), a natural loop occurring in the CFG, and a positive integer k, and constructs a single CFG in which the given loop is eliminated via an unwinding proportional to k. Recursively applying the proof rule eventually yields a loop-free CFG, which can be checked using SAT-/SMT-based techniques. We state soundness of the rule, and investigate its theoretical properties. We then present two implementations of our technique: K-Inductor, a verifier for C programs built on top of the CBMC model checker, and K-Boogie, an extension of the Boogie tool. Our experiments, using a large set of benchmarks, demonstrate that our k-induction technique frequently allows program verification to succeed using significantly weaker loop invariants than are required with the standard inductive invariant approach.",
-    isbn="978-3-642-23702-7"
-}
-
 @InProceedings{Inverso2014,
     author="Inverso, Omar and Tomasco, Ermenegildo and Fischer, Bernd and La Torre, Salvatore and Parlato, Gennaro",
     editor="Biere, Armin
@@ -3186,4 +3173,140 @@ series = {POPL ’05}
     pages="418--422",
     abstract="Ultimate Taipan is a software model checker that combines trace abstraction with abstract interpretation on path programs. In this year's version, we replaced our abstract interpretation engine and now use a combination of multiple abstraction functions, fixpoint computation, algebraic program analysis, and SMT solving. Our new approach will allow us to integrate new techniques more easily.",
     isbn="978-3-030-45237-7"
+}
+
+@inproceedings{Ivancic2005,
+    doi="10.1007/11513988_31",
+    author="Ivan{\v{c}}i{\'{c}}, F.  and Yang, Z.  and Ganai, M. K.  and Gupta, A.  and Shlyakhter, I.  and Ashar, P.",
+    editor="Etessami, Kousha and Rajamani, Sriram K.",
+    title="F-Soft: Software Verification Platform",
+    booktitle="Computer Aided Verification",
+    year="2005",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="301--306",
+    abstract="In this paper, we describe our verification tool F-Soft, which is developed for the analysis of C programs. Its novelty lies in the combination of several recent advances in formal verification research including SAT-based verification, static analyses and predicate abstraction. As shown in the tool overview in FigureÂ 1, we translate a program into a Boolean model to be analyzed by our verification engine DiVerÂ [4], which includes BDD-based and SAT-based model checking techniques. We include various static analyses, such as computing the control flow graph of the program, program slicing with respect to the property, and performing range analysis as described in Section 2.2. We model the software using a Boolean representation, and use customized heuristics for the SAT-based analysis as described in Section [2.1]. We can also perform a localized predicate abstraction with register sharing as described in Section [2.3], if the user so chooses. The actual analysis of the resulting Boolean model is performed using DiVer. If a counter-example is discovered, we use a testbench generator that automatically generates an executable program for the user to examine the bug in his/her favorite debugger. The F-Soft tool has been applied on numerous case studies and publicly available benchmarks for sequential C programs. We are currently working on extending it to handle concurrent programs.",
+    isbn="978-3-540-31686-2"
+}
+
+@InProceedings{Gupta2011,
+    doi="10.1007/978-3-642-22110-1_32",
+    author="Gupta, Ashutosh and Popeea, Corneliu and Rybalchenko, Andrey",
+    editor="Gopalakrishnan, Ganesh and Qadeer, Shaz",
+    title="Threader: A Constraint-Based Verifier for Multi-threaded Programs",
+    booktitle="Computer Aided Verification",
+    year="2011",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="412--417",
+    abstract="We present a tool that implements Owicki-Gries and rely-guarantee methods for the compositional verification of multi-threaded programs. Our tool computes the requisite auxiliary assertions automatically using an abstraction and refinement procedure. Our procedure is based on a Horn clause encoding of refinement queries and facilitates the discovery of thread-modular proofs when such proofs exist. We present the tool and its evaluation on a collection of benchmarks, including a direct comparison of the effectiveness of the proof rules.",
+    isbn="978-3-642-22110-1"
+}
+
+@article{Jones1983,
+    author = {Jones, C. B.},
+    title = {Tentative Steps toward a Development Method for Interfering Programs},
+    year = {1983},
+    issue_date = {October 1983},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {5},
+    number = {4},
+    issn = {0164-0925},
+    url = {https://doi.org/10.1145/69575.69577},
+    doi = {10.1145/69575.69577},
+    journal = {ACM Trans. Program. Lang. Syst.},
+    month = oct,
+    pages = {596–619},
+    numpages = {24}
+}
+
+@article{Owicki1976,
+    title={An axiomatic proof technique for parallel programs I},
+    author={Owicki, Susan and Gries, David},
+    journal={Acta informatica},
+    volume={6},
+    number={4},
+    pages={319--340},
+    year={1976},
+    publisher={Springer},
+    doi={10.1007/BF00268134}
+}
+
+@inproceedings{Carter2016,
+    author = {Carter, Montgomery and He, Shaobo and Whitaker, Jonathan and Rakamari\'{c}, Zvonimir and Emmi, Michael},
+    title = {SMACK Software Verification Toolchain},
+    year = {2016},
+    isbn = {9781450342056},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/2889160.2889163},
+    doi = {10.1145/2889160.2889163},
+    booktitle = {Proceedings of the 38th International Conference on Software Engineering Companion},
+    pages = {589–592},
+    numpages = {4},
+    location = {Austin, Texas},
+    series = {ICSE ’16}
+}
+
+@InProceedings{Baranowski2018,
+    doi="10.1007/978-3-030-01090-4_32",
+    author="Baranowski, Marek and He, Shaobo and Rakamari{\'{c}}, Zvonimir",
+    editor="Lahiri, Shuvendu K.  and Wang, Chao",
+    title="Verifying Rust Programs with SMACK",
+    booktitle="Automated Technology for Verification and Analysis",
+    year="2018",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="528--535",
+    abstract="Rust is an emerging systems programming language with guaranteed memory safety and modern language features that has been extensively adopted to build safety-critical software. However, there is currently a lack of automated software verifiers for Rust. In this work, we present our experience extending the SMACK verifier to enable its usage on Rust programs. We evaluate SMACK on a set of Rust programs to demonstrate a wide spectrum of language features it supports.",
+    isbn="978-3-030-01090-4"
+}
+
+@InProceedings{Garzella2020,
+    doi="10.1007/978-3-030-39322-9_5",
+    author="Garzella, Jack J.  and Baranowski, Marek and He, Shaobo and Rakamari{\'{c}}, Zvonimir",
+    editor="Beyer, Dirk and Zufferey, Damien",
+    title="Leveraging Compiler Intermediate Representation for Multi- and Cross-Language Verification",
+    booktitle="Verification, Model Checking, and Abstract Interpretation",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="90--111",
+    abstract="Developers nowadays regularly use numerous programming languages with different characteristics and trade-offs. Unfortunately, implementing a software verifier for a new language from scratch is a large and tedious undertaking, requiring expert knowledge in multiple domains, such as compilers, verification, and constraint solving. Hence, only a tiny fraction of the used languages has readily available software verifiers to aid in the development of correct programs. In the past decade, there has been a trend of leveraging popular compiler intermediate representations (IRs), such as LLVM IR, when implementing software verifiers. Processing IR promises out-of-the-box multi- and cross-language verification since, at least in theory, a verifier ought to be able to handle a program in any programming language (and their combination) that can be compiled into the IR. In practice though, to the best of our knowledge, nobody has explored the feasibility and ease of such integration of new languages. In this paper, we provide a procedure for adding support for a new language into an IR-based verification toolflow. Using our procedure, we extend the SMACK verifier with prototypical support for 6 additional languages. We assess the quality of our extensions through several case studies, and we describe our experience in detail to guide future efforts in this area.",
+    isbn="978-3-030-39322-9"
+}
+
+@article{Gadelha2017,
+    title={Handling loops in bounded model checking of C programs via k-induction},
+    author={Gadelha, Mikhail YR and Ismail, Hussama I and Cordeiro, Lucas C},
+    journal={International Journal on Software Tools for Technology Transfer},
+    volume={19},
+    number={1},
+    pages={97--114},
+    year={2017},
+    publisher={Springer},
+    doi="10.1007/s10009-015-0407-9",
+}
+
+@InProceedings{Donaldson2011,
+    doi="10.1007/978-3-642-23702-7_26",
+    author="Donaldson, Alastair F.  and Haller, Leopold and Kroening, Daniel and R{\"u}mmer, Philipp",
+    editor="Yahav, Eran",
+    title="Software Verification Using k-Induction",
+    booktitle="Static Analysis",
+    year="2011",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="351--368",
+    abstract="We present combined-case k-induction, a novel technique for verifying software programs. This technique draws on the strengths of the classical inductive-invariant method and a recent application of k-induction to program verification. In previous work, correctness of programs was established by separately proving a base case and inductive step. We present a new k-induction rule that takes an unstructured, reducible control flow graph (CFG), a natural loop occurring in the CFG, and a positive integer k, and constructs a single CFG in which the given loop is eliminated via an unwinding proportional to k. Recursively applying the proof rule eventually yields a loop-free CFG, which can be checked using SAT-/SMT-based techniques. We state soundness of the rule, and investigate its theoretical properties. We then present two implementations of our technique: K-Inductor, a verifier for C programs built on top of the CBMC model checker, and K-Boogie, an extension of the Boogie tool. Our experiments, using a large set of benchmarks, demonstrate that our k-induction technique frequently allows program verification to succeed using significantly weaker loop invariants than are required with the standard inductive invariant approach.",
+    isbn="978-3-642-23702-7"
+}
+
+@online{P0668R4,
+    author="Hans-J. Boehm and Olivier Giroux and Viktor Vafeiades and with input from from Will Deacon and Doug Lea and Daniel Lustig and Paul McKenney and others",
+    title="P0668R4: Revising the C++ memory model",
+    urldate={2020-04-29},
+    year="2018",
+    url="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0668r4.html",
 }
