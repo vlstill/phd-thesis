@@ -731,6 +731,7 @@ makes it hard to write truly platform-independent code in the given language.
 For this reason, many programming languages (eventually) define a memory model, with various degree of access to relaxed behaviour of the processors.
 
 \paragraph{C and C++}\mnote{\srcnote{Based on TEDI}}
+%
 The C++11~\cite{cpp11} and C11~\cite{c11} standards introduced support for
 threading and atomic operations to C++ and C.
 The memory model of both languages is the same, but they differ in the
@@ -767,6 +768,78 @@ For any atomic operation, it is possible to specify the required memory
 ordering: C/C++ allows not only sequentially consistent atomic operations, but
 also weaker (low-level) atomic operations which allows implementation of
 efficient parallel data structures in a platform-independent way.
+An example of C++ code with leverages atomic variables is shown in \autoref{fig:prel:cppatomic0} and \autoref{fig:prel:cppatomic1}.
+
+\begin{figure}[tp]
+  \begin{cppcode}
+    std::atomic<int> x;
+    int y;
+  \end{cppcode}
+  \begin{multicols}{2}
+    \begin{cppcode}
+      void thr0() {
+        x.fetch_add(1); // OK
+        y++; // RACE
+      }
+    \end{cppcode}
+    \columnbreak
+    \begin{cppcode}
+      void thr1() {
+        x++; // also OK
+        y++; // RACE
+      }
+    \end{cppcode}
+  \end{multicols}
+  \vspace{-4ex}
+  \caption{A basic example of C++ atomics.
+      The variable \texttt{x} is atomic, and therefore can be safely used in
+      concurrent settings (the common modification operators for integral types
+      are available and atomic).
+      On the other hand, the variable \texttt{y} is not atomic and therefore
+      incrementing it from two threads causes data race.
+  }\label{fig:prel:cppatomic0}
+\end{figure}
+
+\begin{figure}[tp]
+  \begin{cppcode}
+    Data data;
+    std::atomic< bool > ready;
+
+    void thr0() {
+      data.load_data();
+      read.store( true, std::memory_order::release );
+    }
+
+    void thr1() {
+      while ( !read.load( std::memory_order::relaxed ) )
+      { }
+      std::atomic_thread_fence( std::memory_order::acquire );
+      data.do_work();
+    }
+  \end{cppcode}
+  \vspace{-2ex}
+  \caption{A simple example of use of low-level atomic API.
+      Here \texttt{thr0} loads \texttt{data} somehow and then signals to
+      \texttt{thr1} that it should be processed.
+      The \texttt{data} variable itself is not atomic and presumably the type
+      is not made for concurrent access.
+      An atomic boolean is used to wait for \texttt{data} in \texttt{thr1} --
+      once \texttt{data} is loaded the \texttt{ready} flag is set, using the
+      \emph{release} memory ordering.
+      The actual waiting in \texttt{thr1} uses the weakest \emph{relaxed}
+      ordering which does not cause any synchronization (it just ensures
+      concurrent changes to the variable itself are consistent), but once the
+      wait ends a fence is executed.
+      The fence uses \emph{acquire} ordering and therefore completes
+      \emph{release-acquire} ordering between \texttt{thr0} and \texttt{thr1}
+      -- anything written by \texttt{thr0} before the \emph{release} store is
+      available to \texttt{thr1} after the \emph{acquire} fence.
+      An interesting property of this example is that it compiles with no extra
+      synchronization or atomic instructions on x86 (atomic only affect
+      compiler optimizations there), but uses synchronization on more relaxed
+      platforms.
+  }\label{fig:prel:cppatomic1}
+\end{figure}
 
 A notable feature of the C++ memory model is that any program which contains a
 data race on a non-atomic variable\mnote{Data race is defined as two accesses
@@ -776,9 +849,8 @@ behaviour.
 This means that synchronization is possible only by atomic variables and
 concurrency primitives such as mutexes and condition variables.
 
-\TODO{\cite{Pulte2019:29} C11}
-
 \paragraph{Java}\mnote{\srcnote{TEDI}}
+%
 The Java memory model is rather different from the C/C++11 one.
 Its primary goal is to ensure that programs which cannot observe data races under sequential consistency will execute as if running under sequential consistency (the data race free guarantee) \cite{javamm_popl_Manson2005}.
 The primary means of synchronization in Java are mutexes (called monitors in Java), synchronized sections of code (which use monitors internally), and volatile variables, which roughly correspond to sequentially consistent atomics in C++11.
@@ -786,6 +858,15 @@ The primary means of synchronization in Java are mutexes (called monitors in Jav
 Furthermore, as Java strives to be memory safe, it also defines behaviour of programs with data races.
 This behaviour is rather peculiar, as it is primarily concerned with prohibiting *out-of-thin-air* values -- values which, informally speaking, depend cyclically on themselves.
 These values are primarily prohibited to avoid forging pointers to invalid memory or memory which should be otherwise inaccessible to a given thread \cite{javamm_popl_Manson2005}.
+
+\paragraph{LLVM}\mnote{\srcnote{TEDI}}
+%
+The LLVM Intermediate Representation has a memory model derived from the C++
+memory model, with the difference that it lacks release-consume ordering and
+offers additional \emph{unordered} ordering which does not guarantee atomicity
+but makes results of data races defined \mucite{llvm:langref}.
+The \emph{unordered} operations are intended to match semantics of the Java
+memory model for shared variables.
 
 \section{??? Lock Free Programming ???}
 
