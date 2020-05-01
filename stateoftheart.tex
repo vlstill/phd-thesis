@@ -41,8 +41,18 @@ The advantage of explicit-state model checking is that it is conceptually easy
 to apply it to verification of parallel programs (under sequential
 consistency), as the interleaving semantics of thread naturally gives rise to
 the state space graph.
-Furthermore, explicit-state model checking does not require the program to be terminating, it is sufficient that its state space is finite.\mnote{A finite state space can contain cyclical infinite behaviour:
-\TODO{image}
+Furthermore, explicit-state model checking does not require the program to be terminating, it is sufficient that its state space is finite.\mnote{A finite state space can contain cyclical infinite behaviour -- a loop in the state space.
+
+\medskip
+\begin{tikzpicture}[>=latex,>=stealth',auto,node distance=2cm,semithick,initial text=]
+  \node[state,initial] (t) {$x$};
+  \node[state] (f) [right of = t] {$\lnot x$};
+
+  \path[->, shorten >=1pt]
+	(t) edge[bend left] (f)
+	(f) edge[bend left] (t)
+  ;
+\end{tikzpicture}
 }
 
 In practice, explicit-state model checking is prone to the \emph{state-space
@@ -98,17 +108,15 @@ These state space reduction techniques can reduce the number of states by
 several orders of magnitude~\cite{TODO}, and therefore enable verification of
 realistic (but still relatively small) programs.
 
-Interestingly, the proposed reduction techniques which aim to preserve verified properties are not always correct, for example the original version of $\tau+$ reduction considered only stores to be visible, but it was later shown that repeated loads have to be also visible (shown by me in~\cite{S2016}, acknowledged an fixed in \cite[Section 6]{RSCB2018}).\mnote{
-\cpp{
-int x = 0;
-void t0() {
-  x = 1;
-}
-void t1() {
-  int a = x;
-  assert(a == x);
-}
-}
+Interestingly, the proposed reduction techniques which aim to preserve verified properties are not always correct, for example the original version of $\tau+$ reduction considered only stores to be visible, but it was later shown that repeated loads have to be also visible (shown by me in~\cite{S2016}, acknowledged an fixed in \cite[Section 6]{RSCB2018}).\mnote{%
+\cpp{int x = 0;}\\
+\cpp{void t0()} \texttt{\{}\\
+\cpp{  x = 1;}\\
+\texttt{\}}\\
+\cpp{void t1()} \texttt{\{}\\
+\cpp{  int a = x;}\\
+\cpp{  assert(a == x);}\\
+\texttt{\}}
 
 The assertion is violated if \cpp{t0} executes between the (local, invisible)
 assignment and the assertion in \cpp{t1}.
