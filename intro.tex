@@ -92,30 +92,59 @@ DIVINE can be used to discover large classes of bugs, including assertion violat
 
 In this work, we will describe several techniques which improve analysis of realistic parallel programs in the DIVINE model checker and we compare them to many other techniques which aim at testing parallel programs.
 In our analysis we will focus primaryly on programs written in C and C++.
-Nevertheless, analysis of other real-world high-level imperative programming languages (such as Java, C\#, Rust, …) should follow similar principles.
+Nevertheless, analysis of other real-world high-level imperative programming
+languages (such as Java, C\#, Rust and many other) should follow similar
+principles.
 
-The main contributions of this work are in the following areas.
-All contributions include open-source implementation and evaluation.
+The main contributions of this work are in the following areas:
 
-\paragraph{Improving Analysis of Realistic Programs}
+\begin{itemize}
+  \item Improvements in analysis of realistic programs, \autoref{chap:lang}.
+    This chapter presents a wider look at the problem of analysis of realistic
+    programs from the point of features of programming languages and its
+    libraries.
+    We show that library reuse can be a viable approach for program analysers
+    with good support for language features and that it can significantly
+    simplify support for languages with complex libraries such as C++.
+    We also identify functionality which is a good candidate for
+    verification-specific modelling instead of reuse.
+    Finally, we focus in more details on the particular case of exception
+    support for C++ in DIVINE and how it can be achieved by combination of
+    library reuse and creation of verification-specific libraries.
 
-This area includes extensions of DIVINE which aim at general usability for analysis of realistic software.
-It includes support for standard libraries and thread libraries, \TODO{?compilation?}, and exceptions.
-\TODO{...}
+  \item Analysis of C++ programs under the \xtso memory model, \autoref{chap:mm}.
+    In this chapter we present an efficient extension to DIVINE which allows it to
+    analyse programs under the memory model of Intel (and AMD) x86-64
+    processors.
+    In our work we leverage the LLVM infrastructure to implement support for
+    relaxed memory as a preprocessing step, without the need to modify the
+    verifier itself (provided it has support for nondeterministic choice).
+    Furthermore, we show how the amount of nondeterminism in the resulting
+    program can be limited by careful design of data structures used to
+    simulate the behaviour of \xtso store buffers.
 
-\paragraph{Relaxed Memory Models}
-
-Modern processors often trade speed for simplicity of their memory behaviour -- for example a processor can delay a memory store and continue execution before the change is committed to the main memory.
-While this behaviour is correct for sequential programs, it complicates design of parallel programs and is often hard to understand by programmers and it is even harder to keep track of all the subtle problems it can introduce.
-In our work, we present an efficient extension to DIVINE which allows it to analyse programs under the memory model of Intel (and AMD) x86-64 processors.
-
-\paragraph{Termination Analysis for Parallel Programs}
-
-Termination of parallel programs often depends on communication between threads.
-For example if a consumer thread expects some work to be eventually availabe, but it never becomes available, it might hang.
-Similarly, a circular waiting for a resource can cause a deadlock.
-In the third contribution of this work, we introduce a generic method for detection of nontermination caused by communication between threads.
-Or method uses lightweight annotations in the code to mark parts of the program which must terminate, together with a set of pre-defined parts of program which must terminate which allow it to be used with common synchronization primitives out of the box.
-Furthermore, our method can be also applied tp deliberatelly nonterminatings programs (i.e., deamons, services) in which it can detect parts which should terminate but do not terminate.
+  \item Nontermination Analysis for Parallel Programs, \autoref{chap:lnterm}.
+    In the third contribution of this work, we introduce a generic method for
+    detection of nontermination caused by communication between threads.
+    Or method uses lightweight annotations in the code to mark parts of the
+    program which must terminate, together with a set of pre-defined parts of
+    program which must terminate which allow it to be used with common
+    synchronization primitives out of the box.
+    Furthermore, our method can be also applied to deliberately nonterminating
+    programs (i.e., deamons, services) in which it can detect parts which
+    should terminate but do not terminate.
+\end{itemize}
 
 \section{Thesis Structure}
+
+After this introduction, \autoref{chap:preliminaries} gives the preliminaries
+need for the rest of the work \TODO{including …}.
+\autoref{chap:stateoftheart} presents state of the art in the program analysis
+of realistic parallel programs.
+The next tree chapters present the main contributions of this work: analysis of
+realistic programs and C++ exceptions in \autoref{chap:lang}, support for the
+\xtso memory model in \autoref{chap:mm}, and nontermination detection in
+\autoref{chap:lnterm}.
+\autoref{chap:conclusion} then concludes the main body of this work.
+
+The list of my published work can be found in \autoref{chap:published}.
