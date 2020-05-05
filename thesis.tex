@@ -20,6 +20,7 @@
            , maxnames=4
            , maxalphanames=4
            , maxbibnames=100
+           , urldate=long
            ]{biblatex}
 \DeclareSourcemap{
     \maps[datatype=bibtex, overwrite]{
@@ -56,7 +57,7 @@
 \usepackage{upquote}
 \usepackage{minted}
 
-\newminted[cppcode]{cpp}{autogobble,breaklines}
+\newminted[cppcode]{cpp}{autogobble,breaklines,linenos}
 \newmintinline[cpp]{cpp}{}
 
 \newmintinline[java]{java}{}
