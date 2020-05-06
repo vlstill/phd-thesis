@@ -115,7 +115,6 @@ An example of a termination property concerning a part of the program can be fou
 }
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Parallelism \& Threading Model} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -814,7 +813,7 @@ of effort and relaxed memory must be taken into account.
 % without the need to invest to their development.
 % Concurrent data structures are also interesting from the program analysis standpoint as verification of these libraries can impact 
 
-\section{Hardware-Related Considerations}
+\section{Hardware-Related Considerations ??}
 
 When a program is executed on a given hardware, some of its behaviour might
 depend on the concrete features of the hardware.
@@ -1084,6 +1083,45 @@ instructions.
 
 \section{DIVINE}
 
+DIVINE is an open-source verifier for C and C++ programs with focus on
+concurrency and hard to discover bugs~\mcite{DIVINEToolPaper2017}.
+It is built on an explicit-state core called \divm which interprets LLVM
+instructions and \divm extensions to LLVM IR called
+\emph{hypercalls}~\mcite{RSCB2018}.
+\divm hypercall behave as functions from the point of view of LLVM IR, but they
+are treated as instructions by \divm.
+These hypercalls handle operations like memory allocation and feeing and
+nondeterministic choice.
+They can also be used to switch stacks (for example to implement threading),
+associate metadata with addresses, and to control the exploration of the state
+space using interrupt points and cancellation.
+
+In DIVINE the \divm has only limited knowledge of threads -- it can take their
+existence into account for the purpose of state-space reductions, but cannot
+start or terminate them and does not direct their scheduling.
+Instead, scheduling is controlled by a scheduler which is linked to the
+verified program and which uses the nondeterministic choice hypercall provided
+by \divm.
+Thread creation and termination is also implemented in a library.
+Scheduling, thread management and a basic POSIX-compatible interface including
+a filesystem model is grouped into \dios, a verification-oriented operating
+system~\mcite{RBMKB2019}.
+
+Finally DIVINE also uses program instrumentation to facilitate program
+analysis.
+Instrumentation adds interruption points to the program to specify at which
+point the scheduler can be invoked -- these interruption points are used at
+memory access instructions and at back-edges of loops (to make sure \divm does
+not attempt run an infinite cycle).
+Instrumentation is also used by the symbolic and abstract extensions of
+DIVINE~\mcite{LRB2018}, for C++ exceptions (\autoref{chap:lang},
+\mcite{SRB2017}), and if the program is analysed for relaxed memory behaviour
+(\autoref{chap:mm}, \mcite{SB2018x86tso}).
+
+
+\section{XXX:}
+
+
 \TODO{MOVE: 
 States $v_1, v_2$ are connected by an edge in the state space if $v_2$ can be reached from $v_1$ in an atomic step, which is a sequence of instructions that executes at most one action which can interfere with any action executed in parallel with it.
 
@@ -1185,16 +1223,5 @@ See \autoref{fig:prel:verif-levels}.
 \caption{}\label{fig:prel:verif-levels}
 \end{figure}
 
-\section{SAT and SMT}
-
-… need these shortly
-+ bitvectors
-
-\section{Misc}
-
-- SSA
-- context switch
-- predicate analysis
-- race condition
 
 % vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en
