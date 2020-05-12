@@ -88,12 +88,206 @@ in the very same way to the corresponding \llvm instructions.
 The semantics of \llvm memory operations mostly copies the C++ memory model and behavior
 of the C++ atomic operations.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Conventional Semantics of \xtso}
+
+In order to better illustrate the advantages of our semantics for \xtso, we
+will now present the more usual semantics of this memory model often used in
+verification.
+This semantics is based on the \xtso semantics presented in~\mcite{x86tso}.
+It uses a (bounded) thread-local store buffer which stores memory store entries.
+The oldest entry in the store buffer can be flushed at any point, yielding all
+possible ways stores can be delayed (up do the reordering bound).
+Often, the nondeterministic flushing is achieved by a \emph{flusher} thread
+associated with each store buffer -- this allows uniform modelling of thread
+and memory model nondeterminism.
+This approach is used for example by \mcite{Zhang2015} or in our previous work in~\mcite{SRB15weakmem}.
+
+The disadvantage of this semantics is that it introduces a lot of
+nondeterminism -- once there are any entries in the store buffer, than at any
+point the thread rescheduling is possible the store buffers can be (partially)
+flushed.
+Therefore, without an additional reduction, there will often be a lot of runs
+that differ only in the moment a particular value was flushed from the store
+buffer to the main memory, even if this value is never read (or is read much
+later).
+We illustrate this behaviour in \autoref{fig:mm:conventional}.
+
+\begin{figure}[tp]
+  \begin{multicols}{3}
+    \begin{cppcodeln}
+      void t0() {
+        x = 1;
+        y = 1;
+      }
+    \end{cppcodeln}
+    \columnbreak
+    \begin{cppcodeln}
+      void t1() {
+        z = 1;
+      }
+    \end{cppcodeln}
+    \columnbreak
+    \begin{cppcodeln}
+      void t2() {
+        int a = y;
+        int b = x;
+        assert(!(a == 0 && b == 1));
+      }
+    \end{cppcodeln}
+  \end{multicols}
+  \scriptsize
+  \makebox[\textwidth][c]{
+  \begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, node distance=3cm
+                     , semithick
+                     , base/.style={ rectangle, draw=black, text centered,
+                                     minimum height=1.4em, inner sep=2pt }
+                     , entry/.style={ base, minimum width = 4em }
+                     , loc/.style={ base, minimum width = 4.5em }
+                     , box/.style={ base, dashed, rounded corners,
+                                    inner sep=0.3em }
+                     ]
+    \newcommand{\be}[2]{\texttt{#1} ← \texttt{#2}}
+    \newcommand{\pc}[2]{$\texttt{PC}_\texttt{t#1}$\texttt{ = #2}}
+
+    \node[entry, anchor = north east, xshift = 0.5em] (s0t0e0) at (0,0) {\be{x}{1}};
+    \node[entry, below = 0em of s0t0e0] (s0t0e1) {\be{y}{1}};
+
+    \node[entry, right = 1em of s0t0e0] (s0t1e0) {\be{z}{1}};
+
+    \node[loc, below left = 0.5em and -2.5em of s0t0e1] (s0x) {\texttt{x = 0}};
+    \node[loc, right = 0em of s0x] (s0y) {\texttt{y = 0}};
+    \node[loc, right = 0em of s0y] (s0z) {\texttt{z = 0}};
+    \node[loc, below = 0em of s0x] (s0pc0) {\pc{0}{4}};
+    \node[loc, below = 0em of s0y] (s0pc1) {\pc{1}{3}};
+    \node[loc, below = 0em of s0z] (s0pc2) {\pc{2}{1}};
+
+    \begin{pgfonlayer}{background}
+      \node[box, fit = (s0t0e0) (s0t1e0) (s0pc0) (s0pc1) (s0pc2)] (s0) {};
+    \end{pgfonlayer}
+
+
+
+    \node[entry, anchor = north east, xshift = 0.5em] (s1t0e0) at (-16em,-10em) {\be{y}{1}};
+
+    \node[entry, right = 1em of s1t0e0] (s1t1e0) {\be{z}{1}};
+
+    \node[loc, below left = 0.5em and -2.5em of s1t0e0] (s1x) {\color{red}\texttt{x = 1}};
+    \node[loc, right = 0em of s1x] (s1y) {\texttt{y = 0}};
+    \node[loc, right = 0em of s1y] (s1z) {\texttt{z = 0}};
+    \node[loc, below = 0em of s1x] (s1pc0) {\pc{0}{4}};
+    \node[loc, below = 0em of s1y] (s1pc1) {\pc{1}{3}};
+    \node[loc, below = 0em of s1z] (s1pc2) {\pc{2}{1}};
+
+    \begin{pgfonlayer}{background}
+      \node[box, fit = (s1t0e0) (s1t1e0) (s1pc0) (s1pc1) (s1pc2)] (s1) {};
+    \end{pgfonlayer}
+
+
+
+    \node[entry, anchor = north east, xshift = 0.5em] (s2t0e0) at (0em,-10em) {\be{x}{1}};
+    \node[entry, below = 0em of s2t0e0] (s2t0e1) {\be{y}{1}};
+
+    \node[loc, below left = 0.5em and -2.5em of s2t0e1] (s2x) {\texttt{x = 0}};
+    \node[loc, right = 0em of s2x] (s2y) {\texttt{y = 0}};
+    \node[loc, right = 0em of s2y] (s2z) {\color{red}\texttt{z = 1}};
+    \node[loc, below = 0em of s2x] (s2pc0) {\pc{0}{4}};
+    \node[loc, below = 0em of s2y] (s2pc1) {\pc{1}{3}};
+    \node[loc, below = 0em of s2z] (s2pc2) {\pc{2}{1}};
+
+    \begin{pgfonlayer}{background}
+      \node[box, fit = (s2t0e0) (s2pc0) (s2pc1) (s2pc2)] (s2) {};
+    \end{pgfonlayer}
+
+
+
+    \node[entry, anchor = north east, xshift = 0.5em] (s3t0e0) at (16em,-10em) {\be{x}{1}};
+    \node[entry, below = 0em of s3t0e0] (s3t0e1) {\be{y}{1}};
+
+    \node[entry, right = 1em of s3t0e0] (s3t1e0) {\be{z}{1}};
+
+    \node[loc, below left = 0.5em and -2.5em of s3t0e1] (s3x) {\texttt{x = 0}};
+    \node[loc, right = 0em of s3x] (s3y) {\texttt{y = 0}};
+    \node[loc, right = 0em of s3y] (s3z) {\texttt{z = 0}};
+    \node[loc, below = 0em of s3x] (s3pc0) {\pc{0}{4}};
+    \node[loc, below = 0em of s3y] (s3pc1) {\pc{1}{3}};
+    \node[loc, below = 0em of s3z] (s3pc2) {\color{red}\pc{2}{2}};
+
+    \begin{pgfonlayer}{background}
+      \node[box, fit = (s3t0e0) (s3t1e0) (s3pc0) (s3pc1) (s3pc2)] (s3) {};
+    \end{pgfonlayer}
+
+    \node[below right = 6em and 0em of s2] (s2b) {…};
+
+    \node[box, below left = 8em and 0em of s1pc1] (s1a) {\color{red}\texttt{x = z = 1}};
+
+    \node[box, below = 3em of s1a] (s1aa) {\color{red}\texttt{x = z = 1; }\pc{2}{2}};
+
+    \node[box, below = 3em of s1aa] (s1aaa) {\color{red}\texttt{x = y = z = 1; }\pc{2}{2}};
+    \node[box, below right = 3em and 6em of s1aa] (s1aab) {\color{red}\texttt{x = z = 1; }\pc{2}{3}};
+
+    \node[box, below = 3em of s1aab] (s1aabb) {×};
+
+    \node[box, below = 3em of s1aaa] (s1aaaa) {\color{red}\texttt{x = y = z = 1; }\pc{2}{3}};
+
+    \node[box, below = 3em of s1aaaa] (s1aaaaa) {×};
+
+    \node[box, below right = 8em and 0em of s1pc1] (s1b) {\color{red}\texttt{x = 1; }\pc{2}{2}};
+
+    \node[box, below right = 3em and 6em of s1b] (s1bb) {\color{red}\texttt{x = 1; }\pc{2}{3}};
+
+    \node[below right = 3em and 0em of s1bb] (s1bbb) {…};
+    \node[box, below right = 3em and 0em of s1bb, xshift=9em] (s1bbc) {×};
+
+    \draw (s0) edge node[left, xshift=-1em] {flush \be{x}{1}} (s1)
+          (s0) edge node {flush \be{z}{1}} (s2)
+          (s0) edge node[right, xshift=1em] {\cpp{int a = y; // →0}} (s3)
+
+          (s1) edge node[left, xshift=2.7em, yshift=1em] {flush \be{z}{1}} (s1a)
+          (s1) edge node[right, xshift=-2.55em, yshift=1em] {\cpp{int a = y; // →0}} (s1b)
+
+          (s1a) edge node[xshift=-2em, yshift=0.5em] {\cpp{int a = y; // →0}} (s1aa)
+          (s1b) edge node {flush \be{z}{1}} (s1aa)
+          (s1b) edge node[right, xshift=0.5em] {\cpp{int b = x; // →1}} (s1bb)
+
+          (s1aa) edge node[yshift=-0.5em] {flush \be{y}{1}} (s1aaa)
+          (s1aaa) edge node {\cpp{int b = x; // →1}} (s1aaaa)
+          (s1aaaa) edge node {\texttt{assert(…)}} (s1aaaaa)
+
+          (s1aa) edge node[right, xshift=1em] {\cpp{int b = x; // →1}} (s1aab)
+          (s1aab) edge node[right, xshift=1em] {flush \be{y}{1}} (s1aaaa)
+          (s1aab) edge node {\texttt{assert(…)}} (s1aabb)
+
+          (s1bb) edge node[right, xshift=1em] {flush \be{z}{1}} (s1aab)
+          (s1bb) edge node[right, xshift=1em, yshift=-0.5em] {flush \be{y}{1}} (s1bbb)
+          (s1bb) edge[bend left, out=340, looseness=0.7] node[right, xshift=1em, yshift=0.5em] {\texttt{assert(…);}} (s1bbc)
+
+          (s2) edge[bend left, in=210] node[left, xshift=14.5em, yshift=2em] {flush \be{x}{1}} (s1a)
+          (s2) edge node[left, xshift=1em, yshift=-1.5em] {\cpp{int a = y; // →0}} (s2b)
+
+          (s3) edge[bend left, in=210] node[above, xshift=-2em] {flush \be{x}{1}} (s1b)
+          (s3) edge node[right, xshift=-1em, yshift=-1.5em] {flush \be{z}{1}} (s2b)
+      ;
+  \end{tikzpicture}}
+  \caption{A fragment of the state space of the program on top of the figure.
+    We start in a state where the threads \texttt{t0} and \texttt{t1} had
+    aldready executed, but did not flush their buffers yet and \texttt{t2} did
+    not start executing.
+    This fragment of the state space shows (some of) the states which reach the
+    assertion violation, i.e., states where $\texttt{a} = 0 \land \texttt{b} =
+    1$.
+    However, we can see that the state space contains many redundant runs.
+  }\label{fig:mm:conventional}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{\xtso in \divine} \label{sec:work}
+\section{\xtso in \divine}\label{sec:work}
 
 
 \divine does not natively support relaxed memory, and we decided not to complicate the already complex execution engine and memory representation with a simulation of relaxed behavior.

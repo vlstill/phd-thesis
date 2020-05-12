@@ -778,7 +778,7 @@ algorithm.
 An example of (a fragment of) lock-free data structure can be found in \autoref{fig:prelim:lockfree}.
 
 \begin{figure}[tp]
-  \begin{cppcode}
+  \begin{cppcodeln}
     void push( const T &x ) {
         Node *t;
         Node *ltail = tail.load( std::memory_order_acquire );
@@ -796,7 +796,7 @@ An example of (a fragment of) lock-free data structure can be found in \autoref{
             tail.store( t, std::memory_order_release );
         }
     }
-  \end{cppcode}
+  \end{cppcodeln}
   \caption{A push (enqueue) operation of a single-producer-single-consumer
     lock-free queue from older version of DIVINE (modified to use C++11 atomic
     operations).
