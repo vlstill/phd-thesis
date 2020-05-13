@@ -185,11 +185,19 @@
 \addbibresource{thesis.bib}
 \addbibresource{my.bib}
 
-\usepackage[pass]{geometry}
+\usepackage[a4paper,
+            bindingoffset=2cm, inner=1.5cm, outer=1.5cm, top=4cm, bottom=4cm,
+            headheight=15.2pt, % for the sake of fancyhdr
+            includemp, % count outer margin outside of the marginpar
+            marginparsep=0.8cm, marginparwidth=3.5cm]{geometry}
+\usepackage{fancyhdr}
+\fancyhead[LO]{\sl\nouppercase\rightmark}
+\fancyhead[RE]{\sl\leftmark}
+\fancyhead[RO, LE]{\thepage}
+\renewcommand{\headrulewidth}{0pt} % remove lines after header
+\renewcommand{\footrulewidth}{0pt}
+
 \usepackage{setspace}
-% \addtolength\textwidth{5pt} % about 129mm
-% \addtolength\oddsidemargin{1cm}
-% \addtolength\evensidemargin{-1cm}
 
 \usepackage{enumitem}
 \providecommand{\tightlist}{%
@@ -244,7 +252,7 @@
 \usepackage{marginfix}
 \newcounter{mnote}[chapter]
 \newcommand{\mnotemark}{\stepcounter{mnote}\hyperlink{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}$}\xspace}
-\newcommand{\mnotetext}[1]{\marginpar{\hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}\footnotesize{}#1}}
+\newcommand{\mnotetext}[1]{\marginpar{\raggedright\hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}\footnotesize{}#1}}
 \newcommand{\mnote}[1]{\mnotemark{}\mnotetext{#1}}
 
 
@@ -252,7 +260,7 @@
 \newcommand{\internalmcite}[3][]{\cite[#1]{#2}%
 \readlist*\cilist{#2}%
 \foreachitem\ci\in\cilist[]{%
-\ifcsname mcite: \thepage : \ci\endcsname \else\expandafter\def\csname mcite: \thepage : \ci\endcsname{}\marginpar{\footnotesize\cite{\ci} \citeauthor*{\ci}, \citetitle{\ci}.#3}\fi%
+\ifcsname mcite: \thepage : \ci\endcsname \else\expandafter\def\csname mcite: \thepage : \ci\endcsname{}\marginpar{\raggedright\footnotesize\cite{\ci} \citeauthor*{\ci}, \citetitle{\ci}.#3}\fi%
 }}
 \newcommand{\mcite}[2][]{\internalmcite[#1]{#2}{}}
 \newcommand{\mucite}[2][]{\internalmcite[#1]{#2}{ \citeurl{#2}}}
@@ -306,7 +314,7 @@ LLVM, C++, DIVINE, implementation}
 \thispagestyle{empty}
 
 % HEADINGS
-\pagestyle{headings}
+\pagestyle{fancy}
 \tableofcontents % prints table of contents
 \mainmatter
 
