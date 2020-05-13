@@ -287,8 +287,8 @@ memory models} are used to describe (often formally) behavior of a given
 processor architecture.
 Examples of relaxed memory models of modern processors are the memory model of
 x86 and x86-64 CPUs described formally as \xtso~\mcite{x86tso} and the multiple
-variants of POWER~\mcite{Sarkar2011},\mcite{MadorHaim2012} and
-ARM~\mcite{Alglave2014}, \mcite{Flur2016}, \mcite{Pulte2017} memory models.
+variants of POWER~\mcite{Sarkar2011,MadorHaim2012} and
+ARM~\mcite{Alglave2014,Flur2016,Pulte2017} memory models.
 
 For the description of a memory model, it is sufficient to consider operations
 which affect the memory.
@@ -321,7 +321,7 @@ An example of non-intuitive execution of a simple program under \xtso can be
 found in Figure~\ref{fig:xtso}.
 
 \begin{figure}[th] % fig:xtso
-    \begin{minipage}[b]{0.25\textwidth}
+    \begin{minipage}[c]{0.23\textwidth}
       \begin{cppcode}
         int x = 0;
         int y = 0;
@@ -340,7 +340,7 @@ found in Figure~\ref{fig:xtso}.
     %
     \hfill
     %
-    \begin{minipage}[b]{0.73\textwidth}
+    \begin{minipage}[c]{0.75\textwidth}
     \begin{center}
     \noindent
     Is $a = 0 \land b = 0$ reachable?\\[2.5ex]
