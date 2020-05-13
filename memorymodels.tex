@@ -1,5 +1,4 @@
 \srcnote{Text of this chapter is based on~\mcite{SB2018x86tso}.
-\TODO{…}
 The benchmarks are unmodified from the original paper.}
 
 This chapter presents an extension of the \divine model checker that allows for
@@ -15,7 +14,7 @@ In particular, we allow for nondeterminism only in connection with memory
 fences and load operations of those memory addresses that were written to by a
 preceding store.
 We evaluate and compare our approach with the state-of-the-art bounded model
-checker CBMC and stateless model checker Nidhugg.
+checker CBMC~\mcite{Clarke2004,Kroening2014} and stateless model checker Nidhugg~\mcite{Abdulla2015}.
 For the comparison we employ SV-COMP concurrency benchmarks that do not exhibit
 data nondeterminism, and we show that our solution built on top of the
 explicit-state model checker outperforms both of the other tools.
@@ -72,26 +71,6 @@ store buffer.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Relaxed Memory in C/C++ and \llvm}
-
-There are several ways in which C and C++ code can use atomic instructions and fences.
-These include inline assembly, compiler-provided intrinsic functions, and (since C11 and C++11) standard atomic variables and operations.
-While the constructs used to define atomic variables differ between C and C++, the memory model itself is the same for C11 and C++11.
-The C and C++ atomics are designed so that programmers can use the full potential of most platforms: the atomic operations are parametrized by a \emph{memory order} which constrains how instructions can be reordered.
-The compiler is responsible for emitting assembly code which makes sure these ordering requirements are met.
-From the point of \xtso, all memory orderings except for sequential consistency
-amount to unconstrained execution, as such they exhibit non-atomic memory accesses.
-
-When the C or C++ code is compiled to \llvm bitcode, the intrinsic functions and
-the standard atomic operations of the high-level programming language are mapped
-in the very same way to the corresponding \llvm instructions.
-The semantics of \llvm memory operations mostly copies the C++ memory model and behavior
-of the C++ atomic operations.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \section{Conventional Semantics of \xtso}
 
 In order to better illustrate the advantages of our semantics for \xtso, we
@@ -104,7 +83,8 @@ possible ways stores can be delayed (up do the reordering bound).
 Often, the nondeterministic flushing is achieved by a \emph{flusher} thread
 associated with each store buffer -- this allows uniform modelling of thread
 and memory model nondeterminism.
-This approach is used for example by \mcite{Zhang2015} or in our previous work in~\mcite{SRB15weakmem}.
+This approach is used for example by \mcite{Zhang2015} and \mcite{Abdulla2017tso}
+or in our previous work in~\mcite{SRB15weakmem}.
 
 The disadvantage of this semantics is that it introduces a lot of
 nondeterminism -- once there are any entries in the store buffer, than at any
@@ -116,21 +96,25 @@ buffer to the main memory, even if this value is never read (or is read much
 later).
 We illustrate this behaviour in \autoref{fig:mm:conventional}.
 
-\begin{figure}[tp]
-  \begin{multicols}{3}
+\begin{figure}[p]
+  \begin{minipage}[t]{0.24\textwidth}
     \begin{cppcodeln}
       void t0() {
         x = 1;
         y = 1;
       }
     \end{cppcodeln}
-    \columnbreak
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.24\textwidth}
     \begin{cppcodeln}
       void t1() {
         z = 1;
       }
     \end{cppcodeln}
-    \columnbreak
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.49\textwidth}
     \begin{cppcodeln}
       void t2() {
         int a = y;
@@ -138,8 +122,11 @@ We illustrate this behaviour in \autoref{fig:mm:conventional}.
         assert(!(a == 0 && b == 1));
       }
     \end{cppcodeln}
-  \end{multicols}
+  \end{minipage}
+  \bigskip
   \scriptsize
+  \newcommand{\be}[2]{\texttt{#1} ← \texttt{#2}}
+  \newcommand{\pc}[2]{$\texttt{PC}_\texttt{t#1}$\texttt{ = #2}}
   \makebox[\textwidth][c]{
   \begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, node distance=3cm
                      , semithick
@@ -150,8 +137,6 @@ We illustrate this behaviour in \autoref{fig:mm:conventional}.
                      , box/.style={ base, dashed, rounded corners,
                                     inner sep=0.3em }
                      ]
-    \newcommand{\be}[2]{\texttt{#1} ← \texttt{#2}}
-    \newcommand{\pc}[2]{$\texttt{PC}_\texttt{t#1}$\texttt{ = #2}}
 
     \node[entry, anchor = north east, xshift = 0.5em] (s0t0e0) at (0,0) {\be{x}{1}};
     \node[entry, below = 0em of s0t0e0] (s0t0e1) {\be{y}{1}};
@@ -279,9 +264,28 @@ We illustrate this behaviour in \autoref{fig:mm:conventional}.
     This fragment of the state space shows (some of) the states which reach the
     assertion violation, i.e., states where $\texttt{a} = 0 \land \texttt{b} =
     1$.
+    The states marked with \texttt{×} are the states which have reached the
+    assertion violation.
     However, we can see that the state space contains many redundant runs.
+    First, flushes of \be{z}{1} are irrelevant as \texttt{z} is never read.
+    The same holds for flushes of \be{y}{1} after execution of line 2 in
+    \texttt{t2}.
+    Finally, flushes of \be{x}{1} are only relevant just before execution of
+    line 2 in \texttt{t2} which is the only one which reads \texttt{x}.
   }\label{fig:mm:conventional}
 \end{figure}
+
+In pracice analysers for parallel programs employ state space reductions which
+can remove some of the nondeterminism introduced by the flusher thread.
+However, the flusher thread can behave somewhat differently from normal program
+threads -- it is not necessary to execute the flusher thread at all if the
+store buffer it belongs to does not contain a value which will be read and it
+suffices to execute it just before such a read.
+Taking this into account requires either changes to the reduction mechanism, or
+to the semantics of \xtso simulation.
+We have decided to take the second route and show that it opens room for
+further optimizations not possible with the conventional flusher-thread
+implementation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -325,7 +329,7 @@ store buffers can be kept in the store buffer after newer entries were flushed
 if the retained entries are marked as \emph{flushed}.
 Such the entries behave as if they were already written to the main memory, but can still be reordered with entries in other store buffers.
 That is, when there is a flushed entry for a given location in any store buffer, the value stored in the memory is irrelevant as any load will either read the flushed entry or entry from the other store buffer (which can be written after the flushed entry).
-Flushed entries make it possible to remove store buffer entries out of order while preserving total store order.
+Flushed entries make it possible to remove store buffer entries out of order while preserving total store order of observable operations.
 This way a load only affects entries from the matching addresses and not their predecessors in the store order.
 This improvement is demonstrated in Figures \ref{fig:mm:flushflagA} to \ref{fig:mm:flushflagC}.
 
@@ -447,9 +451,11 @@ The last entry (\mbox{$\texttt{y} \leftarrow \texttt{3}$}) will remain in the st
 %
 \divine handles C and C++ code by translating it to \llvm and instrumenting it (see Figure \ref{fig:workflow} for \divine's workflow).
 The support for relaxed memory is added in the instrumentation step, by replacing memory operations with calls to functions which simulate relaxed behavior.
-Essentially, all loads, stores, atomic instructions, and fences are replaced by calls to the appropriate functions.
-
+Essentially, all loads, stores, atomic compound instructions\mnote{Compare and swap, atomic exchange, and compound arithmetic and logic operations such as fetch and add}, and fences are replaced by calls to the appropriate functions.\mnote{With the exception of atomic compound operations, all modifications to the memory in LLVM must be performed by a series of instructions containing a load to a register, modifications of the register, and store of register value to the memory. Therefore it is sufficient to consider only this limited number of instructions as other instructions do not access memory at all.}
 All of the \xtso-simulating functions are implemented so that they are executed atomically by \divine (i.e., not interleaved).
+
+\paragraph{\xtso Memory Operations}
+%
 The most complex of these is the load operation.
 It first finds all entries with overlap the loaded address (\emph{matching entries}) and out of these matching entries, it nondeterministically selects entries which will be written before the load (\emph{selected entries}).
 All matching entries marked as flushed have to be selected for writing.
@@ -459,13 +465,17 @@ Next, selected entries are written, and all nonmatching entries which precede th
 Finally, the load is performed, either from the local store buffer if matching
 entry exists there, or from the shared memory.
 
-The remaining functions are relatively straightforward -- stores push a new
-entry to the store buffer, possibly evicting the oldest entry from the store
-buffer if the store buffer exceeds its size bound; fences flush all entries from the
-store buffer of the calling thread to the memory; atomic operations are basically a
-combination of a load, store, and a fence.
+The remaining functions are relatively straightforward.
+Stores push a new entry to the store buffer, possibly evicting the oldest entry
+from the store buffer if the store buffer exceeds its size bound.
+Fences flush all entries from the store buffer of the calling thread to the
+memory.
+Atomic operations are basically a combination of a load, store, and a fence --
+all atomics are sequentially consistent under \xtso.
 The only intricate part of these operations is that if an entry is flushed out
-of the store buffer, the entries from other store buffers which involve the same memory location can also be non-deterministically flushed (to simulate they could have been flushed before the given entry).
+of the store buffer, the entries from other store buffers which involve the
+same memory location can also be non-deterministically flushed (to simulate
+they could have been flushed before the given entry).
 This flushing is similar to flushing performed in load.
 An example which shows a series of loads can be found in Figures~\ref{fig:mm:flushflagA}~to~\ref{fig:mm:flushflagC}.
 
@@ -481,6 +491,7 @@ However, any entry which would be flushed before the selected entries in the flu
 This flag makes sure that such an entry will be flushed before an address which matches it is loaded, and therefore it behaves as if it was flushed.
 This way, the in-thread store order is maintained.
 
+
 \subsection{Stores to Freed Memory}
 
 As \xtso simulation can delay memory stores, special care must be taken to preserve memory safety of the program.
@@ -492,11 +503,11 @@ To solve the problem of freed memory, it is necessary to evict store buffer entr
 For entries not marked as flushed, this eviction concerns only store buffer of the thread which freed the memory.
 If some other thread attempted to write to the freed memory, this is an error as there is insufficient synchronization between the freeing and the store to the memory.
 However, corresponding entries marked as flushed should be evicted from all store buffers, as these entries correspond to changes which should have been already written to the shared memory.
-% Eviction of dynamic memory is straightforward -- the transformation injects a call to the eviction function just before every call to the function which releases memory.
-% For eviction of stack memory, it is necessary to evict all local addresses whenever a function exits, regardless of the way it exits.
-% This means we also have to take into account exceptions and other ways of performing non-local transfers of control (e.g., \texttt{longjmp}).
-% The program transformation takes care of tracking which local memory addresses should be evicted and inserts code to evict them at the end of functions.
-The program transformation takes care of inserting code to evict entries corresponding to freed memory from the store buffer.
+
+Eviction of dynamic memory is straightforward -- the program transformation injects a call to the eviction function just before every call to the function which releases memory.
+For eviction of stack memory, it is necessary to evict all local addresses whenever a function exits, regardless of the way it exits.
+This means we also have to take into account exceptions and other ways of performing non-local transfers of control (e.g., \texttt{longjmp}).
+The program transformation takes care of tracking which local memory addresses should be evicted and inserts code to evict them at the end of functions.
 
 \subsection{Integration with Other Parts of \divine}
 
@@ -506,10 +517,10 @@ As for the libraries shipped with \divine, only minor tweaks were required.
 The \texttt{pthread} implementation had to be modified to add full memory barrier both at the beginning and at the end of every synchronizing functions.
 This corresponds to barriers present in the implementations used for normal execution, \texttt{pthread} mutexes and other primitives have to guarantee sequential consistency of the guarded operations (provided all accesses are properly guarded).
 
-The \divine's operating system, \dios, is used to implement low-level threading as well as simulation of various filesystem APIs \mcite{DIVINEToolPaper2017}.
+The \divine's operating system, \dios, is used to implement low-level threading as well as simulation of various filesystem APIs \mcite{RBMKB2019}.
 We had to add memory barrier into the system call entry which hands control to \dios.
 \dios itself does not use relaxed memory simulation -- the implementation of \xtso operations detects that the code is executed in the kernel mode and bypasses store buffers.
-In this way, the entire \dios executes as if under sequential consistency.
+In this way, the entire \dios executes as if under sequential consistency which makes its design simpler and more robust.
 This synchronization is easily justifiable -- system calls require a memory barrier or kernel lock in most operating systems.
 
 \paragraph{Relaxed Memory and Abstract Data}
@@ -518,8 +529,8 @@ DIVINE has support for symbolic and abstract data (data nondeterminism) which
 uses program transformation to implement symbolic manipulation of
 data~\mcite{LRB2018}.
 However, the integration of support for abstract data and for memory models is
-not yet done as not just a straight-forward composition of the two program
-transformations.
+not yet done as it requires more complex changes then just a straight-forward
+composition of the two program transformations.
 Performing transformation for abstractions first is not possible currently, as
 it introduces additional memory operations and therefore is not correct in
 presence of relaxed memory.
@@ -534,7 +545,7 @@ Therefore, this approach is not practical because in introduces too much extra
 overhead.
 Overall, we defer this problem to future work.
 
-\subsection{Improvements} \label{sec:mm:opt}
+\subsection{Further Optimizations} \label{sec:mm:opt}
 
 We have implemented two further optimizations of our \xtso simulation.
 
@@ -560,7 +571,7 @@ This optimization is not correct for memory models which allow store reordering 
 \subsection{Bounding the Size of Store Buffers}
 
 The complexity of analysis of programs under the \xtso memory model is high.
-From the theoretical point of view, we know due to Atig et al.~\mcite{wmdecidability} that reachability for programs with finite-state threads which run under TSO is decidable, but non-primitive recursive (it is in \textsc{pspace} for sequential consistency).
+From the theoretical point of view, we know due to~\mcite{wmdecidability} that reachability for programs with finite-state threads which run under TSO is decidable, but non-primitive recursive (it is in \textsc{pspace} for sequential consistency).
 The proof uses the so called SPARC TSO memory model~\mcite{SPARC94} that is very similar to \xtso. However, the proof of decidability does not translate well to an efficient decision procedure, and real-world programs are much more complex than the finite-state systems used in the decidability proof.
 
 For this reason, we would need to introduce unbounded store buffers to properly
@@ -572,12 +583,14 @@ size of the store buffers is fully configurable, and it currently defaults to
 32, a value probably high enough to discover most bugs which can be observed on
 a real hardware.
 
-Our implementation also supports the store buffers of unlimited
-size (when size is set to 0). In this mode, programs with infinite loops that write into
-shared memory will not have finite state space. Therefore, \divine will not
-terminate unless it discovers an error in the program. Verification with
-unbounded buffers will still terminate for terminating programs and for all
-programs with errors.
+Our implementation also supports the store buffers of unlimited size (when size
+is set to 0). In this mode, programs with infinite loops that write into shared
+memory will not have finite state space under \xtso even if they have finite
+state space under sequential consistency.
+Therefore, \divine will not terminate unless it discovers an error in the
+program.
+Verification with unbounded buffers will still terminate for terminating
+programs and for all programs with errors.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -631,7 +644,7 @@ Finally, ``unique'' shows the number of benchmarks solved only by the given tool
 \begin{table}[th]
 \caption{
     Comparison of various configurations of \divine.
-    The ``base'' version uses none of the improvements from Section \ref{sec:mm:opt}.
+    The ``base'' version uses none of the improvements from \autoref{sec:mm:opt}.
     The configurations marked with ``s'' add the static local variable optimization, while the configurations marked with ``d'' add the dynamic detection of non-shared memory objects.
     The ``+sdu'' configuration has both optimizations enabled and it has unbounded buffers.
     Finally, the ``+sd4'' has buffer bound set to 4 entries instead of the default 32 entries.
