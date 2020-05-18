@@ -127,7 +127,6 @@ We illustrate this behaviour in \autoref{fig:mm:conventional}.
   \scriptsize
   \newcommand{\be}[2]{\texttt{#1} ← \texttt{#2}}
   \newcommand{\pc}[2]{$\texttt{PC}_\texttt{t#1}$\texttt{ = #2}}
-  \makebox[\textwidth][c]{
   \begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, node distance=3cm
                      , semithick
                      , base/.style={ rectangle, draw=black, text centered,
@@ -256,7 +255,7 @@ We illustrate this behaviour in \autoref{fig:mm:conventional}.
           (s3) edge[bend left, in=210] node[above, xshift=-2em] {flush \be{x}{1}} (s1b)
           (s3) edge node[right, xshift=-1em, yshift=-1.5em] {flush \be{z}{1}} (s2b)
       ;
-  \end{tikzpicture}}
+  \end{tikzpicture}
   \caption{A fragment of the state space of the program on top of the figure.
     We start in a state where the threads \texttt{t0} and \texttt{t1} had
     aldready executed, but did not flush their buffers yet and \texttt{t2} did
@@ -331,7 +330,7 @@ Such the entries behave as if they were already written to the main memory, but 
 That is, when there is a flushed entry for a given location in any store buffer, the value stored in the memory is irrelevant as any load will either read the flushed entry or entry from the other store buffer (which can be written after the flushed entry).
 Flushed entries make it possible to remove store buffer entries out of order while preserving total store order of observable operations.
 This way a load only affects entries from the matching addresses and not their predecessors in the store order.
-This improvement is demonstrated in Figures \ref{fig:mm:flushflagA} to \ref{fig:mm:flushflagC}.
+This improvement is demonstrated in~\autoref{fig:mm:flushflag}.
 
 
 \begin{figure}[tp]
@@ -445,6 +444,7 @@ The last entry (\mbox{$\texttt{y} \leftarrow \texttt{3}$}) will remain in the st
 }\label{fig:mm:flushflagC}
 
 \end{subfigure}
+\caption{An illustration of the \emph{delayed flushing}.}\label{fig:mm:flushflag}
 \end{figure}
 
 \paragraph{Program Transformation}%
@@ -477,7 +477,7 @@ of the store buffer, the entries from other store buffers which involve the
 same memory location can also be non-deterministically flushed (to simulate
 they could have been flushed before the given entry).
 This flushing is similar to flushing performed in load.
-An example which shows a series of loads can be found in Figures~\ref{fig:mm:flushflagA}~to~\ref{fig:mm:flushflagC}.
+An example which shows a series of loads can be found in~\autoref{fig:mm:flushflag}.
 
 \paragraph{Correctness}%
 %
@@ -651,7 +651,7 @@ Finally, ``unique'' shows the number of benchmarks solved only by the given tool
     The default version is ``+sd''.
 } \label{tab:mm:divine:svc}
 \centering
-\begin{tabularx}{0.9\textwidth}{lRRRRRR} \toprule
+\begin{tabularx}{\textwidth}{lRRRRRR} \toprule
            & base & +s & +d & +sd & +sdu & +sd4 \\ \midrule
   finished &   26 & 26 & 27 &  27 &   27 &   27 \\
   TSO bugs &    8 &  8 &  9 &   9 &    9 &    9 \\
@@ -663,7 +663,7 @@ Finally, ``unique'' shows the number of benchmarks solved only by the given tool
     For the description of these versions, please refer to \autoref{tab:mm:divine:svc}.
 } \label{tab:mm:divine:time:svc}
 \centering
-\begin{tabularx}{0.9\textwidth}{lRRRRRR} \toprule
+\begin{tabularx}{\textwidth}{lRRRRRR} \toprule
            &    base &      +s &      +d &     +sd &    +sdu &    +sd4 \\ \midrule
   states   &   252 k &   263 k &   250 k &   231 k &   206 k &   296 k \\
   time     & 2:14:49 & 2:17:13 & 1:09:23 & 1:05:05 & 0:58:28 & 1:24:59 \\
