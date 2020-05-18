@@ -184,8 +184,8 @@
 \colorlet{frombuf}{green!60!black}
 \colorlet{flushed}{yellow!60!red!85!black}
 
-\newtheorem{theorem}{Theorem}
-\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}{Lemma}[chapter]
 
 \newtheoremstyle{mydefstyle}%
   {\topsep}% space above (default)
@@ -197,7 +197,7 @@
   {\newline}% space after theorem head
   {\thmname{#1}\thmnumber{ #2}\thmnote{: #3}}% theorem head spec (empty = normal)
 \theoremstyle{mydefstyle}
-\newtheorem{definition}{Definition}
+\newtheorem{definition}{Definition}[chapter]
 
 \addbibresource{thesis.bib}
 \addbibresource{my.bib}
@@ -232,6 +232,7 @@
     \renewcommand{\chapterautorefname}{Chapter}
     \renewcommand{\sectionautorefname}{Section}
     \renewcommand{\subsectionautorefname}{Section}
+    \def\definitionautorefname{Definition}
 }
 
 \newcommand{\rot}[1]{\rotatebox{90}{#1\hspace*{0.5em}}}

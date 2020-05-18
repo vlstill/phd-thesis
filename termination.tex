@@ -1,3 +1,6 @@
+\srcnote{Text of this chapter is based on~\mcite{SB2019}.
+The benchmarks are unmodified from the original paper.}
+
 One of the key problems with parallel programs is ensuring that they do not hang or wait indefinitely -- i.e., there are no deadlocks, livelocks and the program proceeds towards its goals.
 In this work, we present a practical approach to detection of nonterminating sections of programs written in C or C++, and its implementation into the \divine model checker.
 This complements the existing techniques for finding safety violations such as assertion failures and memory errors.
@@ -5,23 +8,7 @@ Our approach makes it possible to detect partial deadlocks and livelocks, i.e., 
 The approach is also applicable to programs that do not terminate (such as daemons with infinite control loops) as it can be configured to check only for termination of selected sections of the program.
 The termination criteria can be user-provided; however, \divine comes with the set of built-in termination criteria suited for the analysis of programs with mutexes and other common synchronisation primitives.
 
-\section{Introduction}
-
-Assessing correctness of parallel programs is a hard task even for experienced programmers.
-Therefore, the standard program development includes a bunch of quality assurance activities such as testing.
-Unfortunately, the nondeterministic nature of thread scheduling and concurrency makes it quite hard for testing to achieve good guarantees of quality in the case of parallel programs.
-Formal methods, on the other hand, provide a more systematic approach and in some cases may even prove the absence of erroneous behaviours.
-However, they are not used very often in practice due to the extra effort required for their application or simply because they are not powerful enough to handle the overall complexity and size of real-world programs.
-Nevertheless, continuous improvement in formal methods is desirable to cover the corner cases of their use and to allow them to become more usable in software development.
-
-Especially beneficial techniques are those that can be directly applied to programs written in mainstream programming languages. Such techniques significantly lower the barrier towards their usage by programmers.
-However, the development of these techniques is extremely demanding due to
-numerous specific features the real-world programming languages exhibit.
-As a result, many techniques introduced and implemented stay at the level of
-prototypes without being mature enough to be applicable outside the scientific
-community -- e.g., they might be missing features such as pointer arithmetic,
-functionality of the standard libraries or the concept of exceptions.
-See the Software-Verification Competition (SV-COMP)~\cite{SVC19}, to find some examples of tools aiming at verification of real-world programs written in C.
+\section{Safety is Insufficient}
 
 A significant limitation of many existing tools for analysis of parallel
 programs in programming languages such as C and C++ is that they are only concerned with safety checking -- they check that a bad state of the program is unreachable.
@@ -34,7 +21,7 @@ That piece of code easily passes any safety checks; however, when executed in re
 \begin{minipage}[t]{0.49\textwidth}
 \begin{cppcode}
     // can be used for
-	// synchronization
+    // synchronization
     std::atomic< int > x = 0;
 
     void worker() {
@@ -48,7 +35,7 @@ That piece of code easily passes any safety checks; however, when executed in re
 \begin{cppcode}
     int main() {
       // start thread
-	  // running worker
+      // running worker
       std::thread t( worker );
       x = 42; // let worker run
       // ...
@@ -68,14 +55,26 @@ simplify the notation.
 }\label{fig:livelock0}
 \end{figure}
 
-In this paper, we report about our new technique for checking nontermination for parallel programs written in C and C++ that may be applied to programs with arbitrary synchronisation primitives.
+In this work, we report about our new technique for checking nontermination for parallel programs written in C and C++ that may be applied to programs with arbitrary synchronisation primitives.
 In particular, we can check that \emph{a specified part} of a program finishes
 whenever its execution has been started, which in turn enables us to check for problems such as partial deadlocks or local nontermination.
 Note that our technique does not require the program under analysis to terminate at all.
 Therefore, it is also applicable to programs that do not terminate but have some
 parts that are supposed to finish.
 It does; however, require that the program has a finite state space because our
-technique is built on top of a state space exploration. Note that even for a finite state space, a program may exhibit infinite behaviour.
+technique is built on top of a state space exploration. Note that even for a finite state space, a program may exhibit infinite behaviour.\mnote{A finite state space can contain cyclical infinite behaviour -- a loop in the state space.
+
+\medskip\noindent\centering
+\begin{tikzpicture}[>=latex,>=stealth',auto,node distance=2cm,semithick,initial text=]
+  \node[state,initial] (t) {$x$};
+  \node[state] (f) [right of = t] {$\lnot x$};
+
+  \path[->, shorten >=1pt]
+    (t) edge[bend left] (f)
+    (f) edge[bend left] (t)
+  ;
+\end{tikzpicture}
+}
 
 The main observation is that a program often has sections which once entered
 should also be left: for example critical sections, certain function calls (such
@@ -97,13 +96,17 @@ thread schedulers, we need a form of \emph{fairness} of process scheduling
 different from the fairness constraints used typically with LTL model checking.
 
 
-The approach described in this paper is implemented in a modified version of the \divine model checker~\cite{BBK+17,RSCB2018}.
-The implementation, as well as all the examples, can be found on the paper webpage\footnote{\url{https://divine.fi.muni.cz/2019/lnterm/}}.
+The approach described in this work is implemented in a modified version of the \divine model checker~\mcite{DIVINEToolPaper2017,RSCB2018}.
+The implementation, as well as all the examples, can be found on the paper webpage\mnote{\url{https://divine.fi.muni.cz/2019/lnterm/}}.
 
-The rest of the paper is structured as follows: \autoref{sec:related} gives a short
-overview of related work and \autoref{sec:prelim} gives definitions and preliminaries needed for the rest of the work.
-In \autoref{sec:local-nontermination} we define our \emph{local nontermination} property, in \autoref{sec:detection} we discuss how it can be checked and the implementation in \divine, and it \autoref{sec:evaluation} we evaluate it.
-Finally, \autoref{sec:conclusion} concludes this work.
+% The rest of the work is structured as follows: \autoref{sec:related} gives a short
+% overview of related work and \autoref{sec:prelim} gives definitions and preliminaries needed for the rest of the work.
+% In \autoref{sec:local-nontermination} we define our \emph{local nontermination} property, in \autoref{sec:detection} we discuss how it can be checked and the implementation in \divine, and it \autoref{sec:evaluation} we evaluate it.
+% Finally, \autoref{sec:conclusion} concludes this work.
+
+
+
+
 
 \section{Related Work} \label{sec:related}
 
@@ -126,30 +129,9 @@ A somewhat different approach based on communicating channels is proposed in \ci
 Overall, neither of these techniques is applicable in general for the detection of nontermination in programs which use a combination of synchronisation primitives in shared memory.
 % Finally, there are also techniques for checking termination of sequential programs, to name a few \cite{Giesl2017,Chen2018}.
 
-\section{Preliminaries} \label{sec:prelim}
+\TODO{TODO…}
 
-In this section, we shortly describe necessary details about representation of programs, their state space, and resource sections so that we can define local nontermination.
-
-\subsection{State Space of a Program}
-
-The \emph{state space} of a program is a directed multigraph with labelled edges.
-The vertices of the state space multigraph are called \emph{states} (of the program).
-Each state represents a snapshot of the program (its memory, program counters and stacks of all its threads, …).
-% However, for our purposes, we will consider states to be opaque and will only require the ability to determine the successors of a state from it.
-States $v_1, v_2$ are connected by an edge in the state space if $v_2$ can be reached from $v_1$ in an atomic step, which is a sequence of instructions that executes at most one action which can interfere with any action executed in parallel with it.
-In \divine, the state space generator attempts to make the longest possible atomic step while ensuring that the generation of the edge terminates.
-Edges are labelled, and the labels can be used to indicate accepting edges and error edges.
-Error edges are edges on which safety violation occurs (e.g., an assertion violation or memory error).
-The notion of accepting edges was taken initially from transition-based Büchi automata and used for LTL model checking, but in general, it is a way to mark an edge as interesting for the verification algorithm, but not erroneous.
-These labels are set by the verified program, which can be instrumented to influence edge labelling or by \divine when it detects an error.
-
-The state space of a program can be an infinite graph.
-However, in \divine, we are primarily concerned with programs which have finite state space.
-If the state space is infinite, \divine might find an error if it is present
-there, or it might compute until its resources are exhausted.
-Please note that programs with finite state space can have infinite behaviour as they can loop through the same set of states indefinitely.
-
-\subsection{Resource Sections}
+\section{Resource Sections}
 
 A \emph{resource section} of a program is a block of code with an identifier of a resource and type of the resource section.
 Each resource section is delimited in the source code by section start and section end annotations.
@@ -164,10 +146,87 @@ The author of annotations which define resource sections should ensure that the 
 Please note that this does not limit the usage of function-associated resource sections to non-recursive functions -- each such section is also identified by the stack frame, and therefore resource sections corresponding to different recursion depths are different resource sections.
 Similarly, a program can be in multiple resource sections which wait for the same mutex at the same time, each of them corresponding to a different waiting thread.
 
-\section{Local Nontermination} \label{sec:local-nontermination}
+We propose to introduce resource sections in two ways -- some synchronization primitives (mutexes, condition variable, threads) have built-in resource sections in DIVINE, and the user can introduce their own resource sections.
+Examples of resource sections can be seen in \autoref{fig:lnterm:secs:a} and \autoref{fig:lnterm:secs:b}.
 
 \begin{figure}[tp]
-\begin{minipage}[t]{0.49\textwidth}
+    \begin{cppcodeln}
+      mutex m;
+
+      void worker() {
+        unique_lock lock(m); // wait resource section,
+                             // start of critical section
+        do_work();
+      } // unlock = end of critical section
+
+      int main() {
+        thread w(worker);
+        do_work();
+        w.join(); // wait resource section
+      }
+    \end{cppcodeln}
+    \caption{
+      Examples of predefined resource sections.
+      There is a resource section in the mutex lock on line 4 (active while the
+      thread waits for the mutex to become available), a resource sections
+      which corresponds to the critical section on lines 4--6, and a resource
+      section in the join of thread \texttt{w} on line 12 (active while main
+      waits for \texttt{worker} to finish).
+    }\label{fig:lnterm:secs:a}
+\end{figure}
+\begin{figure}[tp]
+    \begin{cppcodeln}
+      #include <atomic>
+      #include <rst/termsec.h> // for user-defined
+                               // resource sections
+      struct SpinLock {
+        void lock() {
+          { // define an explicit scope
+            termsec::CheckWait check( &_flag );
+            while ( _flag.test_and_set() ) { }
+          } // end of scope -- end of 'check' resource section
+          termsec_begin_exclusive( &_flag );
+        }
+
+        void unlock() {
+          termsec_end_exclusive( &_flag );
+          _flag.clear();
+        }
+
+        private:
+        std::atomic_flag _flag = ATOMIC_FLAG_INIT;
+      }; 
+    \end{cppcodeln}
+    \caption[UNUSED]{
+      User defined resource sections in a spinlock implementation.
+      The spinlock is implemented using a C++ atomic flag which is an atomic
+      variable which has two operations -- \texttt{clear} which resets its
+      value to \cpp{false}, and \texttt{test\_and\_set} which sets its value to
+      \cpp{true} and returns the original value.
+      In this spinlock the value \cpp{true} indicates that the spinlock is
+      locked.
+
+      One resource section guards the wait for \texttt{\_flag} to change at
+      lines 7--8.
+      The other resource section guards the critical section of the spinlock,
+      it starts in \texttt{lock} at line 10 and ends in \texttt{unlock} at line
+      14.
+      Both resource sections are identified by the address of the
+      \texttt{\_flag} variable which uniquely identifies a particular instance
+      of a \texttt{SpinLock} class.
+      Furthermore, the waiting resource section (which uses \texttt{CheckWait}
+      helper) is automatically also identified by the thread which executes it
+      -- this allows more then one thread to wait for the same spin lock.
+    }\label{fig:lnterm:secs:b}
+\end{figure}
+
+\section{Local Nontermination} \label{sec:local-nontermination}
+
+With our local nontermination property, we aim at detection of resource section instances which are entered but are never left -- \emph{nonterminating resource section instances}.
+We will first use examples of terminating and nonterminating resource section instances, and then we will define them precisely.
+
+\begin{figure}[tp]
+\begin{subfigure}[t]{0.49\textwidth}
 \begin{cppcode}
     mutex m;
 
@@ -189,11 +248,11 @@ Similarly, a program can be in multiple resource sections which wait for the sam
     A program with a nonterminating critical section (in \texttt{thread0}) and a deadlock (if \texttt{thread0} enters its critical section, \texttt{thread1} will wait infinitely).
     Please note that in C++ it is possible to use scope-based locks: the critical section belonging to mutex \cpp{m} is entered when \cpp{unique_lock lock(m)} is executed and left at the end of the scope in which the \cpp{lock} variable was defined (at the matching curly brace; also marked with comment \cpp{// unlock}).
 }\label{fig:ntermsec0}
-\end{minipage}
+\end{subfigure}
 %
 \hfill
 %
-\begin{minipage}[t]{0.49\textwidth}
+\begin{subfigure}[t]{0.49\textwidth}
 \begin{cppcode}
     mutex m;
 
@@ -217,7 +276,9 @@ Similarly, a program can be in multiple resource sections which wait for the sam
     However, as we can see in \autoref{fig:ntermsec1ce}, it is possible to find an infinite path in the state space of this program that infinitely waits for one of the critical sections.
     To make matters worse, this path can respect weak fairness.
 } \label{fig:ntermsec1}
-\end{minipage}
+\end{subfigure}
+\caption{Example programs with nonterminating resource section (\subref{fig:ntermsec0}) and terminating resource sections (\subref{fig:ntermsec1}).
+}
 \end{figure}
 \begin{figure}[tp]
 \center
@@ -247,9 +308,6 @@ We can see that both threads participate in the repeated part of the counterexam
 } \label{fig:ntermsec1ce}
 \end{figure}
 
-With our local nontermination property, we aim at detection of resource section instances which are entered but are never left -- \emph{nonterminating resource section instances}.
-We will first use examples of terminating and nonterminating resource section instances, and then we will define them precisely.
-
 A simple example can be seen in \autoref{fig:ntermsec0}. There we have a mutex which
 is locked, but never unlocked as the corresponding critical section contains an
 infinite loop. We have four different resource sections in this example. Two
@@ -274,24 +332,49 @@ The counterexample is illustrated in \autoref{fig:ntermsec1ce} and is valid also
 % We call this behaviour -- where some of the threads are only allowed to run in specific conditions -- \emph{starving}.
 % Starving is of interest mostly for checking lock-free and wait-free algorithms and we will not focus on it here.
 
-In general, if a thread waits for some condition which is both infinitely often true and infinitely often false, there can be a run in which the waiting thread is only allowed to run at those moments when the condition is false. This type of run is present in any program that uses busy waiting, which is very common in practice.
+In general, if a thread waits for some condition which is both infinitely often true and infinitely often false, there can be a run in which the waiting thread is only allowed to run at those moments when the condition is false. This type of runs is present in any program that uses busy waiting, which is very common in practice.
 For this practical reason, we
 cannot rely on the definition of nontermination as expressed with the LTL
 formula above, and we need a different way to describe nonterminating sections.
 %will use a different definition which better matches the realities of
 %nonterminating parts of parallel programs.
-\begin{definition}[Nonterminating resource section instance]\label{def:lnterm}
+\begin{definition}[Nonterminating Resource Section Instance]\label{def:lnterm}
 A~resource section instance is nonterminating if and only if it can reach a point from which it is not possible to reach its end.
 \end{definition}
 
-For a particular resource section (e.g., again waiting for \texttt{m} in \texttt{thread1}), checking for absence of nonterminating resource section instances can be expressed using a CTL* property \[ \mathbf{AG}\left(\textit{wait-m-t1-start} \implies \mathbf{A}[(\mathbf{EF}\,\textit{wait-m-t1-end}) \mathbin{\mathbf{W}} \textit{wait-m-t1-end}]\right) \] (where $\mathbf{W}$ is the weak until operator).
+For a particular resource section (e.g., waiting for \texttt{m} in \texttt{thread1}), checking for absence of nonterminating resource section instances can be expressed using a CTL* property \[ \mathbf{AG}\left(\textit{wait-m-t1-start} \implies \mathbf{A}[(\mathbf{EF}\,\textit{wait-m-t1-end}) \mathbin{\mathbf{W}} \textit{wait-m-t1-end}]\right) \] (where $\mathbf{W}$ is the weak until operator).
 
 In general, the CTL* approach cannot be used, as it requires the set of resource sections to be known before the analysis starts, so that the formula can be created as a conjunction of formulas for each resource section.
 This is hard to do if resource sections can be created at runtime, which is often the case when dealing with programs in languages such as C and C++ -- the number of objects such as threads, mutexes, or function invocations which are used to identify resource sections might be hard to determine without exploration of all the runs of the program.
 
 \section{Detection of Nontermination}\label{sec:detection}
 
-\begin{figure}[t]
+The detection of nonterminating resource section instances in the context of
+explicit-state model checking proceeds as follows. The basic idea behind the
+detection of nonterminating resource section instances is that the model checker
+focuses on them one at a time. Every time a resource section instance is about
+to be entered during the state space exploration, the algorithm introduces a
+nondeterministic branching to the state space graph. In one branch the resource
+section instance remains inactive, in which case the state space exploration
+proceeds as usual to discover other resource sections. However, in the other
+branch, the instance becomes active. Under this branch the resource section
+instance is checked for being nonterminating -- it becomes \emph{active resource section instance} (ARSI).
+Note that the nondeterministic
+branching happens only outside of active resource sections, which means the
+ARSIs cannot be nested.  Once the
+state space graph in the active branch reaches a state that is out of the scope of an ARSI, the state
+space exploration within this branch is stopped (a state with no successors is
+generated outside the ARSI). Active resource section instances cannot be
+nested, but for any instance of a resource section nested in an active section
+instance, there is also an instance which is nested in an inactive section
+instance, and therefore can become active elsewhere in the state space. As a
+result of this construction, for every nonterminating resource section in the
+original program, there is a corresponding ARSI in the augmented state space
+graph. To let the exploration algorithm know that it is exploring a part of the
+state space that is within an ARSI, we mark all edges within ARSIs as accepting.\mnote{The accepting label of an edge is a notation borrowed from (transition-based) Büchy automata.
+In DIVINE this information can be used by the exploration algorithm to behave differently for accepting edges.\TODO{WHY DOES THIS NOTE NOT SHOW!?}}
+
+\begin{figure}[p]
 \begin{cppcode}
     mutex m1, m2;
     {
@@ -311,10 +394,10 @@ This is hard to do if resource sections can be created at runtime, which is ofte
     \tikzstyle{acc}=[line width=2pt]
 
     \node [state, initial, initial text=, initial above] (i) {};
-    \node [state, below left = 0.7cm and 2cm of i] (cs1) {}
+    \node [state, below left = 0.7cm and 3cm of i] (cs1) {}
         edge [pre] node {\texttt{lock(m1)}} (i);
 
-    \node [state, below right = 0.7cm and 1cm of i] (cs1a) {}
+    \node [state, below right = 0.7cm and 1.5cm of i] (cs1a) {}
         edge [pre] node[above right] {\texttt{lock(m1)}} (i);
 
     \node [state, below = of cs1a] (cs1aw) {}
@@ -331,7 +414,7 @@ This is hard to do if resource sections can be created at runtime, which is ofte
     \node [state, below = of cs1] (cs1w) {}
         edge [pre] node[right] {\texttt{do\_work\_1}} (cs1);
 
-    \node [state, below left = 0.5cm and 0.8cm of cs1w] (cs1cs2) {}
+    \node [state, below left = 0.5cm and 1.1cm of cs1w] (cs1cs2) {}
         edge [pre] node[above left, name=cs1wl] {\texttt{lock(m2)}} (cs1w);
     \node [state, below = of cs1cs2] (cs1cs2w) {}
         edge [pre] node[right, name=cs1cs2wl] {\texttt{do\_work\_2}} (cs1cs2);
@@ -342,7 +425,7 @@ This is hard to do if resource sections can be created at runtime, which is ofte
     \node [state, below = of cs1u] (end) {}
         edge [pre] node[right] {\texttt{end}} (cs1u);
 
-    \node [state, below right = 0.5cm and 0.8cm of cs1w] (cs1cs2a) {}
+    \node [state, below right = 0.5cm and 1.1cm of cs1w] (cs1cs2a) {}
         edge [pre] node[above right] {\texttt{lock(m2)}} (cs1w);
     \node [state, below = of cs1cs2a] (cs1cs2aw) {}
         edge [pre, acc] node[right, name=cs1cs2awl] {\texttt{do\_work\_2}} (cs1cs2a);
@@ -352,18 +435,18 @@ This is hard to do if resource sections can be created at runtime, which is ofte
 
   \begin{pgfonlayer}{background}
     \tikzstyle{dashed}=[dash pattern=on 5pt off 5pt]
-    \node[draw, fit=(cs1a) (cs1acs2u) (cs1aul), inner sep=0.1cm, fill = yellow!70, xshift=-0.1cm, line width = 2pt] (cs1ains) {};
+    \node[draw, fit=(cs1a) (cs1acs2u) (cs1aul), inner xsep=0.2cm, inner ysep=0.1cm, fill = yellow!70, xshift=-0.1cm, line width = 2pt] (cs1ains) {};
     \node[below left = 1mm of cs1ains.north east] {ARSI};
     \node[draw, dashed, fit=(cs1cs2a) (cs1cs2aw) (cs1cs2awl), inner sep=0.1cm, fill = yellow!70, line width = 2pt] (cs1cs2ains) {};
     \node[below left = 1mm of cs1cs2ains.north east] {ARSI};
 
-    \node[draw, fit=(cs1) (cs1wl) (cs1cs2u) (cs1cs2aul), inner ysep=0.1cm, inner xsep=0cm] (cs1ins) {};
+    \node[draw, fit=(cs1) (cs1wl) (cs1cs2u) (cs1cs2aul), inner ysep=0.1cm, inner xsep=0.1cm] (cs1ins) {};
     \node[draw, dashed, fit=(cs1cs2) (cs1cs2w) (cs1cs2wl), inner sep=0.1cm] (cs1cs2ins) {};
     \node[draw, dashed, fit=(cs1acs2) (cs1acs2w) (cs1acs2wl), inner sep=0.1cm] (cs1acs2ins) {};
   \end{pgfonlayer}
 \end{tikzpicture}
 \caption{
-    A small example of a program with two resource section instances (on the left-hand side) and its state space, which shows active resource section instances (ARSIs; on the right-hand side).
+    A small example of a program with two resource section instances (on the top) and its state space, which shows active resource section instances (ARSIs; on the bottom).
     Please note that, in order to keep the state space simple, this example program is sequential and deterministic; the nondeterminism is caused only by the construction which gives rise to ARSIs.
     The resource section instances belonging to the critical section of mutex \texttt{m1} are wrapped in a solid rectangle in the image, while resource section instances belonging to \texttt{m2} are wrapped in a dashed rectangle.
     ARSIs are denoted by thick frame and yellow background and accepting edges in the state space are marked by thick arcs.
@@ -372,46 +455,25 @@ This is hard to do if resource sections can be created at runtime, which is ofte
 } \label{fig:active}
 \end{figure}
 
-The detection of nonterminating resource section instances in the context of
-explicit-state model checking proceeds as follows. The basic idea behind the
-detection of nonterminating resource section instances is that the model checker
-focuses on them one at a time. Every time a resource section instance is about
-to be entered during the state space exploration, the algorithm introduces a
-nondeterministic branching to the state space graph. In one branch the resource
-section instance remains inactive, in which case the state space exploration
-proceeds as usual to discover other resource sections. However, in the other
-branch, the instance becomes active. Under this branch the resource section
-instance is checked for being nonterminating. Note that the nondeterministic
-branching happens only outside of active resource sections, which means the
-\emph{active resource section instances} (ARSIs) cannot be nested.  Once the
-state space graph in the active branch reaches a state that is out of the scope of an ARSI, the state
-space exploration within this branch is stopped (a state with no successors is
-generated outside the ARSI). Active resource section instances cannot be
-nested, but for any instance of a resource section nested in an active section
-instance, there is also an instance which is nested in an inactive section
-instance, and therefore can become active elsewhere in the state space.  As a
-result of this construction, for every nonterminating resource section in the
-original program, there is a corresponding ARSI in the augmented state space
-graph. To let the exploration algorithm know that it is exploring a part of the
-state space that is within an ARSI, we mark all edges within ARSIs as accepting.
 An illustration of a state space graph augmented with nondeterministic choices
 and accepting edges is given in \autoref{fig:active}. This augmentation of the state
 space can be performed by a program instrumentation.  Now to discover ARSIs which
-are nonterminating according to Definition~\ref{def:lnterm}, it is enough to
+are nonterminating according to \autoref{def:lnterm}, it is enough to
 detect terminal strongly connected components made of accepting edges only.
 
 \subsection{Detection Algorithm}
 
-Henceforward, we assume the state space graph is finite, and if the program to
-be verified terminates then this fact is reflected by a state with no
-successors in the underlying state space graph. Note that the program may
-terminate even within a resource section instance. An ARSI terminates either by
+Henceforward, we assume the state space graph is finite, and if a run of the
+program to be verified terminates then this fact is reflected by a state with
+no successors in the underlying state space graph. Note that the program may
+terminate even within a resource section instance.
+An ARSI terminates either by
 reaching the end of the section instance, or by the termination of the whole
 underlying program. In both cases, this means a state with no successors is
 generated and reachable from the ARSI entrance point.
 Finally, we assume that any waiting is implemented in nonblocking way; in
 particular we require that waiting operations give rise to cycles in the state
-space of the waiting thread.\footnote{This is not a problem in practice as any
+space of the waiting thread.\mnote{This is not a problem in practice as any
     blocking synchronisation (such as waiting for a mutex) can be simulated by a
     busy waiting loop.}
 As a result, the detection
@@ -420,12 +482,15 @@ strongly connected component in the state space graph.
 
 
 \begin{definition}[Terminal Strongly Connected Component]
-A strongly connected component $S$ is \emph{terminal}\footnotemark{} if for each state $v$ in $S$ all successors of $v$ are in $S$ (there are no edges out of $S$).
+A strongly connected component $S$ is \emph{terminal}\mnote{Also sometimes
+called bottom strongly connected components, or closed communicating classes,
+especially in the area of probabilistic system analysis~\cite{norris}.} if for
+each state $v$ in $S$ all successors of $v$ are in $S$ (there are no edges out
+of $S$).
 
-\footnotetext{Also sometimes called bottom strongly connected components, or closed communicating classes, especially in the area of probabilistic system analysis~\cite{norris}.}
 \end{definition}
 
-\begin{definition}[Fully Accepting Terminal SCC]
+\begin{definition}[Fully Accepting Terminal SCC (FATSCC)]
 A terminal strongly connected component of the state space is \emph{fully
   accepting} (\emph{fully accepting terminal SCC, or FATSCC}) if and only if it is nontrivial and all its edges are accepting.
 \end{definition}
@@ -459,7 +524,7 @@ A terminal strongly connected component of the state space is \emph{fully
     it are not accepting. Therefore, it is impossible to reach either a program
     termination point or a state that would be outside of the resource section
     instance from the FATSCC, therefore, the FATSCC witnesses a resource section
-    instance that does not terminate. \qed
+    instance that does not terminate.
 \end{proof}
 
 To detect the presence of a FATSCC in the state space graph we employ the
@@ -484,7 +549,7 @@ This way any need for separate safety checking is eliminated.
 %\paragraph{Global Nontermination}
 
 Note that it is also possible to define \emph{global nontermination} using
-Definition~\ref{def:lnterm}. In this case we only need to treat the whole
+\autoref{def:lnterm}. In this case we only need to treat the whole
 program as a single active resource section instance.
 
 % If we do so, we can even
@@ -498,19 +563,20 @@ program as a single active resource section instance.
 % An idea for finding such resource section instances can be taken from considerations about fairness in parallel systems.
 To provide further context, we also want to discuss the relation of our
 nontermination property to LTL model checking with fairness.  Fairness
-constraints \cite[Chapter 3.5]{PoMC} are needed in analysis of temporal
+constraints~\mcite[Chapter 3.5]{PoMC} are needed in analysis of temporal
 properties of parallel systems to avoid reporting of unrealistic
 counterexamples, such as those in which an enabled thread never gets the chance
-to make an action. Basically, even if we use LTL formula to
+to make an action. However, even if we use LTL formula to
 describe nontermination and allow for LTL model checking under weak fairness, we
 still may obtain counterexamples that are totally unrealistic. This is because a
-weakly-fair scheduler\footnotemark\footnotetext{For our purposes, a weakly-fair
+weakly-fair scheduler\mnote{For our purposes, a weakly-fair
   scheduler is a scheduler which ensures that on every accepting cycle in the
-  state space all threads which existed during the execution of this cycle were
-  also executed at least once on the cycle.} admits runs in which the context switches that happen
-among participating threads are very regular, hence unrealistic.
+  state space all threads which existed (and were not blocked) during the
+  execution of this cycle were also executed at least once on the cycle.}
+admits runs in which the context switches that happen among participating
+threads are very regular, hence unrealistic.
 
-The nontermination as defined in Definition~\ref{def:lnterm} can be seen as a
+The nontermination as defined in \autoref{def:lnterm} can be seen as a
 manifestation of an additional assumption about the thread scheduler. It
 claims that the scheduler is in the essence somehow irregular, i.e.,
 it will not allow for a context switch always after a fixed number of
@@ -553,7 +619,7 @@ Since C++ threading support in \divine uses the libc++ library which uses POSIX 
 User-defined annotations can be given in one of the following categories: exclusive section,
  waiting for an event, and
  waiting for function end.
-For user-defined resource sections, \divine provides C and C++ interface which can be found on the web page accompanying this publication.\footnote{\url{https://divine.fi.muni.cz/2019/lnterm}}
+For user-defined resource sections, \divine provides C and C++ interface which can be found on the web page accompanying this work.\mnote{\url{https://divine.fi.muni.cz/2019/lnterm}}
 To make it possible to specify which resource section types should be considered
 for analysis, we use program instrumentation, which enables resource sections
 based on commandline arguments (for more details see the accompanying web page).
@@ -576,8 +642,8 @@ in a not so obvious way.
 
 
 \paragraph{Counterexamples}
-
-When an error is found \divine has support to show a counterexample and walk through it using an interactive simulator~\cite{BBK+17}.
+%
+When an error is found \divine has support to show a counterexample and walk through it using an interactive simulator~\mcite{DIVINEToolPaper2017}.
 For safety properties, this counterexample is a sequence of states which ends with an error.
 For verification of properties described by LTL or Büchi automata (which are partially supported by \divine), the counterexample is a lasso-shaped trace.
 For nontermination, the  part of the state space to be reported consists of a fully
@@ -586,7 +652,7 @@ However, it is not practical to output the information about the whole SCC, as i
 For this reason, \divine gives only a trace to the first state of the FATSCC (i.e., the first state from which end of the given resource section instance is not reachable).
 
 \paragraph{Spurious Wakeups}
-
+%
 Condition variables are often used in parallel programs to block threads until some event occurs (e.g., a shared queue becomes non-empty).
 They provide a function which blocks the current thread (\texttt{wait}) and a function which signals the condition variable and causes waiting threads to proceed (\texttt{signal}).
 In most implementations, including C++ standard APIs and platform-specific APIs on Windows and Linux, \texttt{wait} is allowed to return before it is signalled: this behaviour is called \emph{spurious wakeup} and programmers must take it into account when using condition variables.
@@ -604,7 +670,7 @@ The exhaustive enumeration of possible thread interleavings ensures that other t
 
 \paragraph{Data Nondeterminism and Symbolic Data}
 %
-To make it possible to verify programs that depend on input data, \divine has support for symbolic values~\cite{LRB18}.
+To make it possible to verify programs that depend on input data, \divine has support for symbolic values~\mcite{LRB18}.
 In an analysis of programs with symbolic values, the computation can be split when a branch depends on a symbolic value.
 This splitting can cause problems for nontermination detection if leaving some resource section instance requires a particular value of an input variable.
 Therefore, in the presence of symbolic data, nontermination checking might miss some instances of nontermination.
@@ -612,8 +678,8 @@ We defer this problem to future work.
 
 \paragraph{Relaxed Memory Models}
 %
-\divine has support for analysis of parallel programs under the x86-TSO memory model of Intel and AMD CPUs~\cite{SB2018x86tso}, which allows the program to exhibit behaviour not present under the interleaving semantics of threads.
-One of the main problems in interaction between nontermination and relaxed memory is that relaxed memory models over-approximate the possible behaviours of the system to cover all possibilities of contemporary processors of a given architecture.
+\divine has support for analysis of parallel programs under the x86-TSO memory model of Intel and AMD CPUs (\mcite{SB2018x86tso} and \autoref{chap:mm}), which allows the program to exhibit behaviour not present under the interleaving semantics of threads.
+One of the main problems in interaction between nontermination and relaxed memory is that relaxed memory models over-approximate the possible behaviours of the system to cover all possibilities of contemporary and presumably also future processors of a given architecture.
 As nontermination is checking for \emph{absence of termination}, it can spuriously hide nontermination if the state space of the program is over-approximated.
 Again, we defer this problem to future work.
 
@@ -624,7 +690,7 @@ Again, we defer this problem to future work.
 \begin{tikzpicture}
 \begin{loglogaxis}[xlabel={safety [s]}, ylabel={local nonterm. [s]}, width=0.49\textwidth, height=0.49\textwidth,
                    xmin = 0.8, ymin=0.8, xmax=14400, ymax=14400,
-                   title = Wall Time (in seconds)]
+                   title = Wall Time (seconds)]
 \addplot [ scatter, only marks,mark size=2pt ]
          table [x=safety, y=local, meta=sl] {wall.dat};
 
@@ -639,7 +705,7 @@ Again, we defer this problem to future work.
 \begin{tikzpicture}
 \begin{loglogaxis}[xlabel={safety [MB]}, ylabel={local nonterm. [MB]}, width=0.49\textwidth, height=0.49\textwidth,
                    xmin = 385, ymin=385, xmax=16384, ymax=16384,
-                   title = Memory Used (in megabytes)]
+                   title = Memory Used (megabytes)]
 \addplot [ scatter, only marks,mark size=2pt ]
          table [x=safety, y=local, meta=sl] {memory.dat};
 
@@ -664,6 +730,7 @@ All the failures for local/global nontermination were due to timeouts, benchmark
 \end{figure}
 
 \begin{figure}[tp]
+\centering
 % \newcommand{\ct}{\multicolumn{1}{c}}
 % \newcommand{\ctv}{\multicolumn{1}{c|}}
 % \newcolumntype{R}{>{\raggedleft\arraybackslash}X}
@@ -742,7 +809,7 @@ nontermination detection we wanted to evaluate.
 To preserve some diversity at least, we opted for the following tests to be
 included in our benchmark.  First, to cover some real-world scenarios, we
 created some tests for the Thread library from widely used C++
-Boost\footnote{\url{https://www.boost.org/doc/libs/1_69_0/doc/html/thread.html}}
+Boost\mnote{\url{https://www.boost.org/doc/libs/1_69_0/doc/html/thread.html}}
 (35 test cases). Second, we used some tests from \divine project itself (8 test
 cases), and finally we developed a couple of specific tests for small programs
 demonstrating behaviour of local nontermination with various synchronisation
@@ -750,7 +817,7 @@ primitives (16 test cases). Overall, the benchmark covered usage of lockfree and
 mutex guarded parallel data structures (e.g. parallel queues), synchronised
 variables, less-used synchronisation primitives such as reader-writer locks, or
 a single-producer-single-consumer queue and the parallel hashset from
-\cite{BRSW15HS}.
+\mcite{BRSW15HS}.
 
 To evaluate our verification approach we let each test run with a 4 hours
 timeout and 16 GB memory limit. We measured runtime and memory requirements for
@@ -766,7 +833,7 @@ the three following configurations of our tool:
       resource section as described in \autoref{sec:local-nontermination}.
     \item[global nontermination] The configuration that treats the whole program
       as a single resource section and detects if it terminates according to
-      Definition~\ref{def:lnterm}. Since this configuration does not introduce
+      \autoref{def:lnterm}. Since this configuration does not introduce
       additional nondeterminism, the state space of the program is roughly the
       same size as for \emph{safety}.
 \end{description}
@@ -805,11 +872,11 @@ example, when \divine nondeterministically chooses from $N$ values, it will
 re-execute instructions between the last remembered state and the point of the
 nondeterministic choice $N$ times.
 
-\begin{figure}[tp]
+\begin{figure}[tbp]
 \begin{tikzpicture}
 \begin{loglogaxis}[xlabel={global [s]}, ylabel={local nonterm. [s]}, width=0.49\textwidth, height=0.49\textwidth,
                    xmin = 0.8, ymin=0.8, xmax=14400, ymax=14400,
-                   title = Wall Time (in seconds)]
+                   title = Wall Time (seconds)]
 \addplot [ scatter, only marks,mark=*,mark size=2pt ]
          table [x=global, y=local, meta=gl] {wall.dat};
 
@@ -839,7 +906,8 @@ nondeterministic choice $N$ times.
 % \medskip\\
 \begin{tikzpicture}
 \begin{loglogaxis}[ xlabel={safety [s]}, ylabel={global nonterm. [s]}, width=0.49\textwidth, height=0.49\textwidth,
-                   xmin = 0.8, ymin=0.8, xmax=14400, ymax=14400]
+                   xmin = 0.8, ymin=0.8, xmax=14400, ymax=14400,
+                   title = Wall Time (seconds)]
 \addplot [ scatter, only marks,mark=*,mark size=2pt ]
          table [x=safety, y=global, meta=sg] {wall.dat};
 
@@ -883,6 +951,7 @@ which are intended to run infinitely (but have finite state space) -- it can det
 As state space sizes and memory consumption are almost the same for safety and for global nontermination, we omit memory and state space size comparisons for the later two pairs of configurations.
 
 \paragraph{Errors Found}
+%
 No errors were found in the C++ Boost tests. On the other hand, all the errors
 we artificially implanted in the test cases were found.  As for the errors which
 were not deliberately introduced in the tests, we have found one error in a test
@@ -906,7 +975,7 @@ Our method allows for detection of partial deadlocks (and livelocks) caused by m
 To achieve this, it is necessary to provide simple annotations for parts of the code which are to be checked for termination.
 Our implementation in the \divine model checker ships with these annotations already prepared for verification of programs which use C++ blocking synchronisation primitives (mutexes, condition variables), or similar synchronisation primitives from the POSIX threads library (\texttt{pthreads}).
 Due to the universality of these synchronisation primitives, our annotations allow for checking of most programs which use blocking synchronisation out of the box.
-For lock-free programs, users have to annotate functions or blocks of code which are required to be exited once they were entered.
+For lock-free programs, or custom synchronization primitives, users have to annotate functions or blocks of code which are required to be exited once they were entered.
 
 We have implemented our technique in an open-source model checker \divine, and evaluated it on a set of benchmarks including our tests of the Thread library from widely used C++ Boost.
 The evaluation shows that while the time overhead of local nontermination checking can be quite significant (up to $59\times$ compared to safety checking on our benchmarks), the memory overhead is quite modest (under $3\times$).
@@ -923,3 +992,5 @@ While related to verification of properties written in temporal logics such as C
 For future work, it is crucial to further investigate interactions between nontermination checking and relaxed memory, and nontermination and symbolic data representation, as the presence of either of these features can lead to programs being reported as terminating even if they are not in the current situation.
 Nevertheless, even in the presence of relaxed memory or symbolic data, any reported nonterminating section of the program is indeed a case when the program cannot proceed past the given point.
 We would also like to investigate better algorithms for detection of local nontermination that might avoid adding nondeterminism to the program under analysis.
+
+% vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en
