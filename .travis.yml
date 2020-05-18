@@ -1,6 +1,6 @@
 # from https://github.com/PHPirates/travis-ci-latex-pdf/blob/master/4-texlive/.travis.yml
-language: minimal
-sudo: true
+language: shell
+os: linux
 dist: bionic
 
 # Dependency of the minted package
