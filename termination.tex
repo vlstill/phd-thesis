@@ -226,12 +226,13 @@ With our local nontermination property, we aim at detection of resource section 
 We will first use examples of terminating and nonterminating resource section instances, and then we will define them precisely.
 
 \begin{figure}[tp]
-\begin{subfigure}[t]{0.49\textwidth}
+\begin{subfigure}[t]{0.475\textwidth}
 \begin{cppcode}
     mutex m;
 
     void thread0() {
-      unique_lock lock(m); // Error
+      // Error:
+      unique_lock lock(m);
       while (true) {
         do_work();
       }
@@ -252,13 +253,14 @@ We will first use examples of terminating and nonterminating resource section in
 %
 \hfill
 %
-\begin{subfigure}[t]{0.49\textwidth}
+\begin{subfigure}[t]{0.475\textwidth}
 \begin{cppcode}
     mutex m;
 
     void thread0() {
+      // Fixed:
       while (true) {
-        unique_lock lock(m); // Fixed
+        unique_lock lock(m);
         do_work();
       } // unlock
     }
@@ -372,7 +374,7 @@ result of this construction, for every nonterminating resource section in the
 original program, there is a corresponding ARSI in the augmented state space
 graph. To let the exploration algorithm know that it is exploring a part of the
 state space that is within an ARSI, we mark all edges within ARSIs as accepting.\mnote{The accepting label of an edge is a notation borrowed from (transition-based) Büchy automata.
-In DIVINE this information can be used by the exploration algorithm to behave differently for accepting edges.\TODO{WHY DOES THIS NOTE NOT SHOW!?}}
+In DIVINE this information can be used by the exploration algorithm to behave differently for accepting edges.}
 
 \begin{figure}[p]
 \begin{cppcode}

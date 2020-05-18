@@ -318,19 +318,19 @@ The only relaxation allowed by \xtso is that a store can appear to be executed
 later than a load which succeeds it.
 The memory model does not give any limit on how long a store can be delayed.
 An example of non-intuitive execution of a simple program under \xtso can be
-found in Figure~\ref{fig:xtso}.
+found in \autoref{fig:xtso}.
 
-\begin{figure}[th] % fig:xtso
-    \begin{minipage}[c]{0.23\textwidth}
+\begin{figure}[tp] % fig:xtso
+    \begin{minipage}[c]{0.22\textwidth}
       \begin{cppcode}
         int x = 0;
         int y = 0;
-        void thr0() {
+        void t0() {
           y = 1;
           int a = x;
           int c = y;
         }
-        void thr1() {
+        void t1() {
           x = 1;
           int b = y;
           int d = x;
@@ -340,7 +340,7 @@ found in Figure~\ref{fig:xtso}.
     %
     \hfill
     %
-    \begin{minipage}[c]{0.75\textwidth}
+    \begin{minipage}[c]{0.77\textwidth}
     \begin{center}
     \noindent
     Is $a = 0 \land b = 0$ reachable?\\[2.5ex]
@@ -871,7 +871,7 @@ Unless explicitly stated otherwise, all C++ examples in this work use the C++20
 standard, as defined by its latest working draft N4860~\cite{cpp20}\mnote{The
 N4860 draft should represent the final version of the standard which was
 submitted to publication, but not yet published at the time of writing of this
-paragraph}.
+paragraph.}.
 
 \paragraph{Threads}
 %

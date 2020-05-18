@@ -213,29 +213,27 @@ The overview of this process can be seen in \autoref{fig:lang:divineworkflow}.
 
 \begin{figure}[tp]
 \center
-\begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, node distance=3cm
-                   , semithick
-                   , style={ node distance = 2em }
+\begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, semithick
                    , state/.style={ rectangle, draw=black, very thick,
-                     minimum height=1.7em, minimum width = 4.4em, inner
-                     sep=2pt, text centered, node distance = 1.9em }
+                        minimum height=1.7em, inner ysep=2pt, inner xsep=0.5em,
+                        text centered, node distance = 1.5em }
                    ]
-  \node[state, minimum width = 6em] (code) {C++ code};
-  \node[state, minimum width = 10.4em, right = 11.7em of code] (prop) {property and options};
+  \node[state] (code) {C++ code};
+  \node[state, right = 11.7em of code] (prop) {property and options};
 
   \node[state, below = 3.8em of code, rounded corners] (clang) {compiler};
   \node[state, right = of clang, rounded corners] (link) {linker};
   \node[state, below = 1.5em of link.south, anchor = north] (runtime) {libraries \& runtime};
-  \node[state, right = of link, rounded corners, minimum width = 8em] (lart) {instrumentation};
-  \node[state, right = of lart.north east, anchor = north west, rounded corners, text width = 8em, align = center] (verifier) {verification core\\(\divm)};
+  \node[state, right = of link, rounded corners] (lart) {instrumentation};
+  \node[state, right = of lart.north east, anchor = north west, rounded corners, align = center] (verifier) {verification core\\(\divm)};
   \node[above = 0.5em of lart] (pverify) {};
 
   \node[state, below = 4.5em of verifier.south east, anchor = north east] (valid) {\color{green!40!black}Valid};
-  \node[state, left = 1em of valid, minimum width = 8em] (ce) {\color{red}Counterexample};
+  \node[state, left = 1em of valid] (ce) {\color{red}Counterexample};
 
   \begin{pgfonlayer}{background}
       \node[state, fit = (pverify) (clang) (runtime) (lart) (verifier),
-            inner sep = 0.8em, thick, rounded corners, dashed] (verify) {};
+            inner sep = 0.6em, thick, rounded corners, dashed] (verify) {};
   \end{pgfonlayer}
 
   \node[above = 0.1em] at (verify.north) {DIVINE};
@@ -247,8 +245,8 @@ The overview of this process can be seen in \autoref{fig:lang:divineworkflow}.
         (runtime) edge[|*] (link.south)
         (link.north east) edge[bend left] node {LLVM IR} (lart.north west)
         (lart.north east) edge[bend left] node {\divm IR} (verifier.north west)
-        (verifier.310) edge[|*] (valid.north)
-        (verifier.200) edge[|*] (ce.north)
+        (verifier.325) edge[|*] (valid.north)
+        (verifier.215) edge[|*] (ce.north)
         ;
 \end{tikzpicture}
 \caption{Workflow of processing of a C++ program by DIVINE.
@@ -707,7 +705,7 @@ An illustration of how the stack looks while the unwinder is active is shown in
                                     node distance = 0em}
                    , framepart/.style={common, minimum height=1.7em,
                                        minimum width = 9.2em, text centered} 
-                   , vmreg/.style={common, minimum height=2em, minimum width = 3em}
+                   , vmreg/.style={common, minimum height=2em, minimum width = 4em}
                    , frame/.style={matrix of nodes, nodes={framepart},
                                    node distance = 1em}
                    , box/.style={draw, dashed, rounded corners}
@@ -721,7 +719,7 @@ An illustration of how the stack looks while the unwinder is active is shown in
     \node[above = 0 of vmreg.north, anchor = south] (vmreg-l) {VM Registers};
     \node[box, fit = (vmreg) (vmreg-l)] {};
 
-    \matrix[frame, below = 3em of vmreg] (close) {%
+    \matrix[frame, below left = 4em and -2em of vmreg] (close) {%
         \cpp{close()} \\
         caller \\
         PC = … \\
@@ -736,7 +734,7 @@ An illustration of how the stack looks while the unwinder is active is shown in
     \matrix[frame, below = of dFile] (main) {%
         \cpp{main()} \\
         caller \\
-        PC = \li{call @~File} \\
+        PC = \li{call}\texttt{ @\textasciitilde{}File} \\
         … \\
         exception \\
         … \\};
@@ -774,7 +772,7 @@ An illustration of how the stack looks while the unwinder is active is shown in
         … \\
         C++ Exception Object \\};
           
-    \draw (vmreg-1-3) edge[out=310, in=47, looseness=2] (close)
+    \draw (vmreg-1-3) edge[out=220, in=47] (close)
 
         (close-2-1.east) edge[bend left] (dFile-1-1.east)
         (dFile-2-1.east) edge[bend left] (main-1-1.east)
@@ -784,7 +782,7 @@ An illustration of how the stack looks while the unwinder is active is shown in
         (unwind-2-1.east) edge[bend left] (throw-1-1.6)
 
         (exception-4-1.east) edge[bend right] (unwind-1-1.east)
-        (main-5-1.east) edge[out=0, in=180] (exception-1-1.west)
+        (main-5-1) edge[out=0, in=180] (exception-1-1.west)
       ;
 \end{tikzpicture}
 \caption{In this figure we can see a stack of a program which is running
@@ -851,10 +849,10 @@ compile time) the selector value corresponding to a particular type info
 pointer.
 
 Therefore, besides generating the LSDA data, the transformation
-statically computes the values which correspond to
-\texttt{llvm.eh.typeid.for} calls and substitutes them into the bitcode.
-Since the purpose of \texttt{llvm.eh.typeid.for} is to translate from
-RTTI pointers to selector values, it is only required that the integer
+statically computes the values of
+calls to \texttt{llvm.eh.typeid.for} and substitutes them into the bitcode.
+The purpose of \texttt{llvm.eh.typeid.for} is to translate from
+RTTI pointers to selector values, therefore it is only required that the integer
 selector value chosen for a particular RTTI object is in agreement with
 the personality function. In our implementation, this is ensured by
 computing the selector values statically for both the LSDA (which is
@@ -874,7 +872,7 @@ implementation is part of the runtime libraries shipped with
 \divine{}, in particular in file \texttt{dios/arch/divm/unwind.cpp}.
 The
 unwinder builds upon a lower-level stack access API which is provided by
-\dios{} under \texttt{dios/include/sys/stack.h} and implemented in \texttt{dios/arch/divm/stack.cpp}.
+\dios{} under \texttt{dios\slash{}include\slash{}sys\slash{}stack.h} and implemented in \texttt{dios\slash{}arch\slash{}divm\slash{}stack.cpp}.
 
 \begin{table}[tp]
 \caption{A list of C functions provided by \texttt{libunwind}. In C, all the
