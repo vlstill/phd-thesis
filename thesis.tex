@@ -300,17 +300,14 @@
 \clubpenalty=2000
 \widowpenalty=2000
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
-
 % initial pages from Mornfall + modifications
-
 \frontmatter
- 
+
 \begin{titlepage}
 \newgeometry{margin=4cm}
 \begin{center}
@@ -330,7 +327,8 @@
 \textbf{Supervisor:}\\
 \thesisadvisor \hfill \thesisYearCity
 \end{titlepage}
- 
+
+\pagestyle{fancy}
 \cleardoublepage
 
 \section*{Abstract}
@@ -345,7 +343,6 @@ LLVM, C++, DIVINE, implementation}
 \thispagestyle{empty}
 
 % HEADINGS
-\pagestyle{fancy}
 \tableofcontents % prints table of contents
 \mainmatter
 
