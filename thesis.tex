@@ -86,6 +86,23 @@
 											 horizontal line through={(\tikztotarget)})
   	}}
 }
+\usepackage{pgfplots}
+\pgfplotsset{
+    every axis/.append style={
+        axis on top,
+        scatter/classes={ %
+            tt={mark=square,thick,green!70!black}, %
+            tT={mark=x,thick,green!70!black}, %
+            fT={mark=x,thick,blue}, %
+            MT={mark=x,thick,black}, %
+            TT={mark=x,thick,black}, %
+            MM={mark=x,thick,black}, %
+            tf={mark=triangle,thick,red}, %
+            ft={mark=triangle,thick,red}, %
+            ff={mark=o,thick,blue}
+        }, scatter src=explicit symbolic, axis equal
+    }
+}
 \usepackage{pdfpages}
 
 \usepackage{float}
