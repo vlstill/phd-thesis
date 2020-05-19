@@ -8,7 +8,7 @@ Our approach makes it possible to detect partial deadlocks and livelocks, i.e., 
 The approach is also applicable to programs that do not terminate (such as daemons with infinite control loops) as it can be configured to check only for termination of selected sections of the program.
 The termination criteria can be user-provided; however, \divine comes with the set of built-in termination criteria suited for the analysis of programs with mutexes and other common synchronisation primitives.
 
-\section{Safety is Insufficient}
+\section{Motivation}
 
 A significant limitation of many existing tools for analysis of parallel
 programs in programming languages such as C and C++ is that they are only concerned with safety checking -- they check that a bad state of the program is unreachable.

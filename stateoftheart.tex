@@ -109,6 +109,10 @@ several orders of magnitude~\cite{TODO}, and therefore enable verification of
 realistic (but still relatively small) programs.
 
 Interestingly, the proposed reduction techniques which aim to preserve verified properties are not always correct, for example the original version of $\tau+$ reduction considered only stores to be visible, but it was later shown that repeated loads have to be also visible (shown by me in~\cite{S2016}, acknowledged an fixed in \cite[Section 6]{RSCB2018}).\mnote{%
+Consider this program with threads \texttt{t0} and \texttt{t1}:
+
+\medskip
+\begin{minipage}{\widthof{with threads \texttt{t0} and \texttt{t1}:}}
 \cpp{int x = 0;}\\
 \cpp{void t0()} \texttt{\{}\\
 \cpp{  x = 1;}\\
@@ -117,7 +121,9 @@ Interestingly, the proposed reduction techniques which aim to preserve verified 
 \cpp{  int a = x;}\\
 \cpp{  assert(a == x);}\\
 \texttt{\}}
+\end{minipage}
 
+\medskip
 The assertion is violated if \cpp{t0} executes between the (local, invisible)
 assignment and the assertion in \cpp{t1}.
 However, if repeated loads are not considered visible, they are coalesced and
