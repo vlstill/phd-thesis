@@ -9,7 +9,7 @@ Any of this plethora of software system can contain bugs.
 These bugs can range from minor ones which cause inconvenience only, to safety critical problems which can cause deaths of many people.
 For this reason, ensuring software correctness is a desirable goal pursued by software developers and testers, as well as researchers.
 There are many techniques which provide asistance to both developers and testers, with a wide range of capabilities and ease of use.
-At the basic level, developers can levage type system, especially if they use strongly statically typed programming language, and they can use compiler warnings and linters\mnote{Lightweight analysis tools which try to find likely bugs. They usually perform more thorough analysis then compilers do for the purpose of warnings, but still prefer speed and low number of spurious error reports to discovery of hard to find bugs.} to check for mistakes and potential problems in the code.
+At the basic level, developers can levage type system, especially if they use strongly statically typed programming language, and they can use compiler warnings and linters\mnote{Lightweight analysis tools which try to find likely bugs. They rely on approximation and usually perform more thorough analysis then compilers do for the purpose of warnings, but still prefer speed and low number of spurious error reports to discovery of hard to find bugs.} to check for mistakes and potential problems in the code.
 Code is also routinely tested with a large variety of test types, starting from unit tests which test small parts of the program in isolation and continuing to tests of functionality of the whole system.
 
 These testing and code analysis technique are wide-spread, can discover large amounts of bugs, and are often reasonably easy to use for developers.
@@ -19,14 +19,36 @@ A conventional approach to this problem is using stress testing -- for example a
 Such stress tests are designed to increase likelihood of triggering a bug in the test, but they still cannot show its absence.
 Even worse, tests of parallel software are often nondeterministic on buggy software, i.e., the same test of the same software version can sometimes succeed and sometimes fail due to different interleaving of threads in different executions.
 This behaviour might make bug fixing extremely difficult: for example it can happen that a test fails in a nightly automatic build, and therefore the developer knows there is a bug in the program, but they are unable to reproduce the bug and the test result might not be sufficient to find what the bug is without reproducing it.
-Similarly, it is hard to ensure by testing that (parallel) program terminates in all cases, or that it works correctly even on hardware with relaxed memory (which can, for example, delay stores to the main memory).
+Similarly, it is hard to ensure by testing that (parallel) program terminates in all cases, or that it works correctly even on hardware with relaxed memory (which can, for example, delay stores to the main memory).\mnote{%
+Consider this code:
+
+\medskip
+\begin{minipage}{\widthof{Consider this code:}}
+\cpp{int x = 0;} \\
+\cpp{int y = 0;} \\
+
+\cpp{void t0()} \texttt{\{} \\
+\cpp{  y = 1;} \\
+\cpp{  int a = x;} \\
+\texttt{\}}
+
+\cpp{void t1()} \texttt{\{} \\
+\cpp{  x = 1;} \\
+\cpp{  int b = y;} \\
+\texttt{\}}
+\end{minipage}
+
+\medskip
+Where \texttt{t0} and \texttt{t1} are executed by diffrent threads.
+
+Intuitivelly we could expect that $\texttt{a} = 0 \land \texttt{b} = 0$ is not a possible outcome.
+However, under the common x86 architecture, this outcome can happen due to delayed stores.
+}
 
 In order to make discovery of hard to find bugs easier, many techniques were proposed -- both testing based methods, such as \TODO{race detectors, scheduler manipulation, ...} and methods based on \emph{formal verification} including \TODO{theorem proving, bounded/stateless/explicit-state MC}.
 However, for these methods to be useful to programmers, they must not only be theoretically capable of bug discovery, they must also be reasonably convenient to use.
 For example, it is highly desirable that the program analysis tool can analyze the program directly, without the need to create a model of the program which is to be analysed (which is what many, especially older, techniques for analysis of parallel programs require).
-For this reason, we will focus on analysis tools which work with \emph{realistic programs} -- i.e., programs written in high-level programming languages which can be both executed on the desired platform, and analysed without a separate modelling step.
-
-\TODO{SV-COMP?}.
+For this reason, we will focus on analysis tools which work with \emph{realistic programs}, i.e., programs written in high-level programming languages which can be both executed on the desired platform, and analysed without a separate modelling step.
 
 \section{Analysis of Realistic Programs}
 
@@ -34,14 +56,15 @@ Analysis of realistic (parallel) programs is a hard task, because these programs
 First, the syntax of the programming language is often complex -- modern programming languages such as C++, C\#, Java or Python are designed to be expressive and well usable by the programmer and are usually not easy to parse and process.
 Furthermore, the language can have many features which are hard to analyse even when the code is understood, for example, dynamic memory complicates program analysis because the amount of used memory and identifiers of memory locations are not known beforehand.
 Pointer arithmetic and memory unsafety of programming languages such as C and C++ further complicates handling of memory.
-Even procedure calls and recursion, which are available in virtually any general-purpose programming language make some kinds of program analysis harder.
+Even procedure calls and recursion, which are available in virtually any general-purpose programming language, make some kinds of program analysis harder.
 
-Realistic programming languages are also not only defined by their syntax and semantics, but also by their libraries.
+Realistic programming languages are also not only defined by the language syntax and semantics, but also by their libraries.
 Usually the programming language ships with a standard library which provides basic abstractions and operations which most of the programmers using the language will use and expect to work also in program analysis tool if they are to use it.
 These libraries can be relatively simple, for example the C standard library does not define any data structures and handles basics such as memory allocation and deallocation, basic string manipulations, math operations, and basic input and output (and since C11 also threads and concurrency).
 Most standard libraries are, however, larger and more complex -- they contain various data structures, algorithms for working with them, and often abstractions over filesystem and network access.
 
-In order for a program analysis tool to be useful to programmers, it should be able to process the code they are creating with a minimal extra effort -- including complex language features and libraries.
+In order for a program analysis tool to be useful to programmers, it should be able to process the code they are creating with a minimal extra effort.
+This means it must be able to handle complex language features and libraries.
 For example a tools which understands basics of the C language, but does not allow dynamic memory allocation, is not very useful for a programmer, as they will probably not be able to  use it to analyse their usual programs which contain dynamic memory allocation.
 On the other hand, if the language support is good enough, it enables the programmer to use the analysis tool directly on their program or its fragments, both during the development, and for older code as the programmer is not forced to simplify, rewrite or model their code in order to get usable analysis results.
 
@@ -51,32 +74,33 @@ example of adding C++ exception support to the DIVINE verifier will be given in
 
 \section{Parallelism and Relaxed Memory}
 
-Parallelism adds more complexity both for the code author, and for the analysis tool which now has to be able to handle representation of threads and synchronization in the given input programming language and the semantics of parallel execution the program.
+In order to fully utilize capabilities of modern hardware, programmers are encouraged to write parallel software.
+However, parallelism adds more complexity both for the code author, and for the analysis tool which now has to be able to handle representation of threads and synchronization in the given input programming language and the semantics of parallel execution the program.
 Furthermore, relaxed memory can come into play with parallelism.
 Modern processors use cache memories and out-of-order execution to improve their speed and hide speed difference between the processor's cores and the main memory.
-For efficiency reasons, these mechanism are often not transparent to the programmer, but can be observed by a multi-threaded program, yielding possible executions which seems to violate ordering of actions in their respective threads (for example, a write to a memory can be delayed past an independent read).
+For efficiency reasons, these mechanism are often not transparent to the programmer, and can be observed by a multi-threaded program, yielding possible executions which seem to violate ordering of actions in their respective threads (for example, a write to a memory can be delayed past an independent read).
 When this behavior is observable on a hardware platform, we say that the given hardware platform has relaxed memory.
 
 Relaxed memory adds substantial complexity to the program analysis --
-an analysis tool has to be able to understand the particular relaxed memory model (different platforms exhibit different behaviour) and the complexity of the amount of resources required to run the verification is also often increased.
+an analysis tool has to be able to understand the particular relaxed memory model (different platforms exhibit different behaviour) and the amount of resources required to run the verification is also often increased.
 
 We believe that analysis under relaxed memory model is an important topic,
 in particular in the context of lock-free programs, therefore \autoref{chap:mm}
-shows how support for the memory model of x86 processors was added to the
-DIVINE verifier.
+shows how support for the memory model of the common Intel and AMD x86
+processors was added to the DIVINE verifier.
 
 \section{Termination of Parallel Programs}
 
 Most contemporary verifiers focus on proving safety of programs, i.e., they
 attempt to show that nothing bad happens at any point in the execution of the
-program.
-Such safety properties often include assertion safety (absence of violation of \emph{assertions} -- programmer specified properties which should hold at the given point in the code), memory safety (which includes correct access to arrays, correct handling of dynamic memory, and absence of stack overflows), or absence of use of undefined values (in programming languages such as C and C++ which can work with uninitialized memory).
+program or they are bug-hunters, i.e., tools which try to find safety violations, but cannot prove safety.
+Safety properties often include assertion safety (absence of violation of \emph{assertions} -- programmer specified properties which should hold at the given point in the code), memory safety (which includes correct access to arrays, correct handling of dynamic memory, and absence of stack overflows), or absence of use of undefined values (in programming languages such as C and C++ which can work with uninitialized memory).
 The advantage of safety properties is that they can be checked locally -- if at
 any point in the execution the program does not do anything bad, it is safe.
-This of course does not guarantee that the program is correct, for that it is often necessary to prove termination.
+This of course does not guarantee that the program is correct, for that it is often necessary to also prove termination, or some other temporal property.
 
 However, in parallel programs it is also common that the program itself does
-not(and should not) terminate, but it has some parts (for example a
+not (and should not) terminate, but it has some parts (for example a
 request-serving routine in a web server) which must terminate.
 \autoref{chap:lnterm} takes a look at detection of parts of a parallel program which should terminate but do not terminate.
 
@@ -91,7 +115,7 @@ DIVINE can be used to discover large classes of bugs, including assertion violat
 \section{Thesis Contributions}
 
 In this work, we will describe several techniques which improve analysis of realistic parallel programs in the DIVINE model checker and we compare them to many other techniques which aim at testing parallel programs.
-In our analysis we will focus primaryly on programs written in C and C++.
+In our analysis we will focus primarily on programs written in C and C++.
 Nevertheless, analysis of other real-world high-level imperative programming
 languages (such as Java, C\#, Rust and many other) should follow similar
 principles.
@@ -126,12 +150,12 @@ The main contributions of this work are in the following areas:
   \item Nontermination Analysis for Parallel Programs, \autoref{chap:lnterm}.
     In the third contribution of this work, we introduce a generic method for
     detection of nontermination caused by communication between threads.
-    Or method uses lightweight annotations in the code to mark parts of the
-    program which must terminate, together with a set of pre-defined parts of
-    program which must terminate which allow it to be used with common
-    synchronization primitives out of the box.
-    Furthermore, our method can be also applied to deliberately nonterminating
-    programs (i.e., deamons, services) in which it can detect parts which
+    It uses lightweight annotations in the code to mark parts of the program
+    which must terminate, together with a set of pre-defined parts of program
+    which must terminate which allow it to be used with common synchronization
+    primitives out of the box.
+    Our method can be also applied to deliberately nonterminating
+    programs (i.e., daemons, services) in which it can detect parts which
     should terminate but do not terminate.
 \end{itemize}
 
@@ -147,4 +171,6 @@ realistic programs and C++ exceptions in \autoref{chap:lang}, support for the
 \autoref{chap:lnterm}.
 \autoref{chap:conclusion} then concludes the main body of this work.
 
-The list of my published work can be found in \autoref{chap:published}.
+The list of my published results can be found in \autoref{chap:published}.
+
+% vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en
