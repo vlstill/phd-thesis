@@ -121,7 +121,6 @@
 \makeatother
 \floatstyle{botruled}
 \restylefloat{figure}
-% \restylefloat{table}
 \usepackage[labelfont=bf]{caption}
 \usepackage{subcaption}
 
@@ -134,36 +133,20 @@
 \newcolumntype{L}{>{}X}
 \usepackage{booktabs}
 \usepackage{arydshln}
-\newcommand{\dg}{\textsuperscript{\dag}}
 
 \newcommand{\divine}{\mbox{DIVINE}\xspace}
 \newcommand{\divm}{Di\hspace*{-0.66pt}VM\xspace}
 \newcommand{\dios}{DiOS\xspace}
-\newcommand{\lart}{\mbox{\textsf{LART}}\xspace}
-
-\newcommand{\paradise}{ParaDiSe\xspace}
-\newcommand{\buchi}{Büchi\xspace}
-
-\newcommand{\spin}{\mbox{\textsc{Spin}}\xspace} 
-\newcommand{\ltsmin}{\mbox{LTSmin}\xspace}
+\newcommand{\lart}{\mbox{LART}\xspace}
 
 \newcommand{\llvm}{LLVM\xspace}
 \newcommand{\ltl}{LTL\xspace}
 \newcommand{\complexity}[1]{\textsc{#1}\xspace}
 \newcommand{\PSPACE}{\complexity{PSPACE}}
 
-\newcommand{\darcs}{Darcs\xspace}
-
 \newcommand{\tso}{TSO\xspace}
 \newcommand{\pso}{PSO\xspace}
 \newcommand{\xtso}{\mbox{x86-\kern-.15em TSO}\xspace}
-
-\newcommand{\dorel}[1]{\ifmmode\mathbin{#1}\else${#1}$\fi}
-\newcommand{\rel}[1]{\dorel{\xrightarrow{\mathrm{#1}}}}
-\newcommand{\rellabel}[1]{\scriptsize\texttt{#1}}
-\newcommand{\drawrel}[4][left]{\draw[->] (#2) edge node[#1] {\rellabel{#4}} (#3)}
-\newcommand{\drawrelgray}[4][left]{\draw[->, gray] (#2) edge node[#1] {\color{gray}\rellabel{#4}} (#3)}
-\newcommand{\loc}[1]{\ensuremath{\mathrm{loc}\left(#1\right)}}
 
 \newcommand{\FI}{Faculty of Informatics}
 \newcommand{\MU}{Masaryk University}
@@ -223,7 +206,6 @@
   \renewcommand{\headrulewidth}{0pt}
 }
 
-
 \usepackage{setspace}
 
 \usepackage{enumitem}
@@ -246,30 +228,12 @@
 
 \newcommand{\rot}[1]{\rotatebox{90}{#1\hspace*{0.5em}}}
 
-% LUA magic
-
-% \directlua{dofile("thesis.lua")}
-
-% \newcommand{\mem}[1]{\directlua{tex.sprint(mem(#1))}}
-% \newcommand{\dmem}[1]{\mem{#1 * 1024}}
-% \newcommand{\si}[1]{\directlua{tex.sprint(si(#1))}}
-% \newcommand{\speedup}[2]{\directlua{tex.sprint(speedup(#1, #2))}}
-
-\newcommand{\antispaceatend}{\vspace*{-\topsep}}
-
 \setlength{\overfullrule}{5pt} % TODO: remove
 
 % try to avoid overfull lines, taken from \sloppy, but without allowing greater
 % tolerance for paragraphs without any problems
 % \emergencystretch 3em
 
-\usepackage{adjustbox}
-\newenvironment{threads}[1]
-    {\def\threadwidth{\textwidth / #1}\global\def\threadnext{}}
-    {}
-\newenvironment{thread}
-    {\threadnext\begin{adjustbox}{valign=t,minipage={0.95\threadwidth}}}
-    {\end{adjustbox}\global\def\threadnext{\hfill}}
 \newenvironment{stretched}{\emergencystretch 3em}{}
 
 \setcounter{tocdepth}{1}
@@ -279,6 +243,7 @@
 %% MARGIN NOTES %%
 \usepackage{marginfix}
 \usepackage{ragged2e}
+\usepackage{ifoddpage}
 \newcommand{\raggedout}{\checkoddpage\ifoddpage\RaggedRight\else\RaggedLeft\fi}
 \newcounter{mnote}[chapter]
 \newcommand{\mnotemark}{\stepcounter{mnote}\hyperlink{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}$}\xspace}
