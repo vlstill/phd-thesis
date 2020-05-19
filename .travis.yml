@@ -29,8 +29,6 @@ addons:
 
 script:
   - set -e
-  # Texliveonfly will download packages automatically
-  - texliveonfly thesis.tex </dev/null || true
   - make -B
 
   - git remote -v
