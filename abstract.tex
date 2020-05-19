@@ -1,4 +1,4 @@
-Parallel software offers a promise of full utilization of the modern hardware,
+Parallel software offers a promise of full utilization of modern hardware,
 but it also presents additional challenges to the programmers.
 To help with its creation, many approaches to program analysis have emerged
 over the years.
@@ -9,9 +9,9 @@ We are particularly concerned with automated discovery of hard to find bugs.
 In the first part, we demonstrate the case for tools which can work with a
 high-level programming languages, including their advanced features and
 standard libraries.
-Such tools can be used by programmers without any deep knowledge of formal
-verification and therefore can be used more regularly and help with development
-of more software.
+Such tools can be used by programmers without any in-depth knowledge of formal
+verification and therefore can be used more regularly and help with the
+development of more software.
 While this task is not an easy one, we show it is still manageable with a good
 compromise of reuse of existing execution-oriented components and design of
 new, verification-oriented components.
@@ -24,9 +24,9 @@ Therefore programmers who work on high-performance parallel software often have
 to take it into account.
 Depending on the concrete architecture, processors can reorder stores after
 independent loads, reorder stores with each other, and make a series of events
-observable in different order by different threads.
+observable in a different order by different threads.
 In this work, we will be focusing on relaxed behaviour manifested by Intel and
-AMD x86 processors which can be found in various computers from laptops to
+AMD x86 processors, which can be found in various computers from laptops to
 supercomputers.
 We propose a novel way in which relaxed memory is simulated by the verifier.
 Our method aims to minimise introduced nondeterminism and therefore increase
@@ -37,13 +37,13 @@ programs.
 In particular, we propose a method which can detect local nontermination in a
 program, i.e., it can detect that a certain section of the program, which is
 supposed to terminate, does not terminate.
-The local nontermination can be used on programs which do not terminate, but
+The local nontermination can be used on programs which do not terminate but
 have parts which must terminate (e.g., a server might have a function which
-handles a request and this functions must always terminate).
-Our method is general in the sense that it does not require use of a particular
-synchronization primitives, but it is only complete on programs which have
-finite state space (such programs can have infinite behaviour in which certain
-state is repeated).
+handles a request, and this functions must always terminate).
+Our method is general in the sense that it does not require the use of
+particular synchronization primitives.
+However, it is only complete on programs which have finite state space (such
+programs can have infinite behaviour in which specific state is repeated).
 Even with this limitation, we believe this technique can help with the design
 of high-performance parallel algorithms and data structures.
 
