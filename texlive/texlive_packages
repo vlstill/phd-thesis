@@ -6,3 +6,5 @@ collection-fontsrecommended
 luaotfload
 biber
 pgfplots
+ifoddpage
+ragged2e
