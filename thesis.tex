@@ -205,6 +205,26 @@
   \fancyfoot[C]{\footnotesize\thepage}
   \renewcommand{\headrulewidth}{0pt}
 }
+% set marks for headers -- chapter mark contains only the chapter name, section
+% mark has the dot after the section number removed (to match the actual
+% section heading)
+\pagestyle{fancy} % initialize before setting marks
+\makeatletter
+\def\chaptermark#1{%
+  \markboth{\MakeUppercase{%
+    \ifnum \c@secnumdepth >\m@ne
+      \if@mainmatter
+        %\@chapapp\ \thechapter \ %
+      \fi
+    \fi
+    #1}}{}}
+\def\sectionmark#1{%
+  \markright {\MakeUppercase{%
+    \ifnum \c@secnumdepth >\z@
+      \thesection \ %
+    \fi
+    #1}}}
+\makeatother
 
 \usepackage{setspace}
 
