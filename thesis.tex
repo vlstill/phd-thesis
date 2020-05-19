@@ -272,15 +272,17 @@
     {\end{adjustbox}\global\def\threadnext{\hfill}}
 \newenvironment{stretched}{\emergencystretch 3em}{}
 
-\setcounter{tocdepth}{2}
+\setcounter{tocdepth}{1}
 
 \usepackage{pdfpages}
 
 %% MARGIN NOTES %%
 \usepackage{marginfix}
+\usepackage{ragged2e}
+\newcommand{\raggedout}{\checkoddpage\ifoddpage\RaggedRight\else\RaggedLeft\fi}
 \newcounter{mnote}[chapter]
 \newcommand{\mnotemark}{\stepcounter{mnote}\hyperlink{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}$}\xspace}
-\newcommand{\mnotetext}[1]{\marginpar{\raggedright\hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}\footnotesize{}#1}}
+\newcommand{\mnotetext}[1]{\marginpar{\raggedout\hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}\footnotesize{}#1}}
 \newcommand{\mnote}[1]{\mnotemark{}\mnotetext{#1}}
 
 
@@ -288,7 +290,7 @@
 \newcommand{\internalmcite}[3][]{\cite[#1]{#2}%
 \readlist*\cilist{#2}%
 \foreachitem\ci\in\cilist[]{%
-\ifcsname mcite: \thepage : \ci\endcsname \else\expandafter\def\csname mcite: \thepage : \ci\endcsname{}\marginpar{\raggedright\footnotesize\cite{\ci} \citeauthor*{\ci}, \citetitle{\ci}.#3}\fi%
+\ifcsname mcite: \thepage : \ci\endcsname \else\expandafter\def\csname mcite: \thepage : \ci\endcsname{}\marginpar{\raggedout\footnotesize\cite{\ci} \citeauthor*{\ci}, \citetitle{\ci}.#3}\fi%
 }}
 \newcommand{\mcite}[2][]{\internalmcite[#1]{#2}{}}
 \newcommand{\mucite}[2][]{\internalmcite[#1]{#2}{ \citeurl{#2}}}
