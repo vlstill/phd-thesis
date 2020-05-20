@@ -1,4 +1,5 @@
-In this chapter we define problems we will be focusing on, and give elementary goals for the analysis tool -- what it needs to be able to handle to be considered useful.
+This chapter gives an introduction to program analysis and to the working of
+parallel programs and relaxed memory models.
 We will also present concepts which we will use later in the work and introduce programming languages used in the examples.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -18,101 +19,180 @@ As we focus on techniques which should be usable by programmers without a substa
 
 In order to be able to define program properties which should be checked and to describe various analysis methods, we first need to define the \emph{state space of the program}.
 
-\TODO{finite-state threads}
-
 \begin{definition}[State Space]
 The \emph{state space} of a program is a directed multigraph with (optionally) labelled edges which describes all the ways in which the program can be executed.
 The vertices of the state space multigraph are called \emph{states} (of the program).
 Each state represents a certain point in the execution of the program -- it can be described by a snapshot of the program (its memory, program counters and stacks of all its threads, …).
 States $v_1, v_2$ are connected by an edge in the state space if $v_2$ can be reached from $v_1$ by a single step of the program.
-The edge can be optionally labelled, for example by the statements executed in each step, or by a selected actions specified by the program.
-The state space contains all the states of the program which are reachable from a certain initial state, i.e., an initial configuration of the program.
+The edge can be optionally labelled, for example by the statements executed in each step, or by a selected actions specified by the program or verification tool (such as \emph{error} label to indicate an error occurs on this edge or \emph{accepting} label which can be used in automata-based approach to LTL model checking).
+The state space contains all the states of the program which are reachable from a certain initial state (an initial configuration of the program).
 \end{definition}
 
 The state space is usually given not as a graph, instead it is specified by its
 implicit representation -- the program code, or possibly a function which
 describes the initial states and how to get from one state to its successors.
+
 In practice, the state space of a program can be very large or infinite and it
 is useful to be able to consider only a representative part of the state space.
 
 \begin{definition}[Reduced State Space]
-A \emph{reduced state space} of a program is a subset of the state space (\TODO{grafový pojem?}) in which states are subset of the original state space and edges connect states between which there is a directed path in the original state space such that all the internal states of this path are not contained in the reduced state space.
+A \emph{reduced state space} of a program is a subset of the state space in which states are subset of states of the original state space and edges connect states between which there is a directed path in the original state space such that all the internal states of this path are not contained in the reduced state space.\mnote{
+For example, consider the following state space:\\
+\begin{tikzpicture}[>=latex,>=stealth',auto,node distance=1em,semithick,initial text=,
+      state/.style={inner sep=3pt, draw, circle}]
+  \node[state, initial, initial above] (i) {};
+  \node[state, below left = of i] (a) {};
+  \node[state, below right = of i] (b) {};
+  \node[state, below left = of a] (aa) {};
+  \node[state, below right = of a] (ab) {};
+  \node[state, below right = of b] (bb) {};
+  \node[state, below right = of aa] (aab) {};
+  \node[state, below right = of ab] (abb) {};
+  \node[state, below right = of aab] (aabb) {};
+
+  \path[->, shorten >=1pt]
+	(i) edge (a)
+	(i) edge (b)
+	(a) edge (aa)
+	(a) edge (ab)
+    (b) edge (ab)
+    (b) edge (bb)
+    (aa) edge (aab)
+    (ab) edge (aab)
+    (ab) edge (abb)
+    (bb) edge (abb)
+    (aab) edge (aabb)
+    (abb) edge (aabb)
+  ;
+\end{tikzpicture}
+
+A corresponding reduced state space might be:\\
+\begin{tikzpicture}[>=latex,>=stealth',auto,node distance=1em,semithick,initial text=,
+      state/.style={inner sep=3pt, draw, circle},
+      rem/.style={state, thin, dashed, draw=gray},
+      ]
+  \node[state, initial, initial above] (i) {};
+  \node[state, below left = of i] (a) {};
+  \node[rem, below right = of i] (b) {};
+  \node[state, below left = of a] (aa) {};
+  \node[rem, below right = of a] (ab) {};
+  \node[rem, below right = of b] (bb) {};
+  \node[state, below right = of aa] (aab) {};
+  \node[rem, below right = of ab] (abb) {};
+  \node[state, below right = of aab] (aabb) {};
+
+  \path[->, shorten >=1pt]
+	(i) edge (a)
+	(i) edge[rem] (b)
+	(a) edge (aa)
+	(a) edge[rem] (ab)
+    (b) edge[rem] (ab)
+    (b) edge[rem] (bb)
+    (aa) edge (aab)
+    (ab) edge[rem] (aab)
+    (ab) edge[rem] (abb)
+    (bb) edge[rem] (abb)
+    (aab) edge (aabb)
+    (abb) edge[rem] (aabb)
+  ;
+\end{tikzpicture}
+
+Another possibility is:\\
+\begin{tikzpicture}[>=latex,>=stealth',auto,node distance=1em,semithick,initial text=,
+      state/.style={inner sep=3pt, draw, circle},
+      rem/.style={state, thin, dashed, draw=gray},
+      ]
+  \node[state, initial, initial above] (i) {};
+  \node[rem, below left = of i] (a) {};
+  \node[rem, below right = of i] (b) {};
+  \node[state, below left = of a] (aa) {};
+  \node[rem, below right = of a] (ab) {};
+  \node[state, below right = of b] (bb) {};
+  \node[rem, below right = of aa] (aab) {};
+  \node[rem, below right = of ab] (abb) {};
+  \node[state, below right = of aab] (aabb) {};
+
+  \path[->, shorten >=1pt]
+	(i) edge[rem] (a)
+	(i) edge[rem] (b)
+	(a) edge[rem] (aa)
+	(a) edge[rem] (ab)
+    (b) edge[rem] (ab)
+    (b) edge[rem] (bb)
+    (aa) edge[rem] (aab)
+    (ab) edge[rem] (aab)
+    (ab) edge[rem] (abb)
+    (bb) edge[rem] (abb)
+    (aab) edge[rem] (aabb)
+    (abb) edge[rem] (aabb)
+  ;
+  \path[->, shorten >=1pt]
+    (i) edge (aa)
+    (i) edge (bb)
+    (aa) edge (aabb)
+    (bb) edge (aabb)
+  ;
+\end{tikzpicture}
+}
 \end{definition}
 
 There are several techniques which can be used to construct reduced state space in such a way that a given property (or a class of properties) holds in the reduced state space if and only if it holds in the original state space.
+For example partial order reduction~\cite{Peled1993}, dynamic partial order reduction~\cite{Flanagan2005dpor} or $\tau+$ reduction~\cite{RBB13}.
 
 Finally, we will need the following state-space-related definitions.
 
 \begin{definition}[Finite State Space]
-We say that a program has a \emph{finite state space} if the number of vertices in the state space is multigraph is finite.
+We say that a program has a \emph{finite state space} if the number of vertices and edges in the state space is multigraph is finite.
 Otherwise, we say the program has an \emph{infinite state space}.
 \end{definition}
 
 \begin{definition}[Run]
 A \emph{run} in the state space is a (possibly infinite) path in the state space (or reduced state space) which starts in the initial state.
 That is, a run is a sequence of states $\sigma = s_0, s_1, …$ such that $s_0$ is the initial state and for each consecutive pair of states $s_i, s_{i+1}$ there is an edge from $s_i$ to $s_{i + 1}$ in the corresponding (reduced) state space.
-Please note that states can be repeated in the run.
+Please note that states can be repeated in a run.
 \end{definition}
 
 
 \subsection{Program Properties}
 
-In order to be able to find errors in programs an analysis tool has to have
+In order to be able to find errors in programs, an analysis tool has to have
 some specification of program correctness -- a \emph{property} which should be
 checked.
 In this section, we will introduce several categories of program properties
 together with examples of particular properties.
 
-\begin{definition}[Safety Properties]
-\emph{Safety properties} are properties which can be checked locally -- for
+\paragraph{Safety Properties}
+%
+are properties which can be checked locally -- for
 each state of the program, we are able to determine if the state satisfies or
 violates given property.
-\end{definition}
-
 Therefore, to conclude the program is error-free under given safety property it
 suffices to show that there is no state which violates given safety property.
 
 Examples of safety property include \emph{memory safety} (stating that every
 time we access a certain part of memory, this memory is in fact allocated and
-accessible to the program, see also \autoref{fig:pre:memsafe}), \emph{assertion
-safety} (stating that a program does not violate any of the assertions in the
-source code, see also \autoref{fig:pre:assert}), and \emph{control-flow
-definedness} (stating that every time a conditional jump is performed, the
-values the jump is based on must have well-defined value, see also
-\autoref{fig:pre:definedness}).
+accessible to the program), \emph{assertion safety} (stating that a program
+does not violate any of the assertions in the source code), and
+\emph{control-flow definedness} (stating that every time a conditional jump is
+performed, the values the jump is based on must have well-defined value).
 Some program properties can be checked locally only if sufficient information
 is kept in the program state.
 For example checking \emph{absence of memory leaks} requires that it is
 possible to enumerate all allocated objects and all objects to which there are
 usable pointers.
 
-\bigskip
-
-\TODO{Temporal properties
-
+\paragraph{Temporal properties}
+%
 Not all properties can be directly described as safety properties.
 For example, we can have a property stating ,,every time a button is pressed, the elevator will eventually drive to the floor the button was pressed on'' -- such a property cannot be checked directly in one state of the program, but instead needs to be checked on a \emph{run} of the program.
 
-For specification of temporal properties, we will use temporal logic CTL*~\cite{todo}, and its linear fragment, LTL (Linear Time Logic)~\cite{TODO}.
+Various temporal logics can be used to describe such properties, for example
+LTL~\cite{todo}, CTL~\cite{todo}, CTL*~\cite{todo} or
+$\mu$-calculus~\cite{todo}.
 
-\begin{definition}[CTL*]
-
-\end{definition}
-
-\begin{definition}[LTL]
-\end{definition}
-
-- more expressive temporal logics…
-
-\subsubsection{Fairness}
-
-\subsubsection{Termination Properties}
-
+\paragraph{Termination Properties}
+%
 A distinguished form of temporal properties are termination properties, which are properties which allow us to specify that a program must (or must not) terminate, or that some of its part must (or must not) terminate.
-An example of a termination property concerning a part of the program can be found in \autoref{fig:pre:term}.
-
-\subsubsection{Other Properties}
-}
 
 \subsection{Hardware and Platform Related Considerations}
 
@@ -134,7 +214,7 @@ embedded microprocessor might be correct on a 64-bit machine.
 
 Another example concerns alignment of values in the memory -- often it is
 possible to address single bytes in the memory, but certain data types (which
-are larger that a byte) are only allowed to exist on addresses divisible by a
+are larger that a byte) are only allowed to start on addresses divisible by a
 given \emph{alignment}.
 For example, an alignment of a 32-bit \cpp{int} type might be 4 bytes (32
 bits).
@@ -162,7 +242,7 @@ Parallelism is an important part in programming high-performance software which
 can fully take advantage of the current hardware.
 However, parallelism comes with additional problems not present in development
 of sequential software, namely it is significantly harder to create correct
-parallel software compare to development of sequential software, and it is also
+parallel software compared to development of sequential software, and it is also
 hard to create parallel software which scales well with the number of processors
 (or processor cores) available.
 Furthermore, improving scalability usually makes the problem of correctness even
@@ -170,31 +250,33 @@ harder -- improving scalability usually requires more more fine-grained (and
 therefore error-prone) synchronization.
 For example, fine-grained locking or lock-free programming can lead to
 high-performance code, but seeing that the code uses synchronization properly
-is significantly harder then for code which uses a few locks for which it is
-well defined which parts of the shared memory they guard.
+is significantly harder than for code which uses a few locks with well defined
+regions parts of the shared memory they guard.
 
 Furthermore, relaxed memory behaviour comes into play once shared variables are
 not only accessed in critical sections.
 As processor manufactures strive to increase speed of processors, they have
 introduced various optimizations into the memory infrastructure to avoid
 waiting for the relatively slow main memory.
-These optimizations can (and in most processors are) be visible to a parallel
+These optimizations can be (and in most processors are) visible to a parallel
 program and are manifested in relaxed memory behaviour.
 For example, on x86 processors (which are used in most laptop, desktop and
 server computers) a memory store can be delayed and appear, from the point of
 view of the other threads, later than a subsequent load.
 Some processors (for example POWER and higher-performance ARM processors) allow
-even more reordering, for example reordering independent loads.
+even more reordering, for example reordering of independent loads.
 
 In this section, we describe the basic model of parallelism we assume for our
 programs and follow some of its implications.
 We also outline basics of relaxed memory behaviour and memory models
 which describe it.
 
-\subsection{Basic Threading Model \& Memory Models}
+\subsection{Basic Threading Model}
 
 We assume that a program consists of one or more threads which interact using a
-shared memory.
+shared memory.\mnote{Other communication methods can be emulated using shared
+memory. Furthermore, many programming languages, including C++, have no native
+support for other communication schemes.}
 We also assume that execution of a thread can be interrupted at any point by a
 \emph{thread scheduler} (of the operating system on which the program runs) and
 will be later eventually resumed (unless the program exits in the meantime or
@@ -208,6 +290,7 @@ blocked we say there is a \emph{deadlock}.
 \begin{definition}[Dealock, Partial Dealock, Global Deadlock]\label{def:deadlock}
     A \emph{deadlock} happens if a scheduler never allows the thread to run
     because it waits for a resource which never becomes available.
+
     Sometimes, when we need to distinguish between all the threads being
     blocked and only some of them being blocked, we will use the notion of
     \emph{partial deadlock} to signify a situation in a program where some
@@ -241,14 +324,20 @@ semantics}) or we consider execution based on some relaxed memory model.
 \begin{definition}[Interleaving Semantics of Threads]
     With the \emph{interleaving semantics} we assume that all possible
     executions of parallel program can be obtained by interleaving.
-    That is, at any point in execution of the program we consider which threads
-    are allowed to run and explore all possible selections, after a thread
-    performs an action, we again consider all possible actions of all threads
-    and so on.
+    That is, at any point in execution of the program, we consider which threads
+    are allowed to run and explore all possible selections.
+    After a thread performs an action, we again consider all possible actions
+    of all threads and so on.
 \end{definition}
 
+
+
+\subsection{Relaxed Memory Models}
+
+A memory model describes behaviour of memory operations on a given platform.
 When considering relaxed memory models, it is also useful to consider memory
-model which corresponds to the interleaving semantics of threads.
+model which is not relaxed and corresponds to the interleaving semantics of
+threads.
 This is the \emph{sequential consistency}.
 
 \begin{definition}[Sequnetial Consistency]
@@ -259,29 +348,25 @@ This is the \emph{sequential consistency}.
     reordering is observable.
 \end{definition}
 
+Sequential consistency's operational semantics is given by a machine has no instruction reordering and in which all memory operations are atomic and access the memory directly, without any caches.
 Sequential consistency is the strongest memory model (it is not relaxed at all).
-Therefore, a program running under a relaxed memory model will always exhibit
-behaviour present if the same program was run under sequential consistency, but
-it can also exhibit other behaviour.
+Therefore, any behaviour observable under sequential consistency will also be possible under a relaxed memory model, but a relaxed memory model can exhibit additional behaviour.
 
-\paragraph{Relaxed Memory Models}
-
-Interleaving is not a sufficient abstraction in presence of relaxed memory
-behaviour, which is manifested by many modern processors.
+In practice, sequential consistency is not sufficient with modern processors
+that exhibit relaxed memory behaviour.
 The relaxed behavior of processors arises from optimizations in cache
 consistency protocols and observable effects of instructions reordering and
 speculation.
 The effect of this behavior is that memory-manipulating instructions can appear
-to be executed in a different order than the order in which they appear in the
-thread, and their effect can even appear to be in different order on different
-threads.
-For efficiency reasons, virtually most modern processors (except for simple
-ones in embedded microcontrollers and low-cost mobile devices) exhibit relaxed
-behavior.
+to be executed in a different order than the order in which they appear in a
+thread's code, and their effect can even appear to be in different order on
+different threads.
+For efficiency reasons, most modern processors (except for simple ones in
+embedded microcontroller and low-cost mobile devices) exhibit relaxed behavior.
 The extent of this relaxation is dependent on the processor architecture (e.g.,
 x86, ARM, POWER) but also on the concrete processor model.
-Furthermore, the actual behavior of the processor is often not precisely
-described by the processor vendor~\mcite{x86tso}.
+To make matters worse, the actual behavior of the processor is often not
+precisely described by the processor vendor~\mcite{x86tso}.
 To abstract from the details of particular processor models, \emph{relaxed
 memory models} are used to describe (often formally) behavior of a given
 processor architecture.
@@ -315,7 +400,7 @@ model~\mcite{SPARC94}.
 It does not reorder stores with each other, and it also does not reorder loads
 with other loads.
 The only relaxation allowed by \xtso is that a store can appear to be executed
-later than a load which succeeds it.
+later than an independent load which succeeds it in a thread.
 The memory model does not give any limit on how long a store can be delayed.
 An example of non-intuitive execution of a simple program under \xtso can be
 found in \autoref{fig:xtso}.
@@ -411,8 +496,9 @@ found in \autoref{fig:xtso}.
 \end{figure}
 
 The operational semantics of \xtso is described in~\mcite{x86tso}.
-The corresponding machine has hardware threads (or cores), each with associated
-local store buffer, a shared memory subsystem, and a shared memory lock.
+The corresponding machine has multiple hardware threads (or cores), each with
+associated local store buffer, a shared memory subsystem, and a shared memory
+lock.
 Store buffers are first-in-first-out caches into which store entries are saved
 before they are propagated to the shared memory.
 Load instructions first attempt to read from the store buffer of the given
@@ -437,11 +523,12 @@ which flushes the store buffer of the thread that executed it.\mnote{There
 are two more fence instructions in the x86 instruction set, but according
 to~\cite{x86tso} they are not relevant to normal program execution.}
 
-To recover sequential consistency on x86, it is necessary to make memory stores
-propagate to the main memory before subsequent loads execute.
-This is most commonly done in practice by inserting memory fence after each
+If a programmer wishes to recover sequential consistency on x86, they need to
+ensure memory stores are propagated to the main memory before subsequent loads
+execute.
+This is most commonly done in practice by inserting a memory fence after each
 store.
-An alternative approach would be to use atomic exchange instruction
+An alternative approach would be to store using atomic exchange instruction
 (\texttt{lock xchg}) which can atomically swap value between a register and a
 memory slot.
 
@@ -451,9 +538,9 @@ values to be aligned, usually so that the address is divisible by the value
 size.}
 While the \xtso paper does not give any specifics about handling unaligned and
 mixed memory operations (e.g., writing a 64-bit value and then reading a 16-bit
-value from inside it) it seems from our own experiments that such the
-operations are not only fully supported, but they are also correctly
-synchronized if atomic instructions are used.
+value from inside it) it seems from our own experiments that such operations
+are not only fully supported, but they are also correctly synchronized if
+atomic instructions are used.
 This is in agreement with the aforementioned operational semantics of \xtso in
 which all the atomic operations share a single global lock.
 
