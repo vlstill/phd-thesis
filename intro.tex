@@ -120,44 +120,41 @@ Nevertheless, analysis of other real-world high-level imperative programming
 languages (such as Java, C\#, Rust and many other) should follow similar
 principles.
 
-The main contributions of this work are in the following areas:
+\paragraph{\nameref*{chap:lang}}
+\autoref{chap:lang}.
+This chapter presents a wider look at the problem of analysis of realistic
+programs from the point of features of programming languages and its libraries.
+We show that library reuse can be a viable approach for program analysers with
+good support for language features and that it can significantly simplify
+support for languages with complex libraries such as C++.
+We also identify functionality which is a good candidate for
+verification-specific modelling instead of reuse.
+Finally, we focus in more details on the particular case of exception support
+for C++ in DIVINE and how it can be achieved by combination of library reuse
+and creation of verification-specific libraries.
 
-\begin{itemize}
-  \item Improvements in analysis of realistic programs, \autoref{chap:lang}.
-    This chapter presents a wider look at the problem of analysis of realistic
-    programs from the point of features of programming languages and its
-    libraries.
-    We show that library reuse can be a viable approach for program analysers
-    with good support for language features and that it can significantly
-    simplify support for languages with complex libraries such as C++.
-    We also identify functionality which is a good candidate for
-    verification-specific modelling instead of reuse.
-    Finally, we focus in more details on the particular case of exception
-    support for C++ in DIVINE and how it can be achieved by combination of
-    library reuse and creation of verification-specific libraries.
+\paragraph{\nameref*{chap:mm}}
+\autoref{chap:mm}.
+In this chapter we present an efficient extension to DIVINE which allows it to
+analyse programs under the memory model of Intel (and AMD) x86-64 processors.
+In our work we leverage the LLVM infrastructure to implement support for
+relaxed memory as a preprocessing step, without the need to modify the verifier
+itself (provided it has support for nondeterministic choice).
+Furthermore, we show how the amount of nondeterminism in the resulting program
+can be limited by careful design of data structures used to simulate the
+behaviour of \xtso store buffers.
 
-  \item Analysis of C++ programs under the \xtso memory model, \autoref{chap:mm}.
-    In this chapter we present an efficient extension to DIVINE which allows it to
-    analyse programs under the memory model of Intel (and AMD) x86-64
-    processors.
-    In our work we leverage the LLVM infrastructure to implement support for
-    relaxed memory as a preprocessing step, without the need to modify the
-    verifier itself (provided it has support for nondeterministic choice).
-    Furthermore, we show how the amount of nondeterminism in the resulting
-    program can be limited by careful design of data structures used to
-    simulate the behaviour of \xtso store buffers.
-
-  \item Nontermination Analysis for Parallel Programs, \autoref{chap:lnterm}.
-    In the third contribution of this work, we introduce a generic method for
-    detection of nontermination caused by communication between threads.
-    It uses lightweight annotations in the code to mark parts of the program
-    which must terminate, together with a set of pre-defined parts of program
-    which must terminate which allow it to be used with common synchronization
-    primitives out of the box.
-    Our method can be also applied to deliberately nonterminating
-    programs (i.e., daemons, services) in which it can detect parts which
-    should terminate but do not terminate.
-\end{itemize}
+\paragraph{\nameref*{chap:lnterm}}
+\autoref{chap:lnterm}.
+In the third contribution of this work, we introduce a generic method for
+detection of nontermination caused by communication between threads.
+It uses lightweight annotations in the code to mark parts of the program which
+must terminate, together with a set of pre-defined parts of program which must
+terminate which allow it to be used with common synchronization primitives out
+of the box.
+Our method can be also applied to deliberately nonterminating programs (i.e.,
+daemons, services) in which it can detect parts which should terminate but do
+not terminate.
 
 \section{Thesis Structure}
 
