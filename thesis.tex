@@ -270,14 +270,23 @@
 \newcommand{\mnotetext}[1]{\marginpar{\raggedout\hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}\footnotesize{}#1}}
 \newcommand{\mnote}[1]{\mnotemark{}\mnotetext{#1}}
 
+% allows us to use make names in side margin citations link to DOI-based
+% publication page
+\newbibmacro{string+doi}[1]{%
+  \iffieldundef{doi}{#1}{\href{http://dx.doi.org/\thefield{doi}}{#1}}}
+\DeclareFieldFormat{titlelink}{\usebibmacro{string+doi}{``#1''}}
 
 \usepackage{listofitems}
 \makeatletter
 \newcommand{\internalmcite}[3][]{%
-\checkoddpage%
+\checkoddpage% sync page numbers for \oddpage@page (\thepage is wrong)
 \readlist*\cilist{#2}%
 \foreachitem\ci\in\cilist[]{%
-\ifcsname mcite: \oddpage@page : \ci\endcsname \else\expandafter\def\csname mcite: \oddpage@page : \ci\endcsname{}\marginpar{\raggedout\footnotesize\cite{\ci} \citeauthor*{\ci}, \citetitle{\ci}.#3}\fi%
+\ifcsname mcite: \oddpage@page : \ci\endcsname \else%
+\expandafter\def\csname mcite: \oddpage@page : \ci\endcsname{}%
+\marginpar{%
+  \raggedout\footnotesize\cite{\ci} \citeauthor*{\ci}, \citefield{\ci}[titlelink]{title}.#3%
+}\fi%
 }%
 \cite[#1]{#2}%
 }
