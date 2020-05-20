@@ -272,11 +272,16 @@
 
 
 \usepackage{listofitems}
-\newcommand{\internalmcite}[3][]{\cite[#1]{#2}%
+\makeatletter
+\newcommand{\internalmcite}[3][]{%
+\checkoddpage%
 \readlist*\cilist{#2}%
 \foreachitem\ci\in\cilist[]{%
-\ifcsname mcite: \thepage : \ci\endcsname \else\expandafter\def\csname mcite: \thepage : \ci\endcsname{}\marginpar{\raggedout\footnotesize\cite{\ci} \citeauthor*{\ci}, \citetitle{\ci}.#3}\fi%
-}}
+\ifcsname mcite: \oddpage@page : \ci\endcsname \else\expandafter\def\csname mcite: \oddpage@page : \ci\endcsname{}\marginpar{\raggedout\footnotesize\cite{\ci} \citeauthor*{\ci}, \citetitle{\ci}.#3}\fi%
+}%
+\cite[#1]{#2}%
+}
+\makeatother
 \newcommand{\mcite}[2][]{\internalmcite[#1]{#2}{}}
 \newcommand{\mucite}[2][]{\internalmcite[#1]{#2}{ \citeurl{#2}}}
 
