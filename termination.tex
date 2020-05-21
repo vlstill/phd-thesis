@@ -672,7 +672,7 @@ The exhaustive enumeration of possible thread interleavings ensures that other t
 
 \paragraph{Data Nondeterminism and Symbolic Data}
 %
-To make it possible to verify programs that depend on input data, \divine has support for symbolic values~\mcite{LRB18}.
+To make it possible to verify programs that depend on input data, \divine has support for symbolic values~\mcite{LRB2018}.
 In an analysis of programs with symbolic values, the computation can be split when a branch depends on a symbolic value.
 This splitting can cause problems for nontermination detection if leaving some resource section instance requires a particular value of an input variable.
 Therefore, in the presence of symbolic data, nontermination checking might miss some instances of nontermination.
