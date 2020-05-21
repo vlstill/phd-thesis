@@ -1,27 +1,23 @@
 Parallel software offers a promise of full utilization of modern hardware,
 but it also presents additional challenges to the programmers.
-To help with its creation, many approaches to program analysis have emerged
-over the years.
-In this work, we offer some improvements to the analysis of parallel programs
-written in high-level programming languages, specifically in C++.
-We are particularly concerned with automated discovery of hard to find bugs.
+To help with them, we offer some improvements to the analysis of parallel
+programs written in C++.
+In particular, we aim to help with discovery of hard to find bugs.
 
-In the first part, we demonstrate the case for tools which can work with a
-high-level programming languages, including their advanced features and
-standard libraries.
-Such tools can be used by programmers without any in-depth knowledge of formal
-verification and therefore can be used more regularly and help with the
-development of more software.
+In the first part, we demonstrate the case for analysis of high-level
+programming languages, including their advanced features and standard
+libraries.
+Tools which can do that can be used by programmers without any in-depth
+knowledge of formal verification and therefore can be used more regularly and
+help with the development of more software.
 While this task is not an easy one, we show it is still manageable with a good
 compromise of reuse of existing execution-oriented components and design of
 new, verification-oriented components.
-We will show this on the C++ support in the DIVINE verifier in general, and its
+We show this on the C++ support in the DIVINE verifier in general, and its
 support for C++ exceptions in particular.
 
-In the second contribution, we will focus on relaxed memory behaviour which is
-observable on virtually all mid- to high-performance processors.
-Therefore programmers who work on high-performance parallel software often have
-to take it into account.
+In the second contribution, we focus on relaxed memory behaviour which is
+observable on most of processors and can be very peculiar.
 Depending on the concrete architecture, processors can reorder stores after
 independent loads, reorder stores with each other, and make a series of events
 observable in a different order by different threads.
@@ -34,15 +30,15 @@ overall performance.
 
 In our last contribution, we focus on the problem of nontermination in parallel
 programs.
-In particular, we propose a method which can detect local nontermination in a
-program, i.e., it can detect that a certain section of the program, which is
-supposed to terminate, does not terminate.
-The local nontermination can be used on programs which do not terminate but
+We propose a method which can detect local nontermination in a program, i.e.,
+it can detect that a certain section of the program, which is supposed to
+terminate, does not terminate.
+The local nontermination can be used with programs which do not terminate but
 have parts which must terminate (e.g., a server might have a function which
 handles a request, and this functions must always terminate).
-Our method is general in the sense that it does not require the use of
-particular synchronization primitives.
-However, it is only complete on programs which have finite state space (such
+Our method uses lightweight annotations and does not require the use of
+particular synchronization primitives to work.
+However, it is only complete for programs which have finite state space (such
 programs can have infinite behaviour in which specific state is repeated).
 Even with this limitation, we believe this technique can help with the design
 of high-performance parallel algorithms and data structures.
