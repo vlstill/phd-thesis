@@ -4,7 +4,7 @@ PAPERS=# pdfs
 all : thesis.pdf list-of-publications.pdf
 
 %.pdf : %.tex %.bbl
-	latexmk -e '$$max_repeat=10' -pdf -shell-escape $<
+	latexmk -pdf -shell-escape $<
 
 thesis.pdf : $(wildcard *.tex)
 
