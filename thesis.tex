@@ -274,7 +274,16 @@
 % allows us to use make names in side margin citations link to DOI-based
 % publication page
 \newbibmacro{string+doi}[1]{%
-  \iffieldundef{doi}{#1}{\href{http://dx.doi.org/\thefield{doi}}{#1}}}
+  \iffieldundef{doi}{%
+    \iffieldundef{url}{%
+      #1%
+    }{%
+      \href{\thefield{url}}{#1}%
+    }%
+  }{%
+    \href{http://dx.doi.org/\thefield{doi}}{#1}%
+  }%
+}
 \DeclareFieldFormat{titlelink}{\usebibmacro{string+doi}{``#1''}}
 
 \usepackage{listofitems}
@@ -293,7 +302,6 @@
 }
 \makeatother
 \newcommand{\mcite}[2][]{\internalmcite[#1]{#2}{}}
-\newcommand{\mucite}[2][]{\internalmcite[#1]{#2}{ \citeurl{#2}}}
 
 % set space between margin notes -- unofficial, but works (unline \marginskip)
 \setlength\marginparpush\bigskipamount

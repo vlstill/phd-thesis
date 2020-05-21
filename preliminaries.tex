@@ -802,7 +802,7 @@ These values are primarily prohibited to avoid forging pointers to invalid memor
 The LLVM Intermediate Representation has a memory model derived from the C++
 memory model, with the difference that it lacks release-consume ordering and
 offers additional \emph{unordered} ordering which does not guarantee atomicity
-but makes results of data races defined \mucite{llvm:langref}.
+but makes results of data races defined \mcite{llvm:langref}.
 The \emph{unordered} operations are intended to match semantics of the Java
 memory model for shared variables.
 
