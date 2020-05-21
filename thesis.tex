@@ -264,8 +264,7 @@
 \usepackage{marginfix}
 \usepackage{ragged2e}
 \usepackage{ifoddpage}
-\newcommand{\raggedoutunchecked}{\ifoddpage\RaggedRight\else\RaggedLeft\fi}
-\newcommand{\raggedout}{\checkoddpage\raggedoutunchecked}
+\newcommand{\raggedout}{\checkoddpage\ifoddpage\RaggedRight\else\RaggedLeft\fi}
 \newcounter{mnote}[chapter]
 \newcommand{\mnotemark}{\stepcounter{mnote}\hyperlink{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}$}\xspace}
 \newcommand{\mnotetext}[1]{\marginpar{\raggedout\hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}\footnotesize{}#1}}
@@ -292,11 +291,14 @@
 \checkoddpage% sync page numbers for \oddpage@page (\thepage is wrong)
 \readlist*\cilist{#2}%
 \foreachitem\ci\in\cilist[]{%
-\ifcsname mcite: \oddpage@page : \ci\endcsname \else%
-\expandafter\def\csname mcite: \oddpage@page : \ci\endcsname{}%
-\marginpar{%
-  \raggedoutunchecked\footnotesize\cite{\ci} \citeauthor*{\ci}, \citefield{\ci}[titlelink]{title}.#3%
-}\fi%
+\ifcsname mcite: \oddpage@page : \ci\endcsname%
+  \checkoddpage% hack to ensure the number of page marks does now change if we hide a margin citation
+\else%
+  \expandafter\def\csname mcite: \oddpage@page : \ci\endcsname{}%
+  \marginpar{%
+    \raggedout\footnotesize\cite{\ci} \citeauthor*{\ci}, \citefield{\ci}[titlelink]{title}.#3%
+  }%
+\fi%
 }%
 \cite[#1]{#2}%
 }
