@@ -1183,10 +1183,10 @@ instructions.
 
 DIVINE is an open-source verifier for C and C++ programs with focus on
 concurrency and hard to discover bugs~\mcite{DIVINEToolPaper2017}.
-DIVINE aims to be a general tool usable by programmers.
-It can work with wide variety of programs and check for different property
-violations, including assertion failures, memory access errors, memory leaks,
-use of uninitialized memory and mutex locking errors.
+It aims to be a general tool usable by programmers and can work with wide
+variety of programs and check for different property violations, including
+assertion failures, memory access errors, memory leaks, use of uninitialized
+memory and mutex locking errors.
 There is also a limited support for liveness properties and an extension to
 checking nontermination of parallel programs (\autoref{chap:lnterm},
 \mcite{SB2019}).
@@ -1194,12 +1194,17 @@ Furthermore, DIVINE aims at full support of C and C++ including their standard
 libraries -- currently we support C++17 with most of its standard library
 (\autoref{chap:lang}, \mcite{SRB2017}).
 DIVINE's platform model is loosely based on x86-64 Linux -- it uses 64
-bit pointers and data types sizes and alignments are the same as used on this
+bit pointers and data type sizes and alignments are the same as used on this
 platform.
 With the optional support for the \xtso memory model (\autoref{chap:mm},
 \mcite{SB2018x86tso}), DIVINE also respects the memory models of x86-64
 processors.
-Among the biggest differences between DIVINE and Linux on x86-64 are different calling conventions and stack layout; however, these differences should be transparent to a correct C/C++ program and programs which rely on platform-specific layout of the stack will be reported as buggy (the stack layout is not guaranteed by the C/C++ standards and therefore such programs are not well-defined).
+Among the biggest differences between DIVINE and Linux on x86-64 are different
+calling conventions and stack layout; however, these differences should be
+transparent to a correct C or C++ program and programs which rely on
+platform-specific layout of the stack will be reported as buggy (the stack
+layout is not guaranteed by the C/C++ standards and therefore such programs are
+not well-defined).
 
 \subsection{Architecture of DIVINE}
 
@@ -1225,8 +1230,7 @@ Scheduling, thread management and a basic POSIX-compatible interface including
 a filesystem model is grouped into \dios, a verification-oriented operating
 system~\mcite{RBMKB2019}.
 
-Finally DIVINE also uses program instrumentation to facilitate program
-analysis.
+DIVINE uses program instrumentation to facilitate program analysis.
 Instrumentation adds interruption points to the program to specify at which
 point the scheduler can be invoked -- these interruption points are used at
 memory access instructions and at back-edges of loops (to make sure \divm does
@@ -1235,94 +1239,5 @@ Instrumentation is also used by the symbolic and abstract extensions of
 DIVINE~\mcite{LRB2018}, for C++ exceptions (\autoref{chap:lang},
 \mcite{SRB2017}), and if the program is analysed for relaxed memory behaviour
 (\autoref{chap:mm}, \mcite{SB2018x86tso}).
-
-
-\section{XXX:}
-
-\subsection{Basic Program Features}
-
-When it comes to the program analysis of programs written in high-level programming languages (such as C, C++, C\#, Java, Haskell),\mnote{Some readers might find it peculiar to consider C to be a high-level programming language; however, for our purposes the defining characteristic of a high-level language is that it is intended to be written by the programmer and allows them to use and define abstractions -- at the very least functions and data structures. In this way C is a high-level programming language, while assembly languages (such as x86-64 assembly) are low-level.} it is often necessary to choose a level on which the program will be analysed.
-We can choose to analyse the high-level code directly -- in this case the analysis can be both precise and make use of high-level concepts (such as cycles or declarative description of certain thereading concepts e.g., using Open MP\mnote{\TODO{Open MP}}).
-However, the direct analysis comes at high cost as programming languages often have rich and complex syntax and complicated semantics which is designed to aid programming, not verification.
-For example, if we choose to handle in this way programs written in C++, we would need to concern ourselves with object hierarchies, exception handling, templates and many more.
-This approach is also specific for the given programming language.
-
-
-The on the other side of the spectrum, we can analyse a compiled program i.e., analyse machine code or assembly of given platform.
-This approach can then be applied regardless of programming language and it works even on programs for which we have no source code available.
-Nevertheless, there are serious disadvantages -- the analysis is required to support each hardware platform separately, and the machine code looses a lot of information present on the higher level.
-For example, it is not possible to recover the bounds of stack variables from the x86 machine code directly (it might be recoverable using debugging information or exception-handling metadata, but these might not be available).
-
-Finally, we can analyse some sort of intermediate or specialized representation, either a low-level language which still presents the information necessary for the analysis, or a specialized language designed for verification.
-In either case, it is first necessary to translate the code in the programming language to the language used for verification and this can share many problems with the direct approach of verification of the high-level programming language.
-However, if an existing intermediate representation accompanied with a translator from the high-level programming language is suitable for verification, this can side-step many of the problems described here.
-Another advantage of using an intermediate representation is that the same representation can be used for multiple programming languages and multiple platforms -- this can make adaptation to new languages or platforms easier.
-See \autoref{fig:prel:verif-levels}.
-
-\begin{figure}
-\center
-\begin{tikzpicture}[->, >=stealth']
-
-    \tikzstyle{box}=[rectangle, thick, draw]
-
-    \begin{scope}
-      \matrix[nodes=box, column sep = 0.5cm]{
-        \node (c) {C}; &
-        \node (cpp) {C++}; &
-        \node (rust) {Rust}; &
-        \node (hs) {Haskell}; &
-        \node (cs) {C\#}; &
-        \node (fs) {F\#}; &
-        \node (java) {Java}; &
-        \node (scala) {Scala}; \\
-      };
-    \end{scope}
-
-    \begin{scope}[yshift=-2cm]
-      \matrix[nodes={box, minimum width = 2cm}, column sep = 0.5cm]{
-        \node (llvm) {LLVM IR}; &
-        \node (net) {???}; &
-        \node (jvm) {???}; \\
-      };
-    \end{scope}
-
-    \begin{scope}[yshift=-4cm]
-      \matrix[nodes={box, minimum width = 2cm}, column sep = 0.5cm]{
-        \node (x86) {x86}; &
-        \node (x86-64) {x86-64}; &
-        \node (arm7) {ARMv7}; &
-        \node (arm8) {ARMv8}; \\
-      };
-    \end{scope}
-
-    \draw (c.south) edge (llvm)
-          (cpp.south) edge (llvm)
-          (rust.south) edge (llvm)
-          (hs.south) edge (llvm);
-    \draw (cs.south) edge (net)
-          (fs.south) edge (net);
-    \draw (java.south) edge (jvm)
-          (scala.south) edge (jvm);
-
-    \draw (llvm) edge (x86)
-                 edge (x86-64)
-                 edge (arm7)
-                 edge (arm8);
-
-    \draw (net) edge (x86)
-                 edge (x86-64)
-                 edge (arm7)
-                 edge (arm8);
-
-    \draw (jvm) edge (x86)
-                 edge (x86-64)
-                 edge (arm7)
-                 edge (arm8);
-%        edge [pre, draw=red] node[yshift=-1mm] {\texttt{0: lock(m)}} (i);
-
-\end{tikzpicture}
-\caption{}\label{fig:prel:verif-levels}
-\end{figure}
-
 
 % vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en
