@@ -185,24 +185,28 @@
 \addbibresource{thesis.bib}
 \addbibresource{my.bib}
 
-\usepackage[a4paper,
-            bindingoffset=2cm, inner=1.5cm, outer=1.5cm, top=4cm, bottom=4cm,
-            headheight=15.2pt, % for the sake of fancyhdr
-            includemp, % count outer margin outside of the marginpar
-            marginparsep=0.8cm, marginparwidth=3.5cm]{geometry}
+\usepackage[a4paper]{geometry}
+\newcommand{\geom}[2]{\csname #1geometry\endcsname{
+        bindingoffset=2cm, inner=1.5cm, outer=1.5cm, top=1.5cm, bottom=2.5cm,
+%        headheight=15.2pt, % for the sake of fancyhdr
+        includehead, headsep=1cm, nofoot,
+        includemp, % count outer margin outside of the marginpar
+        #2
+    }}
+\newcommand{\widegeom}{\geom{new}{nomarginpar}}
+\newcommand{\margingeom}{\geom{new}{marginparsep=0.8cm, marginparwidth=3.5cm}}
+\widegeom % will override later, set here for the sake of headers
 \usepackage{fancyhdr}
 \fancyhf{}
-\fancyhead[RO]{\footnotesize\rightmark}
-\fancyhead[LE]{\footnotesize\leftmark}
-% \fancyhead[RO, LE]{\footnotesize\thepage}
-\fancyfoot[C]{\footnotesize\thepage}
+% TODO: there is a weird space before \leftmark… so far, we just make similar-sized space on the right :-/
+\fancyhead[LE]{\footnotesize\makebox[\widthof{000}]{\thepage}\leftmark}
+\fancyhead[RO]{\footnotesize\rightmark\quad \ \makebox[\widthof{000}]{\hfill\thepage}}
 \renewcommand{\headrulewidth}{0pt} % remove lines after header
 \renewcommand{\footrulewidth}{0pt}
 % also restyle the chapter start page
 \fancypagestyle{plain}{
   \fancyhf{}
-  % \fancyhead[RO, LE]{\footnotesize\thepage}
-  \fancyfoot[C]{\footnotesize\thepage}
+  \fancyhead[RO]{\footnotesize\thepage}
   \renewcommand{\headrulewidth}{0pt}
 }
 % set marks for headers -- chapter mark contains only the chapter name, section
@@ -212,11 +216,11 @@
 \makeatletter
 \def\chaptermark#1{%
   \markboth{\MakeUppercase{%
-    \ifnum \c@secnumdepth >\m@ne
-      \if@mainmatter
-        %\@chapapp\ \thechapter \ %
-      \fi
-    \fi
+    %\ifnum \c@secnumdepth >\m@ne
+    %  \if@mainmatter
+    %    %\@chapapp\ \thechapter \ %
+    %  \fi
+    %\fi
     #1}}{}}
 \def\sectionmark#1{%
   \markright {\MakeUppercase{%
@@ -342,7 +346,9 @@
 \thesisadvisor \hfill \thesisYearCity
 \end{titlepage}
 
+% set headers by the wide geometry
 \pagestyle{fancy}
+\margingeom
 \cleardoublepage
 
 \section*{Abstract}
@@ -388,6 +394,7 @@ LLVM, C++, DIVINE, implementation}
 \chapter{Published Papers}\label{chap:published}
 \input{papers}
 
+\widegeom
 \chapter{Bibliography}
 % \addcontentsline{toc}{chapter}{Bibliography}
 
