@@ -105,7 +105,10 @@
 }
 \usepackage{pdfpages}
 
-\usepackage{float}
+\usepackage{changepage}
+
+\usepackage{floatpag} % get the \at@float@page hook
+\usepackage{float} % after floatpag so H works
 \makeatletter
 % custom float style, derived from ruled
 % - caption is at the bottom
@@ -113,11 +116,25 @@
 % - rules are thinner
 % - bottom rule is missing
 \newcommand\floatc@botruled[2]{{\@fs@cfont #1} #2\par}
-\newcommand\fs@botruled{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@botruled
+\newcommand\fs@botruled{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@botruled%
     \def\@fs@pre{\hrule\kern0.5\abovecaptionskip}%
     \def\@fs@post{}%
     \def\@fs@mid{\kern0.5\abovecaptionskip\hrule\kern0.5\abovecaptionskip}%
 \let\@fs@iftopcapt\iffalse}
+\let\thesis@old@at@float@page\relax
+\newenvironment{widefigure}{%
+    \let\thesis@old@at@float@page\at@float@page%
+    \gdef\at@float@page{%
+        \let\thesis@float@cpg\clearpage%
+        \let\clearpage\relax%
+        \widegeom%
+        \let\clearpage\thesis@float@cpg%
+        \gdef\at@float@page{\thesis@old@at@float@page}
+    }%
+    \begin{figure}[p]
+    \changetext{}{\marginparwidth+\marginparsep}{}{}{}%
+  }{\end{figure}}
+\newcommand{\thesis@floatpage}[1]{}
 \makeatother
 \floatstyle{botruled}
 \restylefloat{figure}
