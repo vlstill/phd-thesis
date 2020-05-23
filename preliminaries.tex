@@ -1193,6 +1193,7 @@ checking nontermination of parallel programs (\autoref{chap:lnterm},
 Furthermore, DIVINE aims at full support of C and C++ including their standard
 libraries -- currently we support C++17 with most of its standard library
 (\autoref{chap:lang}, \mcite{SRB2017}).
+
 DIVINE's platform model is loosely based on x86-64 Linux -- it uses 64
 bit pointers and data type sizes and alignments are the same as used on this
 platform.
@@ -1202,15 +1203,66 @@ processors.
 Among the biggest differences between DIVINE and Linux on x86-64 are different
 calling conventions and stack layout; however, these differences should be
 transparent to a correct C or C++ program and programs which rely on
-platform-specific layout of the stack will be reported as buggy (the stack
-layout is not guaranteed by the C/C++ standards and therefore such programs are
-not well-defined).
+platform-specific layout of the stack will be reported as buggy in most cases
+(the stack layout is not guaranteed by the C/C++ standards and therefore such
+programs are not well-defined).
 
 \subsection{Architecture of DIVINE}
 
-DIVINE is built on an explicit-state core called \divm which interprets LLVM
-instructions and \divm extensions to LLVM IR called
-\emph{hypercalls}~\mcite{RSCB2018}.
+\begin{figure}[tp]
+\center
+\begin{tikzpicture}[ auto, node distance=3cm
+                   , semithick
+                   , style={ node distance = 2em }
+                   , state/.style={ rectangle, draw=black,
+                     minimum height=1.7em, minimum width = 17.5em, inner
+                     sep=2pt, text centered, node distance = 2em }
+                   , shaded/.style = { fill = black!25!white }
+                   ]
+
+    \node[state, shaded] (usrp) {User's program + libraries};
+    \node[state, shaded, below = 0em of usrp.south west, anchor = north west]
+        (libs) {C/C++ standard libraries, \texttt{pthreads}};
+    \node[state, shaded, below = 0em of libs.south west, anchor = north west]
+        (dios) {\dios};
+    \node[state, below = 0em of dios.south west, anchor = north west]
+        (divm) {\divm};
+    \node[state, below = 0em of divm.south west, anchor = north west]
+        (alg) {Verification core};
+
+    \draw[in=0, out=0, >=stealth', looseness=1.7]
+        (usrp) edge[->] (dios)
+        (libs) edge (dios)
+      ;
+
+    \draw[in=180, out=180, >=stealth', looseness=1.7]
+        (libs) edge[->] (divm)
+        (dios) edge (divm)
+      ;
+    \node[left = 1em of divm.west] {hypercalls};
+    \node[right = 1em of dios.east] {syscalls};
+
+    \draw[dashed, thin]
+        (libs.north) -- ++(-0.49\textwidth,0)
+        (libs.north) -- ++(0.49\textwidth,0)
+      ;
+    \node[anchor=west] at ($ (libs.center) - (0.49\textwidth,0) $) {\divine};
+
+\end{tikzpicture}
+
+\caption{%
+  Overview of the architecture of \divine.
+  The shaded part consists of \llvm code which is interpreted by \divm.
+  \srcnote{This figure was originally created for \cite{DIVINEToolPaper2017}.}
+}\label{fig:prelim:divine:arch}
+\end{figure}
+
+The architecture of DIVINE is illustrated by \autoref{fig:prelim:divine:arch}.
+At the base of DIVINE, there is an explicit-state core which controls
+exploration of the state space.
+To actually execute the program, DIVINE uses \divm, a verification-oriented
+virtual machine that executes LLVM instructions and \divm extensions to LLVM IR
+called \emph{hypercalls}~\mcite{RSCB2018}.
 \divm hypercall behave as functions from the point of view of LLVM IR, but they
 are treated as instructions by \divm.
 These hypercalls handle operations like memory allocation and feeing and
@@ -1229,15 +1281,53 @@ Thread creation and termination is also implemented in a library.
 Scheduling, thread management and a basic POSIX-compatible interface including
 a filesystem model is grouped into \dios, a verification-oriented operating
 system~\mcite{RBMKB2019}.
+On top of \dios, there is a set of libraries including implementations of C and C++ standard library, POSIX thread library (\texttt{pthreads}), and unwinder for exception handling (see also \autoref{chap:lang} and \mcite{SRB2017}).
 
-DIVINE uses program instrumentation to facilitate program analysis.
-Instrumentation adds interruption points to the program to specify at which
-point the scheduler can be invoked -- these interruption points are used at
-memory access instructions and at back-edges of loops (to make sure \divm does
-not attempt run an infinite cycle).
-Instrumentation is also used by the symbolic and abstract extensions of
-DIVINE~\mcite{LRB2018}, for C++ exceptions (\autoref{chap:lang},
-\mcite{SRB2017}), and if the program is analysed for relaxed memory behaviour
-(\autoref{chap:mm}, \mcite{SB2018x86tso}).
+\subsection{Program Instrumentation}
+
+To avoid unnecessary complexity in \divm, DIVINE uses program instrumentation
+as a preprocessing step.
+Instrumentation adds potential interruption points to the program to specify at
+which point the scheduler can be invoked.
+These interruption points are used at memory access instructions and at
+back-edges of loops (to make sure \divm does not attempt run an infinite
+cycle).
+Furthermore, instrumentation is used to calculate metadata used by \dios.
+
+Instrumentation is also used to implement some extensions of DIVINE.
+It is used by the symbolic and abstract extensions of
+DIVINE~\mcite{LRB2018,CLOR2019}, for C++ exceptions (\autoref{chap:lang},
+\mcite{SRB2017}), if the program is analysed for relaxed memory behaviour
+(\autoref{chap:mm}, \mcite{SB2018x86tso}), and to enable local nontermination
+checking (\autoref{chap:lnterm}, \mcite{SB2019}).
+
+\subsection{State Space Reductions}
+
+DIVINE relies on state space reduction to be able to handle reasonably sized
+realistic parallel programs~\mcite{RBB13,RSCB2018}.
+The basic principle of the reductions used in DIVINE stems from the observation
+that most of the instructions of one thread do not interfere with instructions
+of other threads.
+For this reason, it is sufficient to enable thread interleaving only after a
+block of instructions, provided we can ensure that only one instruction that
+can interfere with instructions of other threads can happen in each block.
+
+In DIVINE we use heuristics to detect which instructions can interfere with
+other threads.
+A simplest version of such a heuristic is that only instructions which access
+memory can interfere with other threads in LLVM.\mnote{These are \li{load},
+\li{store}, \li{cmpxchg}, and \li{atomicrmw}.}
+For this reason, the instrumentation in DIVINE only inserts potential interrupt
+points at these instructions.
+When successors of a state are generated by \divm, it uses information from the
+potential interrupt points (which includes memory address range and a type of
+the access) to determine if the interrupt is actually necessary.
+To do this, DIVINE locally searches for actions of other threads which can
+interfere with the given thread.
+
+As the size of instruction blocks executed together by \divm is dynamic, it
+needs to ensure that size of each block is finite.
+To do this, \divm detects control flow cycles and ends a block of instructions
+if a back-edge in a control flow graph is repeated in it.
 
 % vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en
