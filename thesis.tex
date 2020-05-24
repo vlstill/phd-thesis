@@ -277,19 +277,21 @@
 \usepackage{marginfix}
 \usepackage{ragged2e}
 \usepackage{ifoddpage}
-\newcommand{\raggedout}{\checkoddpage\ifoddpage\RaggedRight\else\RaggedLeft\fi}
+\newcommand{\raggedoutunsafe}{\ifoddpage\RaggedRight\else\RaggedLeft\fi}
+\newcommand{\raggedout}{\checkoddpage\raggedoutunsafe}
 \newcounter{mnote}[chapter]
 \newcommand{\mnotemark}{\stepcounter{mnote}\hyperlink{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}$}\xspace}
 \newcommand{\mnotetext}[1]{\marginpar{\raggedout\hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}\footnotesize{}#1}}
 \newcommand{\mnote}[1]{\mnotemark{}\mnotetext{#1}}
 \newenvironment{marginnote}{%
         \mnotemark%
+        \raggedout% make sure the contents is or the right side of the box so it is not outside the page
         \expandafter\newbox\csname marginnotebox:\thechapter:\themnote\endcsname%
         \expandafter\setbox\csname marginnotebox:\thechapter:\themnote\endcsname=\vbox\bgroup%
             \noindent%
             \begin{minipage}{\marginparwidth}%
             \hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}%
-            \raggedout\footnotesize\noindent%
+            \raggedoutunsafe\footnotesize\noindent%
     }{%
             \end{minipage}%
         \egroup%
