@@ -121,6 +121,8 @@
     \def\@fs@post{}%
     \def\@fs@mid{\kern0.5\abovecaptionskip\hrule\kern0.5\abovecaptionskip}%
 \let\@fs@iftopcapt\iffalse}
+
+\gdef\at@float@page{}
 \let\thesis@old@at@float@page\relax
 \newenvironment{widefigure}{%
     \let\thesis@old@at@float@page\at@float@page%
@@ -134,7 +136,6 @@
     \begin{figure}[p]
     \changetext{}{\marginparwidth+\marginparsep}{}{}{}%
   }{\end{figure}}
-\newcommand{\thesis@floatpage}[1]{}
 \makeatother
 \floatstyle{botruled}
 \restylefloat{figure}
@@ -206,7 +207,7 @@
 \newcommand{\geom}[2]{\csname #1geometry\endcsname{
         bindingoffset=2cm, inner=1.5cm, outer=1.5cm, top=1.5cm, bottom=2.5cm,
 %        headheight=15.2pt, % for the sake of fancyhdr
-        includehead, headsep=1cm, nofoot,
+        includehead, headsep=1cm,
         includemp, % count outer margin outside of the marginpar
         #2
     }}
