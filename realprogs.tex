@@ -697,8 +697,8 @@ simply retain its own activation frame, which simplifies the unwinder.
 An illustration of how the stack looks while the unwinder is active is shown in
 \autoref{fig:lang:treestack}.
 
-\begin{figure}
-\small
+\begin{widefigure}
+\centering
 \begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, node distance=3cm
                    , semithick
                    , common/.style={rectangle, draw=black, inner sep=2pt,
@@ -781,7 +781,7 @@ An illustration of how the stack looks while the unwinder is active is shown in
         (throw-2-1.west) edge[out=180, in=0] (main-1-1.east)
         (unwind-2-1.east) edge[bend left] (throw-1-1.6)
 
-        (exception-4-1.east) edge[bend right] (unwind-1-1.east)
+        (exception-4-1.east) edge[out=45, in=-45] (unwind-1-1.east)
         (main-5-1) edge[out=0, in=180] (exception-1-1.west)
       ;
 \end{tikzpicture}
@@ -795,7 +795,7 @@ The frame pointer in the exception is used by the implementation of the
 \texttt{resume} instruction to jump back to the unwinder and continue phase 2
 of the unwinding.
 }\label{fig:lang:treestack}
-\end{figure}
+\end{widefigure}
 
 \section{The \llvm{} Transformation}\label{sec:lang:transform}
 

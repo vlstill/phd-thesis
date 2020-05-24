@@ -866,7 +866,7 @@ programmer must carefully evaluate the impact of memory model for their
 algorithm.
 An example of (a fragment of) lock-free data structure can be found in \autoref{fig:prelim:lockfree}.
 
-\begin{figure}[tp]
+\begin{widefigure}
   \begin{cppcodeln}
     void push( const T &x ) {
         Node *t;
@@ -919,7 +919,7 @@ An example of (a fragment of) lock-free data structure can be found in \autoref{
     in one atomic step (which is not possible on most processors and there is
     no C++ API for this operation) or complete redesign of the queue block.
   }\label{fig:prelim:lockfree}
-\end{figure}
+\end{widefigure}
 
 Overall, there is often a steep compromise between code simplicity and
 performance.
