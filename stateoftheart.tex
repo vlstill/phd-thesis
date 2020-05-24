@@ -108,27 +108,25 @@ These state space reduction techniques can reduce the number of states by
 several orders of magnitude~\cite{TODO}, and therefore enable verification of
 realistic (but still relatively small) programs.
 
-Interestingly, the proposed reduction techniques which aim to preserve verified properties are not always correct, for example the original version of $\tau+$ reduction considered only stores to be visible, but it was later shown that repeated loads have to be also visible (shown by me in~\cite{S2016}, acknowledged an fixed in \cite[Section 6]{RSCB2018}).\mnote{%
+Interestingly, the proposed reduction techniques which aim to preserve verified properties are not always correct, for example the original version of $\tau+$ reduction considered only stores to be visible, but it was later shown that repeated loads have to be also visible (shown by me in~\cite{S2016}, acknowledged an fixed in \cite[Section 6]{RSCB2018}).\begin{marginnote}%
 Consider this program with threads \texttt{t0} and \texttt{t1}:
 
-\medskip
-\begin{minipage}{\widthof{with threads \texttt{t0} and \texttt{t1}:}}
-\cpp{int x = 0;}\\
-\cpp{void t0()} \texttt{\{}\\
-\cpp{  x = 1;}\\
-\texttt{\}}\\
-\cpp{void t1()} \texttt{\{}\\
-\cpp{  int a = x;}\\
-\cpp{  assert(a == x);}\\
-\texttt{\}}
-\end{minipage}
+\begin{cppcode}
+  int x = 0;
+  void t0() {
+    x = 1;
+  }
+  void t1() {
+    int a = x;
+    assert(a == x);
+  }
+\end{cppcode}
 
-\medskip
 The assertion is violated if \cpp{t0} executes between the (local, invisible)
 assignment and the assertion in \cpp{t1}.
 However, if repeated loads are not considered visible, they are coalesced and
 the assertion is not violated.
-}
+\end{marginnote}
 Similar problem was present in \cite{Cordeiro2011} where ESBMC could perform two conditional jumps which read the same shared variable with no context switch between them (section 3.1, rule R3).
 Interestingly, the authors notice the possibility of missing context switches, but only introduce an option to fix it, leaving the problematic behaviour as default.
 

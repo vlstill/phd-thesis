@@ -19,31 +19,29 @@ A conventional approach to this problem is using stress testing -- for example a
 Such stress tests are designed to increase likelihood of triggering a bug in the test, but they still cannot show its absence.
 Even worse, tests of parallel software are often nondeterministic on buggy software, i.e., the same test of the same software version can sometimes succeed and sometimes fail due to different interleaving of threads in different executions.
 This behaviour might make bug fixing extremely difficult: for example it can happen that a test fails in a nightly automatic build, and therefore the developer knows there is a bug in the program, but they are unable to reproduce the bug and the test result might not be sufficient to find what the bug is without reproducing it.
-Similarly, it is hard to ensure by testing that (parallel) program terminates in all cases, or that it works correctly even on hardware with relaxed memory (which can, for example, delay stores to the main memory).\mnote{%
+Similarly, it is hard to ensure by testing that (parallel) program terminates in all cases, or that it works correctly even on hardware with relaxed memory (which can, for example, delay stores to the main memory).\begin{marginnote}%
 Consider this code:
 
-\medskip
-\begin{minipage}{\widthof{Consider this code:}}
-\cpp{int x = 0;} \\
-\cpp{int y = 0;} \\
+\begin{cppcode}
+int x = 0;
+int y = 0;
 
-\cpp{void t0()} \texttt{\{} \\
-\cpp{  y = 1;} \\
-\cpp{  int a = x;} \\
-\texttt{\}}
+void t0() {
+  y = 1;
+  int a = x;
+}
 
-\cpp{void t1()} \texttt{\{} \\
-\cpp{  x = 1;} \\
-\cpp{  int b = y;} \\
-\texttt{\}}
-\end{minipage}
+void t1() {
+  x = 1;
+  int b = y;
+}
+\end{cppcode}
 
-\medskip
 Where \texttt{t0} and \texttt{t1} are executed by diffrent threads.
 
 Intuitivelly we could expect that $\texttt{a} = 0 \land \texttt{b} = 0$ is not a possible outcome.
 However, under the common x86 architecture, this outcome can happen due to delayed stores.
-}
+\end{marginnote}
 
 In order to make discovery of hard to find bugs easier, many techniques were proposed -- both testing based methods, such as \TODO{race detectors, scheduler manipulation, ...} and methods based on \emph{formal verification} including \TODO{theorem proving, bounded/stateless/explicit-state MC}.
 However, for these methods to be useful to programmers, they must not only be theoretically capable of bug discovery, they must also be reasonably convenient to use.
