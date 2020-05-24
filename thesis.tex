@@ -258,14 +258,13 @@
   \setlength{\partopsep}{0pt}}
 
 \newcommand{\TODO}[1]{{\bf\color{red}#1}}
-\renewcommand{\comment}[1]{\xspace}
 
 % autoref names
-\addto\extrasenglish{
-    \renewcommand{\chapterautorefname}{Chapter}
-    \renewcommand{\sectionautorefname}{Section}
-    \renewcommand{\subsectionautorefname}{Section}
-    \def\definitionautorefname{Definition}
+\addto\extrasenglish{%
+    \renewcommand{\chapterautorefname}{Chapter}%
+    \renewcommand{\sectionautorefname}{Section}%
+    \renewcommand{\subsectionautorefname}{Section}%
+    \def\definitionautorefname{Definition}%
 }
 
 \newcommand{\rot}[1]{\rotatebox{90}{#1\hspace*{0.5em}}}
