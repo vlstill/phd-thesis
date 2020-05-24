@@ -50,7 +50,6 @@
            ]{hyperref}
 
 \usepackage{amssymb,amsmath,amsthm}
-\usepackage{verbatim}
 \usepackage{paralist}
 \usepackage{multicol}
 % use upquote for straight quotes in verbatim environments
@@ -70,7 +69,7 @@
 \usepackage{xspace}
 \usepackage{pgf}
 \usepackage{tikz}
-\usetikzlibrary{arrows,positioning,shapes,snakes,automata,backgrounds,petri,fit,matrix,decorations.pathreplacing,calc}
+\usetikzlibrary{arrows,positioning,shapes,automata,backgrounds,petri,fit,matrix,decorations.pathreplacing,calc}
 \tikzset{
     *|/.style={
         to path={
@@ -88,6 +87,7 @@
 }
 \usepackage{pgfplots}
 \pgfplotsset{
+    compat=1.16,
     every axis/.append style={
         axis on top,
         scatter/classes={ %
@@ -103,7 +103,6 @@
         }, scatter src=explicit symbolic, axis equal
     }
 }
-\usepackage{pdfpages}
 
 \usepackage{changepage}
 
@@ -273,8 +272,6 @@
 \newenvironment{stretched}{\emergencystretch 3em}{}
 
 \setcounter{tocdepth}{1}
-
-\usepackage{pdfpages}
 
 %% MARGIN NOTES %%
 \usepackage{marginfix}
