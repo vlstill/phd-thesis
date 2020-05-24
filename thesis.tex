@@ -217,14 +217,14 @@
 \usepackage{fancyhdr}
 \fancyhf{}
 % TODO: there is a weird space before \leftmark… so far, we just make similar-sized space on the right :-/
-\fancyhead[LE]{\footnotesize\makebox[\widthof{000}]{\thepage}\leftmark}
-\fancyhead[RO]{\footnotesize\rightmark\quad \ \makebox[\widthof{000}]{\hfill\thepage}}
+\fancyhead[LE]{\footnotesize\makebox[\widthof{000}]{\thepage\hfill}~\leftmark}
+\fancyhead[RO]{\footnotesize\rightmark~\makebox[\widthof{000}]{\hfill\thepage}}
 \renewcommand{\headrulewidth}{0pt} % remove lines after header
 \renewcommand{\footrulewidth}{0pt}
 % also restyle the chapter start page
 \fancypagestyle{plain}{
   \fancyhf{}
-  \fancyhead[RO]{\footnotesize\thepage}
+  \fancyhead[LE,RO]{\footnotesize\thepage}
   \renewcommand{\headrulewidth}{0pt}
 }
 % set marks for headers -- chapter mark contains only the chapter name, section
@@ -233,20 +233,15 @@
 \pagestyle{fancy} % initialize before setting marks
 \makeatletter
 \def\chaptermark#1{%
-  \markboth{\MakeUppercase{%
-    %\ifnum \c@secnumdepth >\m@ne
-    %  \if@mainmatter
-    %    %\@chapapp\ \thechapter \ %
-    %  \fi
-    %\fi
-    #1}}{}}
+  \markboth{|\qquad\MakeUppercase{#1}}{}}
 \def\sectionmark#1{%
-  \markright {\MakeUppercase{%
+  \markright{\MakeUppercase{%
     \ifnum \c@secnumdepth >\z@
       \thesection \ %
     \fi
-    #1}}}
+    #1\qquad|}}}
 \makeatother
+
 
 \usepackage{setspace}
 
@@ -382,7 +377,10 @@ LLVM, C++, DIVINE, implementation}
 \input{acknowledgements}
 \cleardoublepage
 
-\tableofcontents % prints table of contents
+\bgroup
+\def\markboth#1#2{}
+\tableofcontents
+\egroup
 
 \mainmatter
 
