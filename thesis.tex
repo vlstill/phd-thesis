@@ -282,6 +282,19 @@
 \newcommand{\mnotemark}{\stepcounter{mnote}\hyperlink{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}$}\xspace}
 \newcommand{\mnotetext}[1]{\marginpar{\raggedout\hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}\footnotesize{}#1}}
 \newcommand{\mnote}[1]{\mnotemark{}\mnotetext{#1}}
+\newenvironment{marginnote}{%
+        \mnotemark%
+        \expandafter\newbox\csname marginnotebox:\thechapter:\themnote\endcsname%
+        \expandafter\setbox\csname marginnotebox:\thechapter:\themnote\endcsname=\vbox\bgroup%
+            \noindent%
+            \begin{minipage}{\marginparwidth}%
+            \hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}%
+            \raggedout\footnotesize\noindent%
+    }{%
+            \end{minipage}%
+        \egroup%
+        \marginpar{\expandafter\unvbox\csname marginnotebox:\thechapter:\themnote\endcsname}
+    }
 
 % allows us to use make names in side margin citations link to DOI-based
 % publication page
