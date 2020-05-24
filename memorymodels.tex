@@ -96,7 +96,7 @@ buffer to the main memory, even if this value is never read (or is read much
 later).
 We illustrate this behaviour in \autoref{fig:mm:conventional}.
 
-\begin{widefigure}
+\begin{figure}[p]
   \begin{minipage}[t]{0.24\textwidth}
     \begin{cppcodeln}
       void t0() {
@@ -272,7 +272,7 @@ We illustrate this behaviour in \autoref{fig:mm:conventional}.
     Finally, flushes of \be{x}{1} are only relevant just before execution of
     line 2 in \texttt{t2} which is the only one which reads \texttt{x}.
   }\label{fig:mm:conventional}
-\end{widefigure}
+\end{figure}
 
 In pracice analysers for parallel programs employ state space reductions which
 can remove some of the nondeterminism introduced by the flusher thread.

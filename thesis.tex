@@ -116,31 +116,54 @@
 % - rules are thinner
 % - bottom rule is missing
 \newcommand\floatc@botruled[2]{{\@fs@cfont #1} #2\par}
-\newcommand\fs@botruled{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@botruled%
+\newcommand\fs@botruled{%
+    \def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@botruled%
     \def\@fs@pre{\hrule\kern0.5\abovecaptionskip}%
     \def\@fs@post{}%
     \def\@fs@mid{\kern0.5\abovecaptionskip\hrule\kern0.5\abovecaptionskip}%
 \let\@fs@iftopcapt\iffalse}
-\let\thesis@old@at@float@page\relax
-\newenvironment{widefigure}{%
-    \let\thesis@old@at@float@page\at@float@page%
-    \gdef\at@float@page{%
-        \let\thesis@float@cpg\clearpage%
-        \let\clearpage\relax%
-        \widegeom%
-        \let\clearpage\thesis@float@cpg%
-        \gdef\at@float@page{\thesis@old@at@float@page}
-    }%
-    \begin{figure}[p]
-    \changetext{}{\marginparwidth+\marginparsep}{}{}{}%
-  }{\end{figure}}
-\newcommand{\thesis@floatpage}[1]{}
-\makeatother
+
 \floatstyle{botruled}
 \restylefloat{figure}
+
+\newcounter{thesis@c@fig@def}
+\newcounter{thesis@c@fig@use}
+\gdef\thesis@page@float#1{\relax}
+\gdef\at@float@page{%
+    \let\thesis@float@cpg\clearpage%
+    \let\clearpage\relax%
+    \widegeom%
+    \let\clearpage\thesis@float@cpg%
+    \immediate\write\@auxout{%
+        \noexpand\expandafter\noexpand\gdef\noexpand\csname thesis@at@figure@body@hook\thethesis@c@fig@def\noexpand\endcsname{\unexpanded{\changetext{}{\marginparwidth+\marginparsep}{}{}{}}}%
+    }%
+%    \expandafter\gdef\csname \endcsname{}
+}%
+\let\thesis@old@figure\figure
+\let\endthesis@old@figure\endfigure
+\let\thesis@orig@xfloat\@xfloat
+\def\@xfloat #1[#2]{%
+        \immediate\stepcounter{thesis@c@fig@def}%
+        \thesis@orig@xfloat #1[#2]%
+    }
+\renewenvironment{figure}[1][tp]{%
+        \begin{thesis@old@figure}[#1]%
+        \stepcounter{thesis@c@fig@use}%
+        \csname thesis@at@figure@body@hook\thethesis@c@fig@use\endcsname%
+        \immediate\write\@auxout{%
+            \noexpand\expandafter\noexpand\gdef\noexpand\csname xxx@thesis@at@figure@body@hook\thethesis@c@fig@use\noexpand\endcsname{}}%
+        \@getfpsbit 8\relax
+        \ifodd \@tempcnta
+            p
+        \else
+            !p
+        \fi
+    }{%
+        \end{thesis@old@figure}%
+    }
+\makeatother
 \usepackage[labelfont=bf]{caption}
 \usepackage{subcaption}
-
 \usepackage{multirow}
 \usepackage{microtype}
 
