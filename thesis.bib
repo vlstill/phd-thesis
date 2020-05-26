@@ -9,12 +9,11 @@
     collection={Cambridge Series in Statistical and Probabilistic Mathematics}
 }
 
-@book{PoMC,
+@book{Baier2008,
 	author = {Baier, Christel and Katoen, Joost-Pieter},
 	title = {Principles of Model Checking},
-    subtitle = {Representation and Mind Series},
 	year = {2008},
-	isbn = {9780262026499},
+	isbn = {978-0-262-02649-9},
 	publisher = {The MIT Press},
 }
 
@@ -1304,13 +1303,6 @@ doi="10.1007/978-3-642-39799-8_9"
     address = {New York, NY, USA},
 } 
 
-@book{Baier2008,
-    title={Principles of model checking},
-    author={Baier, Christel and Katoen, Joost-Pieter and Larsen, Kim Guldstrand},
-    year={2008},
-    publisher={MIT press}
-}
-
 @article{Ou2017,
  author = {Ou, Peizhao and Demsky, Brian},
  title = {{Checking Concurrent Data Structures Under the C/C++11 Memory Model}},
@@ -1634,7 +1626,8 @@ keywords = {Partial-order Reduction, Stateless model-checking, Concurrency}
     volume={1003},
     year={2004},
     publisher={Addison-Wesley Reading},
-    isbn={978-0-321-22862-8}
+    isbn={978-0-321-22862-8},
+    url={https://www.cin.ufpe.br/~acm/esd/intranet/spinPrimer.pdf}
 }
 
 @InProceedings{Zaks2008,
@@ -3365,4 +3358,18 @@ series = {POPL ’05}
     url="https://divine.fi.muni.cz/",
     year="2020",
     urldate="2020-05-23",
+}
+
+@InProceedings{Hammer2007,
+    doi="10.1007/978-3-540-70952-7_4",
+    author="Hammer, Moritz and Weber, Michael",
+    editor="Brim, Lubo{\v{s}} and Haverkort, Boudewijn and Leucker, Martin and van de Pol, Jaco",
+    title="''To Store or Not To Store'' Reloaded: Reclaiming Memory on Demand",
+    booktitle="Formal Methods: Applications and Technology",
+    year="2007",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="51--66",
+    abstract="Behrmann et al. posed the question whether ''To Store or Not To Store'' [1] states during reachability analysis, in order to counter the effects of the well-known state space explosion problem in explicitstate model checking. Their answer was to store not all but only some strategical states. They pay in run-time if the answer too often is ''Not To Store''. We propose a different strategy to adaptively trade time for space: ''To Store'' as many states as memory limits permit. If free memory becomes scarce, we gradually swap states out to secondary storage. We are careful to minimize revisits, and I/O overhead, and also stay sound, i.e. on termination it is guaranteed that the full state space has been explored. It is also available for counterexample reconstruction. In our experiments we tackled state spaces of industrial-scale models with more than 109 explicit states with still modest storage requirements.",
+    isbn="978-3-540-70952-7"
 }
