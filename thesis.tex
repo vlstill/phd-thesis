@@ -204,14 +204,14 @@
 
 \usepackage[a4paper]{geometry}
 \newcommand{\geom}[2]{\csname #1geometry\endcsname{
-        bindingoffset=2cm, inner=1.5cm, outer=1.5cm, top=1.5cm, bottom=2.5cm,
+        bindingoffset=1.5cm, inner=1.5cm, outer=1.5cm, top=1.5cm, bottom=2.5cm,
 %        headheight=15.2pt, % for the sake of fancyhdr
         includehead, headsep=1cm,
         includemp, % count outer margin outside of the marginpar
         #2
     }}
 \newcommand{\widegeom}{\geom{new}{nomarginpar}}
-\newcommand{\margingeom}{\geom{new}{marginparsep=0.8cm, marginparwidth=3.5cm}}
+\newcommand{\margingeom}{\geom{new}{marginparsep=0.8cm, marginparwidth=4cm}}
 \widegeom % will override later, set here for the sake of headers
 \usepackage{fancyhdr}
 \fancyhf{}
