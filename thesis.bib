@@ -3373,3 +3373,100 @@ series = {POPL ’05}
     abstract="Behrmann et al. posed the question whether ''To Store or Not To Store'' [1] states during reachability analysis, in order to counter the effects of the well-known state space explosion problem in explicitstate model checking. Their answer was to store not all but only some strategical states. They pay in run-time if the answer too often is ''Not To Store''. We propose a different strategy to adaptively trade time for space: ''To Store'' as many states as memory limits permit. If free memory becomes scarce, we gradually swap states out to secondary storage. We are careful to minimize revisits, and I/O overhead, and also stay sound, i.e. on termination it is guaranteed that the full state space has been explored. It is also available for counterexample reconstruction. In our experiments we tackled state spaces of industrial-scale models with more than 109 explicit states with still modest storage requirements.",
     isbn="978-3-540-70952-7"
 }
+
+@InProceedings{Clarke1998,
+    doi="10.1007/BFb0028741",
+    author="Clarke, E. M.  and Emerson, E. A.  and Jha, S.  and Sistla, A. P.",
+    editor="Hu, Alan J.  and Vardi, Moshe Y.",
+    title="Symmetry reductions in model checking",
+    booktitle="Computer Aided Verification",
+    year="1998",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="147--158",
+    abstract="The use of symmetry to alleviate state-explosion problems during model-checking has become a important research topic. This paper investigates several problems which are important to techniques exploiting symmetry. The most important of these problems is the orbit problem. We prove that the orbit problem is equivalent to an important problem in computational group theory which is at least as hard as the graph isomorphism but not known to be NP-complete. This paper also shows classes of commonly occurring groups for which the orbit problem is easy. Some methods of deriving symmetry for a shared variable model of concurrent programs are also investigated. Experimental results providing evidence of reduction in state space by using symmetry are also provided.",
+    isbn="978-3-540-69339-0"
+}
+
+@InProceedings{Tasharofi2012,
+    doi="10.1007/978-3-642-30793-5_14",
+    author="Tasharofi, Samira and Karmani, Rajesh K.  and Lauterburg, Steven and Legay, Axel and Marinov, Darko and Agha, Gul",
+    editor="Giese, Holger and Rosu, Grigore",
+    title="TransDPOR: A Novel Dynamic Partial-Order Reduction Technique for Testing Actor Programs",
+    booktitle="Formal Techniques for Distributed Systems",
+    year="2012",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="219--234",
+    abstract="To detect hard-to-find concurrency bugs, testing tools try to systematically explore all possible interleavings of the transitions in a concurrent program. Unfortunately, because of the nondeterminism in concurrent programs, exhaustively exploring all interleavings is time-consuming and often computationally intractable. Speeding up such tools requires pruning the state space explored. Partial-order reduction (POR) techniques can substantially prune the number of explored interleavings. These techniques require defining a dependencyrelation on transitions in the program, and exploit independency among certain transitions to prune the state space.",
+    isbn="978-3-642-30793-5"
+}
+
+@InProceedings{Sen2007,
+    doi="10.1007/978-3-540-70889-6_13",
+    author="Sen, Koushik and Agha, Gul",
+    editor="Bin, Eyal and Ziv, Avi and Ur, Shmuel",
+    title="A Race-Detection and Flipping Algorithm for Automated Testing of Multi-threaded Programs",
+    booktitle="Hardware and Software, Verification and Testing",
+    year="2007",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="166--182",
+    abstract="Testing concurrent programs that accept data inputs is notoriously hard because, besides the large number of possible data inputs, nondeterminism results in an exponentially large number of interleavings of concurrent events. In order to efficiently test shared-memory multi-threaded programs, we develop an algorithm based on race-detection and flipping and illustrate how it can be combined with concolic execution (a simultaneous symbolic and concrete execution method) to test multi-threaded programs with data inputs. The goal of our algorithm is to minimize redundant executions while ensuring that all reachable statements in a program are executed. To achieve this, our algorithm explores all distinct causal structures of a multi-threaded program (i.e., the partial order among events generated during an execution). Because our algorithm is based on race-detection, it enables us to report potential data races and deadlocks. We have implemented our algorithm in a tool called jCUTE. We describe the results of applying jCUTE to real-world multi-threaded Java applications and libraries. In particular, we discovered several undocumented potential concurrency-related bugs in the widely used Java collection framework distributed with the Sun Microsystems' JDK 1.4.",
+    isbn="978-3-540-70889-6"
+}
+
+@inproceedings{Saarikivi2012,
+    title={Improving dynamic partial order reductions for concolic testing},
+    author={Saarikivi, Olli and K{\"a}hk{\"o}nen, Kari and Heljanko, Keijo},
+    booktitle={2012 12th International Conference on Application of Concurrency to System Design},
+    pages={132--141},
+    year={2012},
+    organization={IEEE},
+    doi={10.1109/ACSD.2012.18},
+}
+
+@inproceedings{Godefroid2005,
+    author = {Godefroid, Patrice and Klarlund, Nils and Sen, Koushik},
+    title = {DART: Directed Automated Random Testing},
+    year = {2005},
+    isbn = {1595930566},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/1065010.1065036},
+    doi = {10.1145/1065010.1065036},
+    booktitle = {Proceedings of the 2005 ACM SIGPLAN Conference on Programming Language Design and Implementation},
+    pages = {213–223},
+    numpages = {11},
+    keywords = {software testing, program verification, automated test generation, random testing, interfaces},
+    location = {Chicago, IL, USA},
+    series = {PLDI ’05}
+}
+
+@article{Kahkonen2013,
+    title = "LCT: A Parallel Distributed Testing Tool for Multithreaded Java Programs",
+    journal = "Electronic Notes in Theoretical Computer Science",
+    volume = "296",
+    pages = "253 - 259",
+    year = "2013",
+    note = "Proceedings the Sixth International Workshop on the Practical Application of Stochastic Modelling (PASM) and the Eleventh International Workshop on Parallel and Distributed Methods in Verification (PDMC).",
+    issn = "1571-0661",
+    doi = "https://doi.org/10.1016/j.entcs.2013.09.002",
+    url = "http://www.sciencedirect.com/science/article/pii/S1571066113000480",
+    author = "Kari Kähkönen and Olli Saarikivi and Keijo Heljanko",
+    keywords = "Concolic testing, distributed testing, symbolic execution",
+    abstract = "LIME Concolic Tester (LCT) is an open source automated testing tool that allows testing both sequential and multithreaded Java programs. The tool uses concolic testing to handle input values and dynamic partial order reduction (DPOR) combined with sleep sets to avoid exploring unnecessary interleavings of threads. The LCT tool has been designed for distributed use where the SMT constraint solving and test execution can be distributed to multiple processes on a network of workstations. In this paper we describe the architecture behind the tool and how it allows distributing concolic testing with DPOR and sleep set algorithms. This allows different execution paths of a given program to be tested in parallel. We evaluate the architecture and distributed algorithms of the tool on several Java benchmark programs."
+}
+
+@article{Godefroid2005verisoft,
+  title={Software model checking: The VeriSoft approach},
+  author={Godefroid, Patrice},
+  journal={Formal Methods in System Design},
+  volume={26},
+  number={2},
+  pages={77--101},
+  year={2005},
+  publisher={Springer},
+  doi={10.1007/s10703-005-1489-x}
+}
+

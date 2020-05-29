@@ -98,7 +98,7 @@ based on other principles then explicit-state exploration.
 
 Additionally, there are variants of \emph{symmetry reductions} which reduce the
 state space by coalescing states which differ only in properties not relevant
-for the program analysis.
+for the program analysis \cite{Clarke1998}.
 For example the \emph{heap-symmetry} reduction allows to consider two states
 that differ only in the order in which memory objects were allocated to be the
 same~\mcite{RBB13}, \mcite[Chapter 6]{RSCB2018}.
@@ -165,14 +165,14 @@ In~\mcite{Zaks2008} SPIN was extended to have partial support of C with the
 need to define a test driver in PROMELA.
 
 Java Pathfinder (JPF)~\mcite{Artho2019,Visser2003} is an explicit state model
-checker (with later symbolic extensions) for Java and JVM-based\mnote{Java is
+checker (with symbolic extensions) for Java and JVM-based\mnote{Java is
 not executing directly on the target hardware but instead uses an intermediate
 language which is executed by JVM. Other languages (e.g., Scala, Kotlin) can
 also target JVM and share the intermediate representation with Java.}
 languages.
 From its beginning JPF targets parallel Java programs.
 It checks for safety properties, namely for uncaught exceptions which in Java also subsume assertion checking and bound checking.
-To reduce state space, JPF uses hash-compaction (and therefore under-approximates all possible behaviours) and groups instructions with local effects.
+To reduce state space, JPF uses hash-compaction (and therefore under-approximates all possible behaviours), symmetry reduction (with respect to class loading order and heap symmetry), optionally predicate abstraction (with user-provided predicates), partial order reduction, and groups instructions with local effects.
 Interestingly, the instruction grouping in JPF uses a heuristic which can cause it to miss some behaviours.
 JPF has also model of parts of the Java standard library (including limited IO
 support) and limited support for execution of native code from the Java
@@ -253,12 +253,12 @@ in DIVINE.
 
 \TODO{(= Systematic concurrency testing)}
 
-Compared to explicit-state model checking, stateless model checking (SMC)
-avoids storing the set of visited states and therefore has decreased memory
-consumption.
+Compared to explicit-state model checking, \emph{stateless model checking}
+(SMC) avoids storing the set of visited states and therefore has decreased
+memory consumption.
 Furthermore, since the state representation is not required to be as compact as
 possible, stateless model checker can have simpler representation of states.
-Stateless model checking was introduced in~\cite{Godefroid1997}, it aims at
+Stateless model checking was introduced in~\mcite{Godefroid1997}, it aims at
 safety analysis of terminating realistic parallel programs.
 A stateless model checker usually explores the state space in depth-first
 manner and it can explore some parts of the state space multiple times (since
@@ -270,6 +270,8 @@ bounds -- loops are assigned maximum allowed number of iterations, if the
 program under test requires more iterations of some loop, the loop bound can be
 increased, or the analysis can be terminated as inconclusive.
 
+\paragraph{State Space Reductions}
+
 Without additional state space reductions, SMC would lead to redundant
 explorations of many parts of the state space -- in parallel programs it is
 common that two or more actions of different threads are independent and
@@ -278,8 +280,8 @@ In this case a stateless model checker would explore a state as many times as
 is the number of paths from the initial state to this state (in the worst case
 the number of paths to a given state can be exponential to its distance from
 the initial state).
-To mitigate this problem, dynamic partial order reduction
-(DPOR)~\cite{Flanagan2005dpor} is often employed with SMC.
+To mitigate this problem, \emph{dynamic partial order reduction}
+(\emph{DPOR})~\mcite{Flanagan2005dpor} is often employed with SMC.
 DPOR is a version of partial order reduction that tightly integrates with
 the SMC exploration algorithm and keeps track of parts of the state space which
 still need to be explored.
@@ -288,7 +290,7 @@ state space.
 
 Many works are concerned with design of efficient DPOR methods both for
 parallel programs running under sequential consistency (interleaving
-semantics), and for various memory models.
+semantics), and for various relaxed memory models.
 This is usually accomplished by combination of two aspects: an equivalence of
 traces and an exploration algorithm which ensures at least one trace (and in
 optimal case exactly one trace) from each equivalence class is explored.
@@ -296,88 +298,80 @@ The trace equivalence has to be designed in such a way that for each of its
 classes either all traces contain only safe states or all traces contain an
 unsafe state -- i.e., the equivalence preserves safety properties.
 
-For sequential consistency, multiple DPOR techniques were introduced.
-\TODO{Verisoft, CHESS, techniky} \cite{TODO,TODO}, among these \cite{Abdulla2014} is interesting by providing an optimal algorithm for equivalence based on \emph{Mazurkiewicz traces}~\cite{Mazurkiewicz1987} (where traces are considered equivalent if one of them can be obtained from the other by swapping adjacent non-conflicting execution steps).
-While the original implementation of the is technique was used for verification of Erlang programs (which use message passing instead of shared variables) using the Concuerror tool, it was later successfully applied also to verification of C programs under TSO and PSO memory models using the Niddhugg SMC \cite{Abdulla2017tso}.
-
-It is important to note that the optimal DPOR presented by \cite{Abdulla2014}
+Over the years, multiple DPOR techniques were introduced
+\mcite{Flanagan2005dpor,Sen2007,Tasharofi2012,Saarikivi2012,Abdulla2014,Zhang2015,Chalupa2017}.
+Among these \mcite{Abdulla2014} is interesting since it provides an optimal algorithm for equivalence based on \emph{Mazurkiewicz traces} \mcite{Mazurkiewicz1987} (where traces are considered equivalent if one of them can be obtained from the other by swapping adjacent non-conflicting execution steps).
+While the original implementation of the is technique was used for verification of Erlang programs (which use message passing instead of shared variables) using the Concuerror tool, it was later successfully applied also to verification of C programs under TSO and PSO memory models using the Niddhugg SMC \mcite{Abdulla2017tso}.
+It is important to note that the optimal DPOR presented by \mcite{Abdulla2014}
 is optimal for the given trace equivalence.
 A data-centric DPOR which uses a coarser equivalence and an optimal
-exploration algorithm for it was introduced in~\cite{Chalupa2017} and it was
+exploration algorithm for it was introduced in~\mcite{Chalupa2017} and it was
 shown that it performs better on a selection of C benchmarks.
 
-Another approach based on observation of read and written values is Maximal
-Causality Reduction (MCR)~\cite{Huang2015}, which can be seen as an alternative
-to DPOR.
-\TODO{MCR employs an SMT solver to find new traces to explore which allows it to
-explore less interleavings then Mazurkiewicz-trace-based DPOR techniques.}
+Another reduction approach based on observation of read and written values is
+\emph{Maximal Causality Reduction} (\emph{MCR})~\mcite{Huang2015}, which can be
+seen as an alternative to DPOR.
+MCR employs an SMT solver to find new traces to explore, which allows it to
+explore less interleavings then Mazurkiewicz-trace-based DPOR techniques.
 Another advantage of MCR is that it can be easily modified for parallel
 exploration (DPOR cannot be easily executed in parallel).
 
-\TODO{...?}
+\TODO{RCMC?}
 
-\paragraph{Relaxed Memory Models}
+\paragraph{Data Nondeterminism}
 
-\TODO{rewrite?}
+Originally, stateless model checking with DPOR expects that the thread
+scheduling is the only source of nondeterminism in the system \mcite{Flanagan2005dpor}.
+However, there are combinations of SMC with other techniques which can handle
+nondeterministic data.
+In \mcite{Saarikivi2012} a combination of DPOR with concolic execution is presented.
+Another combination of concolic execution with SMC is presented in \mcite{Sen2007}, this one uses a different approach to DPOR then \mcite{Flanagan2005dpor}.
 
-Thanks to its ability to reduce exploration of redundant interleavings, SMC
-combined with DPOR or other reduction techniques is often used as a basis for
-analysis of programs running under various relaxed memory models.
+\paragraph{Tools}
 
-Several approaches focus on the TSO/\xtso memory models (and often also on PSO,
-which is somewhat more relaxed then TSO, but can usually be simulated in a
-similar manner).
-These include \emph{rInspect} presented in~\cite{Zhang2015}, which uses store
-buffers and shadow threads which flush them to integrate relaxed memory with
-existing DPOR approaches for sequential consistendy.
-The tool \emph{rInspect} is based on LLVM and targets primarily C programs.
-It has support for both bounded and unbounded store buffers (but being a SMC it
-works on terminating programs only).
-Another approach to TSO and PSO is used by tool Niddhugg and presented
-in~\cite{Abdulla2017}.
-This approach uses \emph{chronological traces} that capture dependencies between
-memory operations.
-Chronological traces are then used with the optimal DPOR
-from~\cite{Abdulla2014}, which gives rise to an interesting property -- for
-robust programs (i.e., programs which do not exhibit observable relaxed
-behaviour) the number of traces explored under TSO or PSO should be the same as
-the number of traces explored under sequential consistency.
-Niddhugg is an LLVM-based tool for analysis of C programs.
-A SAT-based stateless approach is presented in~\cite{Demsky2015}.
-It targets both sequential consistency and \xtso and is implemented in the tool
-SATCheck.
-It repeatedly executes a concrete interleaving of threads (and records
-dependencies in this execution) and invokes SAT solver to find new
-interleavings with different behaviour.
+VeriSoft \mcite{Godefroid1997,Godefroid2005verisoft} the pioneering tool of stateless model checking.
+It aims at safety verification of realistic parallel programs, primarily in C and C++, but also in other programming languages -- VeriSoft works with compiled executable programs and uses a custom scheduler to explore (bounded) runs of these programs.
+To limit re-exploration of states and state space size, VeriSoft allows scheduling only on visible operations and uses partial order reduction.
 
-For the C11/C++11 memory model~\cite{Norris2013} presents a tool \textsc{CDSChecker}.
-It covers most of the C11 memory model, with the exception of release-consume
-synchronization and executions which exhibit out-of-thin-air
-values.\mnote{Out-of-thin-air values \TODO{...}.}
-To allow reads which are reordered with future operations (which is allowed by
-the C11 memory model), \textsc{CDSChecker} can propagate stored values to
-previous loads and validate this speculation.
-\textsc{CDSChecker} targets primarily unit tests of concurrent data structures
-written in C11/C++11.
-A different approach to stateless model checking of programs running under the
-C11/C++11 memory model is taken in~\cite{Kokologiannakis2017}.
-This approach uses the RC11 memory model, which is a proposed memory model
-which fixes some of the problems with the C11/C++11 memory
-model~\cite{Lahav2017}.
-Here, the authors use execution graphs which represent visible program actions
-and dependencies between them to explore all behaviour of a given program.
-This allows them to cover all program's behaviour without direct exploration of
-its interleavings.
-The approach is implemented in the tool RCMC.
+jCUTE \mcite{Sen2007} is a tool which combines concolic execution and stateless model checking for Java programs, which allows it to handle both parallelism and data nondeterminism.
+To explore all possible behaviours of parallel programs, jCUTE detect data races (concurrent access of two threads to the same location, at least one of which is a write or a lock operation) and rearranges schedules which led to them.
+% - assumes locks are disjoint from R/W memory locations
 
+LCT \mcite{Saarikivi2012,Kahkonen2013} is another tool which combines concolic execution and SMC to handle parallel Java programs with data nondeterminism.
+It uses program instrumentation to add symbolic operations where needed and allows scheduling to happen only on visible operations.
+To speedup the analysis, LCT can run multiple executions of the program with different inputs in parallel distributed over the network.
 
-In~\cite{Abdulla2016} an approach for stateless model checking under the POWER memory model is show.
-The work presents a way to derive a suitable execution model from the axiomatic semantics of the memory model, and an SMC exploration algorithm for the execution model.
-The proposed approach explores only a single complete trace from each equivalence class given by Shasha-Snir traces~\cite{Shasha1988}, but it can perform redundant exploration of incomplete traces. 
-The algorithm is implemented in the tool Nidhugg.
+CDSChecker \mcite{Norris2013} is a stateless model checker for C and C++ with support for the C11/C++11 memory model (with exception of release-consume synchronisation and out-of-thin-air values\mnote{Which are discouraged by the standard, but the C11/C++11 memory models allow them.}).
+It can simulate load speculation and delays by forwarding stored values to previous loads and validating this speculation.
+According to the authors, CDSChecker primarily aims to help with unit testing concurrent data structures.
 
+SATCheck \mcite{Demsky2015} is a stateless model checker for C programs with support for sequential consistency and TSO.
+It records dependencies between program events and uses SAT solver to reorder the events on a concrete run to get new interleavings with new behaviour.
 
----
+rInspect \mcite{Zhang2015} is a LLVM-based stateless model checker for C
+programs running under the TSO and PSO relaxed memory models.
+It uses store buffers and shadow threads that flush values from store buffers
+to the main memory.
+Store buffers can be optionally bounded.
+The shadow thread approach allows it to use existing DPOR techniques designed
+for sequential consistency.
+
+Nidhugg \mcite{Abdulla2016,Abdulla2017tso}, is a stateless model
+checker which focuses on C programs running under relaxed memory models.  It
+has support for sequential consistency, TSO, PSO, POWER, and partially ARM
+memory models.
+For TSO and PSO, Nidhugg uses the optimal DPOR algorithm from \mcite{Abdulla2014} to explore exactly one execution from each equivalence class given by \emph{chronological traces} that capture dependencies between memory operations.
+The combination of chronological traces and optimal DPOR algorithm means that
+for programs which do not exhibit relaxed behaviour under TSO/PSO, Nidhugg
+explores the same number of traces under TSO/PSO as it would explore under
+sequential consistency.
+For POWER, Nidhugg uses a different algorithm which can perform a redundant exploration of incomplete traces, but does not generate redundant complete traces (for the trace equivalence given by Shasha-Snir traces~\mcite{Shasha1988}).
+Nidhugg uses LLVM to avoid the cost of direct analysis of C programs.
+
+RCMC \mcite{Kokologiannakis2017} is a stateless model checker for C and C++ running under the RC11 memory model \mcite{Lahav2017} (which is an attempt to formalize and fix the C11 memory model).
+Instead of exploring interleavings, the tool uses execution graphs which represent visible program actions and dependencies between them.
+
+\paragraph{X}
 
 CHESS:
 - state hashing (according to \cite{Cordeiro2011})
@@ -386,22 +380,8 @@ CHESS:
 SATABS (unknown type)
 - according to \cite{Cordeiro2011} cannot handle arrays + arithmetic
 
-Nidhugg~\cite{Abdulla2017}
 
 
-
-\paragraph{Limitations of SMC}
-
-As already mentioned, the SMC requires programs to be terminating, which is
-usually achieved by bounding loops and recursion.
-For this reason, SMC is limited only to properties of finite paths, and
-therefore it cannot be used for general LTL properties or showing program
-nontermination.
-
-Furthermore, most SMC techniques require programs to have no source of
-nondeterminism apart from thread scheduling and memory model (i.e., no data
-nondeterminism)~\cite{Abdulla2017}.
-\TODO{ deteministic threads: \cite{Huang2015:14,Huang2015:27}}
 
 
 \section{Bounded Model Checking \& Related Techniques}
@@ -672,6 +652,7 @@ F-Soft~\cite{Ivancic2005}
 - program slicing, predicate abstraction
 - generates executable counterexamles
 
+power2sc \mcite{Abdulla2017}
 
 Corral
 
@@ -816,7 +797,7 @@ VeriFuzz~\cite{Basak2019}
 
 Introduced in~\cite{King1976}.
 
-Concolic execution = dynamic symbolic execution: programs runs with concrete values but tracks symbolic constraints on branches which are used to generate new concrete values to explore different paths
+Concolic execution = dynamic symbolic execution: programs runs with concrete values but tracks symbolic constraints on branches which are used to generate new concrete values to explore different paths. Also known as Directed Automated Random Testing \cite{Godefroid2005}, 
 
 
 Symbiotic~\cite{Chalupa2018,Chalupa2020}
