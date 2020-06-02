@@ -251,8 +251,6 @@ in DIVINE.
 
 \section{Stateless Model Checking}
 
-\TODO{(= Systematic concurrency testing)}
-
 Compared to explicit-state model checking, \emph{stateless model checking}
 (SMC) avoids storing the set of visited states and therefore has decreased
 memory consumption.
@@ -269,6 +267,8 @@ In practice, this requirement is often ensured by imposing loop iteration
 bounds -- loops are assigned maximum allowed number of iterations, if the
 program under test requires more iterations of some loop, the loop bound can be
 increased, or the analysis can be terminated as inconclusive.
+
+Stateless model checking is also sometimes presented under names like \emph{systematic concurrency testing}~\mcite{Christakis2013}.
 
 \paragraph{State Space Reductions}
 
@@ -299,35 +299,41 @@ classes either all traces contain only safe states or all traces contain an
 unsafe state -- i.e., the equivalence preserves safety properties.
 
 Over the years, multiple DPOR techniques were introduced
-\mcite{Flanagan2005dpor,Sen2007,Tasharofi2012,Saarikivi2012,Abdulla2014,Zhang2015,Chalupa2017}.
+\mcite{Flanagan2005dpor,Sen2007,Tasharofi2012,Saarikivi2012,Abdulla2014,Zhang2015,Chalupa2017,Abdulla2018,Aronis2018,Abdulla2019}.
 Among these \mcite{Abdulla2014} is interesting since it provides an optimal algorithm for equivalence based on \emph{Mazurkiewicz traces} \mcite{Mazurkiewicz1987} (where traces are considered equivalent if one of them can be obtained from the other by swapping adjacent non-conflicting execution steps).
-While the original implementation of the is technique was used for verification of Erlang programs (which use message passing instead of shared variables) using the Concuerror tool, it was later successfully applied also to verification of C programs under TSO and PSO memory models using the Niddhugg SMC \mcite{Abdulla2017tso}.
-It is important to note that the optimal DPOR presented by \mcite{Abdulla2014}
-is optimal for the given trace equivalence.
-A data-centric DPOR which uses a coarser equivalence and an optimal
-exploration algorithm for it was introduced in~\mcite{Chalupa2017} and it was
-shown that it performs better on a selection of C benchmarks.
+However, the optimal DPOR presented by \mcite{Abdulla2014} is optimal for the
+given trace equivalence (i.e., it explores exactly one execution in each equivalence class of the used trace equivalence).
+In recent years, several works have explored coarser equivalences and optimal algorithms for them.
+In \mcite{Chalupa2017} the authors use a notion of observation of write operations and an consider traces to be equivalent if the corresponding reads observe the same writes in both traces, however, their algorithm is optimal only for programs in which the graph of intra-thread communication is acyclic. 
+A similar notion of observation is used in \mcite{Aronis2018}, in this case to only consider write events as interfering if at least one of them can be observed later.
+In \mcite{Abdulla2018} the authors use a notion of reads-from equivalence (i.e., trace equivalence based on program order and reads-from relation which connects reads to writes which produced the read value) for analysis of a fragment of the C11 memory model which contains only relase and acquire memory orders.
+The advantage of this trace equivalence is that it does not distinguish traces which differ in order of unobserved writes.
+The authors argue that working with this equivalence is easier for release-acquire ordering than for sequential consistency due to complexity of checking if a reads-from relation can correspond to a run of a program.
+The same trace equivalence is used in \mcite{Abdulla2019} for sequentially-consistent programs.
+To avoid the need for expensive (NP-complete) checks for consistency of reads-from relations, the authors use two incomplete but polynomial algorithms, one which can show that given relation is consistent and one which can show it is inconsistent, before running the expensive check which is exponential in the number of threads.
 
 Another reduction approach based on observation of read and written values is
 \emph{Maximal Causality Reduction} (\emph{MCR})~\mcite{Huang2015}, which can be
 seen as an alternative to DPOR.
 MCR employs an SMT solver to find new traces to explore, which allows it to
 explore less interleavings then Mazurkiewicz-trace-based DPOR techniques.
-Another advantage of MCR is that it can be easily modified for parallel
+Each time a new trace is found it is guaranteed that at least one read will read a different value than read on already observed traces.
+An advantage of MCR is that it can be easily modified for parallel
 exploration (DPOR cannot be easily executed in parallel).
+The MCR was also applied to the TSO and PSO memory models \mcite{Huang2016}.
 
-\TODO{RCMC?}
+% \TODO{RCMC?} \mcite{Kokologiannakis2017}
 
 \paragraph{Data Nondeterminism}
 
-Originally, stateless model checking with DPOR expects that the thread
+In most works, stateless model checking with DPOR expects that the thread
 scheduling is the only source of nondeterminism in the system \mcite{Flanagan2005dpor}.
 However, there are combinations of SMC with other techniques which can handle
 nondeterministic data.
 In \mcite{Saarikivi2012} a combination of DPOR with concolic execution is presented.
 Another combination of concolic execution with SMC is presented in \mcite{Sen2007}, this one uses a different approach to DPOR then \mcite{Flanagan2005dpor}.
 
-\paragraph{Tools}
+\paragraph{Tools and Techniques}
 
 VeriSoft \mcite{Godefroid1997,Godefroid2005verisoft} the pioneering tool of stateless model checking.
 It aims at safety verification of realistic parallel programs, primarily in C and C++, but also in other programming languages -- VeriSoft works with compiled executable programs and uses a custom scheduler to explore (bounded) runs of these programs.
@@ -337,6 +343,13 @@ jCUTE \mcite{Sen2007} is a tool which combines concolic execution and stateless 
 To explore all possible behaviours of parallel programs, jCUTE detect data races (concurrent access of two threads to the same location, at least one of which is a write or a lock operation) and rearranges schedules which led to them.
 % - assumes locks are disjoint from R/W memory locations
 
+CHESS \mcite{Musuvathi2008} an SMC tool which uses a custom scheduler to drive execution of compiled executable programs mainly in C, C++ and .NET languages (such as C\#).
+It uses binary instrumentation to control programs' scheduling and record order of events.
+To limit state space explosion it explores runs with fewer context switches first and uses a cache of happens-before graphs of events to avoid redundant explorations (and therefore is not truly stateless).
+To handle the environment of the operating system better, CHESS can record and relay environmental values such as current time, process identifiers and output of platform's random number generators.
+However, the user must ensure that other parts for the environment (e.g., filesystem, network) is used in such a way that the program is executes the same way if the same thread scheduling is repeated.
+The authors argue that this approach is practical for most unit tests.
+
 LCT \mcite{Saarikivi2012,Kahkonen2013} is another tool which combines concolic execution and SMC to handle parallel Java programs with data nondeterminism.
 It uses program instrumentation to add symbolic operations where needed and allows scheduling to happen only on visible operations.
 To speedup the analysis, LCT can run multiple executions of the program with different inputs in parallel distributed over the network.
@@ -344,6 +357,10 @@ To speedup the analysis, LCT can run multiple executions of the program with dif
 CDSChecker \mcite{Norris2013} is a stateless model checker for C and C++ with support for the C11/C++11 memory model (with exception of release-consume synchronisation and out-of-thin-air values\mnote{Which are discouraged by the standard, but the C11/C++11 memory models allow them.}).
 It can simulate load speculation and delays by forwarding stored values to previous loads and validating this speculation.
 According to the authors, CDSChecker primarily aims to help with unit testing concurrent data structures.
+
+Concuerror \mcite{Christakis2013,Abdulla2014,Aronis2018} is an SMC for Erlang programs.
+In Erlang, the primary way of communication between processes is message passing.
+Concuerror uses context bounding and it has also an implementation of optimal DPOR for Mazurkiewicz traces and optimal DPOR based on observers.
 
 SATCheck \mcite{Demsky2015} is a stateless model checker for C programs with support for sequential consistency and TSO.
 It records dependencies between program events and uses SAT solver to reorder the events on a concrete run to get new interleavings with new behaviour.
@@ -356,8 +373,11 @@ Store buffers can be optionally bounded.
 The shadow thread approach allows it to use existing DPOR techniques designed
 for sequential consistency.
 
-Nidhugg \mcite{Abdulla2016,Abdulla2017tso}, is a stateless model
-checker which focuses on C programs running under relaxed memory models.  It
+The maximal causality reduction (MCR) is implemented in an unnamed tool for analysis of Java programs \mcite{Huang2015,Huang2016}.
+It supports both sequential concurrency and the TSO and PSO relaxed memory models.
+
+Nidhugg \mcite{Abdulla2016,Abdulla2017tso,Aronis2018,Abdulla2019}, is a stateless model
+checker which focuses on C programs running under relaxed memory models. It
 has support for sequential consistency, TSO, PSO, POWER, and partially ARM
 memory models.
 For TSO and PSO, Nidhugg uses the optimal DPOR algorithm from \mcite{Abdulla2014} to explore exactly one execution from each equivalence class given by \emph{chronological traces} that capture dependencies between memory operations.
@@ -366,15 +386,34 @@ for programs which do not exhibit relaxed behaviour under TSO/PSO, Nidhugg
 explores the same number of traces under TSO/PSO as it would explore under
 sequential consistency.
 For POWER, Nidhugg uses a different algorithm which can perform a redundant exploration of incomplete traces, but does not generate redundant complete traces (for the trace equivalence given by Shasha-Snir traces~\mcite{Shasha1988}).
+Nidhugg has also option to use a \emph{reads-from}-based trace equivalence for sequential consistency, together with an optimal exploration algorithm for this equivalence.
+This equivalence does not distinguish traces which differ only in order of conflicting writes and therefore can be exponentially more coarse.
+The corresponding algorithm needs to decide if a given read-from relation is consistent, which is a NP-complete problem.
+However, the authors show that the expensive check can be avoided in most cases by use of faster but incomplete checks.
 Nidhugg uses LLVM to avoid the cost of direct analysis of C programs.
+
+% \mcite{Abdulla2019}
+% - coarser equivalence for SC
+% - efficient in practice
+% - uses equivalence based on seqeunces of events for each thread and reads-from relation between them
+% - checking consistency of a given reads-from relation is NP-complete -- the exploration algorithm first uses two incomplete but faster checks (to detect inconsistency and consistency)
+%   - on all programs they tesed the incomplete checks were sufficient
 
 RCMC \mcite{Kokologiannakis2017} is a stateless model checker for C and C++ running under the RC11 memory model \mcite{Lahav2017} (which is an attempt to formalize and fix the C11 memory model).
 Instead of exploring interleavings, the tool uses execution graphs which represent visible program actions and dependencies between them.
 
+Tracer \mcite{Abdulla2018} is a tool for analysis of the release-acquire fragment of the C11/C++11 relaxed memory model.
+I can work with C and C++ program which do not use any other atomic orderings then release and acquire, i.e., it has no support for sequentially consistent atomics or relaxed atomics.
+Tracer does not explore all possible orderings of conflicting writes, instead, the equivalence relation at the core of their DPOR implementation is given only by program orders and read-from to avoid redundancy.
+The proposed exploration algorithm is optimal for traces defined on this equivalence.
+In practice this means that nondeterministical decision takes place at read operations and writes are only recorded, with the addition of backtracking for cases when a previous read might read from a later executed write.
+% - C/C++11 -- replaces implementations of atomic, threads, mutex to drive execution
+
 \paragraph{X}
 
-CHESS:
-- state hashing (according to \cite{Cordeiro2011})
+% \mcite{Aronis2018}
+% - optimal dpor of \mcite{Abdulla2014} extended with observability -- the order of write operations only needs to be considered if someone observes the difference], interference is optional
+% - Nidhugg and Concuerror
 
 
 SATABS (unknown type)
