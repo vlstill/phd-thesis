@@ -304,6 +304,7 @@ Among these \mcite{Abdulla2014} is interesting since it provides an optimal algo
 However, the optimal DPOR presented by \mcite{Abdulla2014} is optimal for the
 given trace equivalence (i.e., it explores exactly one execution in each equivalence class of the used trace equivalence).
 In recent years, several works have explored coarser equivalences and optimal algorithms for them.
+
 In \mcite{Chalupa2017} the authors use a notion of observation of write operations and an consider traces to be equivalent if the corresponding reads observe the same writes in both traces, however, their algorithm is optimal only for programs in which the graph of intra-thread communication is acyclic. 
 A similar notion of observation is used in \mcite{Aronis2018}, in this case to only consider write events as interfering if at least one of them can be observed later.
 In \mcite{Abdulla2018} the authors use a notion of reads-from equivalence (i.e., trace equivalence based on program order and reads-from relation which connects reads to writes which produced the read value) for analysis of a fragment of the C11 memory model which contains only relase and acquire memory orders.
@@ -311,6 +312,12 @@ The advantage of this trace equivalence is that it does not distinguish traces w
 The authors argue that working with this equivalence is easier for release-acquire ordering than for sequential consistency due to complexity of checking if a reads-from relation can correspond to a run of a program.
 The same trace equivalence is used in \mcite{Abdulla2019} for sequentially-consistent programs.
 To avoid the need for expensive (NP-complete) checks for consistency of reads-from relations, the authors use two incomplete but polynomial algorithms, one which can show that given relation is consistent and one which can show it is inconsistent, before running the expensive check which is exponential in the number of threads.
+
+A somewhat different modification of DPOR is presented in \mcite{Albert2017cspor}.
+It uses a notion of context-sensitive independence to improve on previous DPOR techniques.
+In essence, it considers two actions $a$ and $b$ independent in a given state, if they can be executed in both as $ab$ and $ba$ and both executions lead to the same final state.
+This technique uses a (local) state comparison and therefore is not completely stateless.
+This approach was later combined with observers to achieve further reduction improvements \mcite{Albert2019}.
 
 Another reduction approach based on observation of read and written values is
 \emph{Maximal Causality Reduction} (\emph{MCR})~\mcite{Huang2015}, which can be
@@ -354,14 +361,6 @@ LCT \mcite{Saarikivi2012,Kahkonen2013} is another tool which combines concolic e
 It uses program instrumentation to add symbolic operations where needed and allows scheduling to happen only on visible operations.
 To speedup the analysis, LCT can run multiple executions of the program with different inputs in parallel distributed over the network.
 
-CDSChecker \mcite{Norris2013} is a stateless model checker for C and C++ with support for the C11/C++11 memory model (with exception of release-consume synchronisation and out-of-thin-air values\mnote{Which are discouraged by the standard, but the C11/C++11 memory models allow them.}).
-It can simulate load speculation and delays by forwarding stored values to previous loads and validating this speculation.
-According to the authors, CDSChecker primarily aims to help with unit testing concurrent data structures.
-
-Concuerror \mcite{Christakis2013,Abdulla2014,Aronis2018} is an SMC for Erlang programs.
-In Erlang, the primary way of communication between processes is message passing.
-Concuerror uses context bounding and it has also an implementation of optimal DPOR for Mazurkiewicz traces and optimal DPOR based on observers.
-
 SATCheck \mcite{Demsky2015} is a stateless model checker for C programs with support for sequential consistency and TSO.
 It records dependencies between program events and uses SAT solver to reorder the events on a concrete run to get new interleavings with new behaviour.
 
@@ -375,6 +374,14 @@ for sequential consistency.
 
 The maximal causality reduction (MCR) is implemented in an unnamed tool for analysis of Java programs \mcite{Huang2015,Huang2016}.
 It supports both sequential concurrency and the TSO and PSO relaxed memory models.
+
+CDSChecker \mcite{Norris2016} is a stateless model checker for C and C++ with support for the C11/C++11 memory model (with exception of release-consume synchronisation and out-of-thin-air values\mnote{Which are discouraged by the standard, but the C11/C++11 memory models allow them.}).
+It can simulate load speculation and delays by forwarding stored values to previous loads and validating this speculation.
+According to the authors, CDSChecker primarily aims to help with unit testing concurrent data structures.
+
+Concuerror \mcite{Christakis2013,Abdulla2014,Aronis2018} is an SMC for Erlang programs.
+In Erlang, the primary way of communication between processes is message passing.
+Concuerror uses context bounding and it has also an implementation of optimal DPOR for Mazurkiewicz traces and optimal DPOR based on observers.
 
 Nidhugg \mcite{Abdulla2016,Abdulla2017tso,Aronis2018,Abdulla2019}, is a stateless model
 checker which focuses on C programs running under relaxed memory models. It
@@ -411,15 +418,8 @@ In practice this means that nondeterministical decision takes place at read oper
 
 \paragraph{X}
 
-% \mcite{Aronis2018}
-% - optimal dpor of \mcite{Abdulla2014} extended with observability -- the order of write operations only needs to be considered if someone observes the difference], interference is optional
-% - Nidhugg and Concuerror
-
-
 SATABS (unknown type)
 - according to \cite{Cordeiro2011} cannot handle arrays + arithmetic
-
-
 
 
 
