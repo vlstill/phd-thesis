@@ -3623,3 +3623,145 @@ series = {POPL ’05}
     doi={10.1007/s10703-009-0078-9}
 }
 
+@InProceedings{Cimatti2012,
+    doi="10.1007/978-3-642-31424-7_23",
+    author="Cimatti, Alessandro and Griggio, Alberto",
+    editor="Madhusudan, P.  and Seshia, Sanjit A.",
+    title="Software Model Checking via IC3",
+    booktitle="Computer Aided Verification",
+    year="2012",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="277--293",
+    abstract="IC3 is a recently proposed verification technique for the analysis of sequential circuits. IC3 incrementally overapproximates the state space, refuting potential violations to the property at hand by constructing relative inductive blocking clauses. The algorithm relies on aggressive use of Boolean satisfiability (SAT) techniques, and has demonstrated impressive effectiveness.",
+    isbn="978-3-642-31424-7"
+}
+
+@inproceedings{Een2011,
+    author = {Een, Niklas and Mishchenko, Alan and Brayton, Robert},
+    title = {Efficient Implementation of Property Directed Reachability},
+    year = {2011},
+    isbn = {9780983567813},
+    publisher = {FMCAD Inc},
+    address = {Austin, Texas},
+    booktitle = {Proceedings of the International Conference on Formal Methods in Computer-Aided Design},
+    pages = {125–134},
+    numpages = {10},
+    location = {Austin, Texas},
+    series = {FMCAD ’11},
+    url={https://ieeexplore.ieee.org/abstract/document/6148886/}
+}
+
+@InProceedings{Cimatti2014,
+    doi="10.1007/978-3-642-54862-8_4",
+    author="Cimatti, Alessandro
+    and Griggio, Alberto
+    and Mover, Sergio
+    and Tonetta, Stefano",
+    editor="{\'A}brah{\'a}m, Erika
+    and Havelund, Klaus",
+    title="IC3 Modulo Theories via Implicit Predicate Abstraction",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2014",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="46--61",
+    abstract="We present a novel approach for generalizing the IC3 algorithm for invariant checking from finite-state to infinite-state transition systems, expressed over some background theories. The procedure is based on a tight integration of IC3 with Implicit (predicate) Abstraction, a technique that expresses abstract transitions without computing explicitly the abstract system and is incremental with respect to the addition of predicates. In this scenario, IC3 operates only at the Boolean level of the abstract state space, discovering inductive clauses over the abstraction predicates. Theory reasoning is confined within the underlying SMT solver, and applied transparently when performing satisfiability checks. When the current abstraction allows for a spurious counterexample, it is refined by discovering and adding a sufficient set of new predicates. Importantly, this can be done in a completely incremental manner, without discarding the clauses found in the previous search.",
+    isbn="978-3-642-54862-8"
+}
+
+@InProceedings{Gunther2017,
+    doi="10.1007/978-3-319-52234-0_14",
+    author="G{\"u}nther, Henning and Laarman, Alfons and Sokolova, Ana and Weissenbacher, Georg",
+    editor="Bouajjani, Ahmed and Monniaux, David",
+    title="Dynamic Reductions for Model Checking Concurrent Software",
+    booktitle="Verification, Model Checking, and Abstract Interpretation",
+    year="2017",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="246--265",
+    abstract="Symbolic model checking of parallel programs stands and falls with effective methods of dealing with the explosion of interleavings. We propose a dynamic reduction technique to avoid unnecessary interleavings. By extending Lipton's original work with a notion of bisimilarity, we accommodate dynamic transactions, and thereby reduce dependence on the accuracy of static analysis, which is a severe bottleneck in other reduction techniques.",
+    isbn="978-3-319-52234-0"
+}
+
+@InProceedings{Beyer2020pdr,
+    doi="10.1007/978-3-030-45190-5_1",
+    author="Beyer, Dirk and Dangl, Matthias",
+    editor="Biere, Armin and Parker, David",
+    title="Software Verification with PDR: An Implementation of the State of the Art",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="3--21",
+    abstract="Property-directed reachability (PDR) is a SAT/SMT-based reachability algorithm that incrementally constructs inductive invariants. After it was successfully applied to hardware model checking, several adaptations to software model checking have been proposed. We contribute a replicable and thorough comparative evaluation of the state of the art: We (1)Â implemented a standalone PDR algorithm and, as improvement, a PDR-based auxiliary-invariant generator for k-induction, and (2) performed an experimental study on the largest publicly available benchmark set of CÂ verification tasks, in which we explore the effectiveness and efficiency of software verification with PDR. The main contribution of our work is to establish a reproducible baseline for ongoing research in the area by providing a well-engineered reference implementation and an experimental evaluation of the existing techniques.",
+    isbn="978-3-030-45190-5"
+}
+
+@InProceedings{Beyer2015,
+    doi="10.1007/978-3-319-21690-4_42",
+    author="Beyer, Dirk and Dangl, Matthias and Wendler, Philipp",
+    editor="Kroening, Daniel and P{\u{a}}s{\u{a}}reanu, Corina S.",
+    title="Boosting k-Induction with Continuously-Refined Invariants",
+    booktitle="Computer Aided Verification",
+    year="2015",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="622--640",
+    abstract="{\$}{\$}k{\$}{\$}-induction is a promising technique to extend bounded model checking from falsification to verification. In software verification, {\$}{\$}k{\$}{\$}-induction works only if auxiliary invariants are used to strengthen the induction hypothesis. The problem that we address is to generate such invariants (1)Â automatically without user-interaction, (2)Â efficiently such that little verification time is spent on the invariant generation, and (3)Â that are sufficiently strong for a {\$}{\$}k{\$}{\$}-induction proof. We boost the {\$}{\$}k{\$}{\$}-induction approach to significantly increase effectiveness and efficiency in the following way: We start in parallel to {\$}{\$}k{\$}{\$}-induction a data-flow-based invariant generator that supports dynamic precision adjustment and refine the precision of the invariant generator continuously during the analysis, such that the invariants become increasingly stronger. The {\$}{\$}k{\$}{\$}-induction engine is extended such that the invariants from the invariant generator are injected in each iteration to strengthen the hypothesis. The new method solves the above-mentioned problem because it (1)Â automatically chooses an invariant by step-wise refinement, (2)Â starts always with a lightweight invariant generation that is computationally inexpensive, and (3)Â refines the invariant precision more and more to inject stronger and stronger invariants into the induction system. We present and evaluate an implementation of our approach, as well as all other existing approaches, in the open-source verification-framework CPAchecker. Our experiments show that combining {\$}{\$}k{\$}{\$}-induction with continuously-refined invariants significantly increases effectiveness and efficiency, and outperforms all existing implementations of {\$}{\$}k{\$}{\$}-induction-based verification of C programs in terms of successful results.      ",
+    isbn="978-3-319-21690-4"
+}
+
+@article{Sen2005,
+    author = {Sen, Koushik and Marinov, Darko and Agha, Gul},
+    title = {CUTE: A Concolic Unit Testing Engine for C},
+    year = {2005},
+    issue_date = {September 2005},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {30},
+    number = {5},
+    issn = {0163-5948},
+    _url = {https://doi.org/10.1145/1095430.1081750},
+    doi = {10.1145/1095430.1081750},
+    journal = {SIGSOFT Softw. Eng. Notes},
+    month = sep,
+    pages = {263–272},
+    numpages = {10},
+    keywords = {testing C programs, explicit path model-checking, unit testing, random testing, data structure testing, concolic testing}
+}
+
+@article{Larson2003,
+    title={High Coverage Detection of Input-Related Security Faults},
+    author={Larson, Eric and Austin, Todd},
+    year={2003},
+    month={08},
+    booktitle={USENIX Security Symposium},
+    url={https://www.researchgate.net/profile/Todd_Austin2/publication/234804437_High_Coverage_Detection_of_Input-Related_Security_Faults/links/54bf0ba60cf2acf661cdbcad/High-Coverage-Detection-of-Input-Related-Security-Faults.pdf}
+}
+
+@InProceedings{Sen2006,
+    doi="10.1007/11817963_38",
+    author="Sen, Koushik and Agha, Gul",
+    editor="Ball, Thomas and Jones, Robert B.",
+    title="CUTE and jCUTE: Concolic Unit Testing and Explicit Path Model-Checking Tools",
+    booktitle="Computer Aided Verification",
+    year="2006",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="419--423",
+    abstract="CUTE, a Concolic Unit Testing Engine for C and Java, is a tool to systematically and automatically test sequential C programs (including pointers) and concurrent Java programs. CUTE combines concrete and symbolic execution in a way that avoids redundant test cases as well as false warnings. The tool also introduces a race-flipping technique to efficiently test and model check concurrent programs with data inputs.",
+    isbn="978-3-540-37411-4"
+}
+
+
+@INPROCEEDINGS{Majumdar2007,
+  author={Rupak Majumdar and Koushik Sen},
+  booktitle={29th International Conference on Software Engineering (ICSE'07)}, 
+  title={Hybrid Concolic Testing}, 
+  year={2007},
+  pages={416-426},
+  doi={10.1109/ICSE.2007.41}
+}
+
+
