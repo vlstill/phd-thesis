@@ -423,6 +423,115 @@ In practice this means that nondeterministical decision takes place at read oper
 
 
 
+\section{Symbolic Execution}
+
+Sybolic execution was introduced in~\mcite{King1976}.
+It executes the program with symbolic values instread of concrete once and tracks the relations between these symbolic values.
+When a symbolic value is used in a conditional branch, the symbolic executor can follow one or both of the branches based on the concrete values which are permitted by the sybolic values.
+If both of the branches are followed, the corresponding branching condition (or its negation) is added to the \emph{path condition}.
+The path condition therefore collects the contraints required to get to the given code location.
+Symbolic executors usually use SAT or SMT solvers to decide which paths can be taken.
+
+The state space explored by a symbolic executor forms a tree that can be explored in different manners (depth-first search, random search, …).
+This symbolic execution tree can be quite large even for small sequential programs with loops or recursion -- this is the problem known as \emph{path explosion}.
+
+\paragraph{Test Generation}
+
+Symbolic execution can be used to generate concrete test cases for a program (or function) -- each time the executor finishes a path (either the program terminates or an error is found) it can use a solver to generate concrete inputs which reproduce this path in a test case \mcite{Cadar2008}.
+This way it is possible to generate tests which cover the program well and do not execute the same path repeatedly.
+
+\paragraph{Concolic Execution}
+
+\emph{Concolic Execution}, also knows \emph{Concolic Testing}, \emph{Dynamic Sybolic Execution} or \emph{Directed Automated Random Testing} is a modification of symbolic execution which can eliminate some of the expensive solver queries during exploration \mcite{Godefroid2005,Sen2005}.
+With concolic execution, the program is executed with concrete values and it follows a single run, but the concolic executor records symbolic constraints and path condtion as with conventional symbolic execution.
+When the run is finished, the executor uses the path condition and a solver to find values of input variables which will lead the program to follow different path.
+This is repeated until no more paths can be discovered, or until the given coverage criteria are met.
+
+\paragraph{Tools}
+
+CUTE \mcite{Sen2005,Majumdar2007}
+- concolic test generator for sequential C programs, specializes at dynamic memory
+- uses approximate constraints for pointers to prevent undecidable theories (constraints can contain pointer (in)equality and check for \texttt{NULL} pointers)
+- can generated input values for pointers (e.g., linked lists, ) + a test harness which creates corresponding files (and simulate system failures by replacing appropriate system calls)
+- assertion violatioms, memory access errors, certain cases of infinite loops
+- also has support for \emph{hybrid concolic testing} which combines concolic and random testing. It targets reactive programs and uses primarily random-generated inputs with concolic input generation to avoid getting stuck (i.e., the tool will switch to concolic input generation if it fails add coverage in a certain number of randomized tests).
+
+KLEE \mcite{Cadar2008}
+- real-world programs which communicate with the environment
+- can work with unmodified programs
+- memory safety, assertion safety
+- memory objects are mapped to solver arrays
+- sybolic pointers are handled by explicit enumeration of possibilities on dereferrence
+- heuristics for path selection
+- models of system calls (related to filesystem, …) written in C (can contain sybolic values), can also access real filesystem
+- fault injection for syscalls
+- uses uClibc for C standard library
+
+
+
+Symbiotic~\mcite{Chalupa2018,Chalupa2020}
+- for sequential C programs
+- assertions, memory safety, memory leaks, integral overflows
+- uses instrumentation to add checks where needed (pointer analysis to limit number of inserted checks)
+  - pointer analysis has to account for deallocation
+- slicing to remove code irrelevant for the property 
+- uses Klee symbolic executor as a backend
+- integrates shape analysis based on Predator\cite{TODO} for memory safety checking
+- basic non/termination
+    - can detect simple cycles in the program state space and therefore in some cases decide the program does not terminate (non-nested loops which preserve values of all variables)
+    - can conclude the program is termingating if all paths were explored
+- sequential programs
+
+Pinaka~\mcite{Chaudhary2019}
+- C
+- uses incremental solver to check path feasibility (either fully incremental -- reuses one solver instance for the whole program, which can cause big formulas, or partially incremental -- creates new instance on backtracking)
+- may not terminate on nonterminating programs, option for unwinding limit
+- can be used to show termination -- if program is found to be safe without any unwinding limit, then all its paths terminate
+
+\textsc{JDart}~\mcite{Mues2020,Luckow2016}
+- java, assertion checking, uncaught exceptions
+- concolic execution, test generation
+- attempts to find small values for symbolic variables (can make loops depending on symbolic values shorter)
+- built on JPF
+- no concurrency
+
+Java Ranger~\mcite{Sharma2020}
+- symbolic execution with path merging by summarization of regions with multiple paths (e.g., branches of an \texttt{if} statement) (\TODO{veritesting})
+- extension of SPF
+
+COASTAL~\mcite{Visser2020}
+- concolic execution + fuzz testing for Java
+- uses instrumentation
+- can explore different parts of the symbolic execution tree in parallel (with different fuzzer or concolic executor instances)
+- fuzz testing can be used for fast exploration, it tracks only direction of branches
+- in combilation uses fuzz testing to explore easily-accessible parts of state space and concolic execution to get to the harder
+- uses models for some Java classses, but seems to be able to handle original java bitecode libraries (?)
+- no symbolic arrays
+
+Map2Check~\mcite{Rocha2020}
+- fuzzing, symbolic execution, inductive invariants for safety checking C programs
+- uses LLVM, Klee
+- no concurrency
+- fuzzing used to find shallow bugs, symbolic execution for deep
+- can use multiple fuzzers in parallel
+
+Map2Check~\mcite{Rocha2015} (previous version)
+- memory safety + memory safety unit test generation for C using ESBMC
+  - including memory leaks, invalid free
+- ESBMC used to extract verification conditions (e.g., conditions of memory safety violation)
+- program is then instrumented convert memory safety to assertions about pointers
+- tests are executed (with concrete data)
+
+Threader~\mcite{Gupta2011}
+- compositional verification of parallel programs, thread-modular proofs for C programs
+- Horn clause encoding
+- uses compositional proof rules for concurrent programs~\mcite{Jones1983,Owicki1976}
+- abstract reachability + refinement
+- not limited to specific synchronization primitives
+- safety (assertions), can also prove termination properties
+
+
+
 \section{Bounded Model Checking \& Other Symbolic Techniques}
 
 Bounded model checking (BMC) was introduced in~\cite{Biere1999} as an alternative to
@@ -818,113 +927,6 @@ VeriFuzz~\mcite{Basak2019}
 - coverage driven
 - uses evolutionary algorithm to generate test inputs and learning algorithm based on decision trees to decide which techniques to use for fuzzing
 - uses loop unrolling (with increasing bounds)
-
-\section{Symbolic Execution}
-
-Sybolic execution was introduced in~\mcite{King1976}.
-It executes the program with symbolic values instread of concrete once and tracks the relations between these symbolic values.
-When a symbolic value is used in a conditional branch, the symbolic executor can follow one or both of the branches based on the concrete values which are permitted by the sybolic values.
-If both of the branches are followed, the corresponding branching condition (or its negation) is added to the \emph{path condition}.
-The path condition therefore collects the contraints required to get to the given code location.
-Symbolic executors usually use SAT or SMT solvers to decide which paths can be taken.
-
-The state space explored by a symbolic executor forms a tree that can be explored in different manners (depth-first search, random search, …).
-This symbolic execution tree can be quite large even for small sequential programs with loops or recursion -- this is the problem known as \emph{path explosion}.
-
-\paragraph{Test Generation}
-
-Symbolic execution can be used to generate concrete test cases for a program (or function) -- each time the executor finishes a path (either the program terminates or an error is found) it can use a solver to generate concrete inputs which reproduce this path in a test case \mcite{Cadar2008}.
-This way it is possible to generate tests which cover the program well and do not execute the same path repeatedly.
-
-\paragraph{Concolic Execution}
-
-\emph{Concolic Execution}, also knows \emph{Concolic Testing}, \emph{Dynamic Sybolic Execution} or \emph{Directed Automated Random Testing} is a modification of symbolic execution which can eliminate some of the expensive solver queries during exploration \mcite{Godefroid2005,Sen2005}.
-With concolic execution, the program is executed with concrete values and it follows a single run, but the concolic executor records symbolic constraints and path condtion as with conventional symbolic execution.
-When the run is finished, the executor uses the path condition and a solver to find values of input variables which will lead the program to follow different path.
-This is repeated until no more paths can be discovered, or until the given coverage criteria are met.
-
-\paragraph{Tools}
-
-CUTE \mcite{Sen2005,Majumdar2007}
-- concolic test generator for sequential C programs, specializes at dynamic memory
-- uses approximate constraints for pointers to prevent undecidable theories (constraints can contain pointer (in)equality and check for \texttt{NULL} pointers)
-- can generated input values for pointers (e.g., linked lists, ) + a test harness which creates corresponding files (and simulate system failures by replacing appropriate system calls)
-- assertion violatioms, memory access errors, certain cases of infinite loops
-- also has support for \emph{hybrid concolic testing} which combines concolic and random testing. It targets reactive programs and uses primarily random-generated inputs with concolic input generation to avoid getting stuck (i.e., the tool will switch to concolic input generation if it fails add coverage in a certain number of randomized tests).
-
-KLEE \mcite{Cadar2008}
-- real-world programs which communicate with the environment
-- can work with unmodified programs
-- memory safety, assertion safety
-- memory objects are mapped to solver arrays
-- sybolic pointers are handled by explicit enumeration of possibilities on dereferrence
-- heuristics for path selection
-- models of system calls (related to filesystem, …) written in C (can contain sybolic values), can also access real filesystem
-- fault injection for syscalls
-- uses uClibc for C standard library
-
-
-
-Symbiotic~\mcite{Chalupa2018,Chalupa2020}
-- for sequential C programs
-- assertions, memory safety, memory leaks, integral overflows
-- uses instrumentation to add checks where needed (pointer analysis to limit number of inserted checks)
-  - pointer analysis has to account for deallocation
-- slicing to remove code irrelevant for the property 
-- uses Klee symbolic executor as a backend
-- integrates shape analysis based on Predator\cite{TODO} for memory safety checking
-- basic non/termination
-    - can detect simple cycles in the program state space and therefore in some cases decide the program does not terminate (non-nested loops which preserve values of all variables)
-    - can conclude the program is termingating if all paths were explored
-- sequential programs
-
-Pinaka~\mcite{Chaudhary2019}
-- C
-- uses incremental solver to check path feasibility (either fully incremental -- reuses one solver instance for the whole program, which can cause big formulas, or partially incremental -- creates new instance on backtracking)
-- may not terminate on nonterminating programs, option for unwinding limit
-- can be used to show termination -- if program is found to be safe without any unwinding limit, then all its paths terminate
-
-\textsc{JDart}~\mcite{Mues2020,Luckow2016}
-- java, assertion checking, uncaught exceptions
-- concolic execution, test generation
-- attempts to find small values for symbolic variables (can make loops depending on symbolic values shorter)
-- built on JPF
-- no concurrency
-
-Java Ranger~\mcite{Sharma2020}
-- symbolic execution with path merging by summarization of regions with multiple paths (e.g., branches of an \texttt{if} statement) (\TODO{veritesting})
-- extension of SPF
-
-COASTAL~\mcite{Visser2020}
-- concolic execution + fuzz testing for Java
-- uses instrumentation
-- can explore different parts of the symbolic execution tree in parallel (with different fuzzer or concolic executor instances)
-- fuzz testing can be used for fast exploration, it tracks only direction of branches
-- in combilation uses fuzz testing to explore easily-accessible parts of state space and concolic execution to get to the harder
-- uses models for some Java classses, but seems to be able to handle original java bitecode libraries (?)
-- no symbolic arrays
-
-Map2Check~\mcite{Rocha2020}
-- fuzzing, symbolic execution, inductive invariants for safety checking C programs
-- uses LLVM, Klee
-- no concurrency
-- fuzzing used to find shallow bugs, symbolic execution for deep
-- can use multiple fuzzers in parallel
-
-Map2Check~\mcite{Rocha2015} (previous version)
-- memory safety + memory safety unit test generation for C using ESBMC
-  - including memory leaks, invalid free
-- ESBMC used to extract verification conditions (e.g., conditions of memory safety violation)
-- program is then instrumented convert memory safety to assertions about pointers
-- tests are executed (with concrete data)
-
-Threader~\mcite{Gupta2011}
-- compositional verification of parallel programs, thread-modular proofs for C programs
-- Horn clause encoding
-- uses compositional proof rules for concurrent programs~\mcite{Jones1983,Owicki1976}
-- abstract reachability + refinement
-- not limited to specific synchronization primitives
-- safety (assertions), can also prove termination properties
 
 \section{Abstraction-Based Techniques}
 
