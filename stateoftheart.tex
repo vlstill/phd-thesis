@@ -423,7 +423,7 @@ In practice this means that nondeterministical decision takes place at read oper
 
 
 
-\section{Symbolic Execution}
+\section{Symbolic and Concolic Execution}
 
 Sybolic execution was introduced in~\mcite{King1976}.
 It executes the program with symbolic values instread of concrete once and tracks the relations between these symbolic values.
@@ -431,104 +431,128 @@ When a symbolic value is used in a conditional branch, the symbolic executor can
 If both of the branches are followed, the corresponding branching condition (or its negation) is added to the \emph{path condition}.
 The path condition therefore collects the contraints required to get to the given code location.
 Symbolic executors usually use SAT or SMT solvers to decide which paths can be taken.
+Unlike previously discussed techniques, symbolic execution mostly targets sequential programs with inputs, i.e., it deals primarily with data nondeterminism and not scheduling nondeterminism.
 
-The state space explored by a symbolic executor forms a tree that can be explored in different manners (depth-first search, random search, …).
-This symbolic execution tree can be quite large even for small sequential programs with loops or recursion -- this is the problem known as \emph{path explosion}.
+The state space explored by a symbolic executor forms a tree with branches at conditions.
+This \emph{symbolic execution tree} can be quite large even for small sequential programs with loops or recursion -- this is the problem known as \emph{path explosion}.\begin{marginnote}%
+  Consider this code:
+  \begin{cppcode}
+    unsigned x = input();
+    while (x > 0) {
+        do_work(x);
+        x--;
+    }
+  \end{cppcode}
+
+  Its symbolic execution tree has as many branches as there are values in the \cpp{unsigned} data type:
+  \begin{tikzpicture}[node distance=2em,
+                      diag/.style={node distance=3.5em},
+                      al/.style={above left = -0.5em},
+                      ar/.style={above right = -0.5em},
+                     ]
+    \node (i) {$\texttt{x} = \alpha$};
+      \node[below of = i] (d) {\cpp{if (x > 0)}};
+        \node[below left of = d, diag] (dl) {$\square$};
+          \node[below = -0.2em of dl] {\tiny $[\alpha = 0]$};
+        \node[below right of = d, diag] (dr) {\texttt{do\_work(x);}};
+          \node[below of = dr] (drd) {\texttt{x-{}-;}};
+            \node[below of = drd] (drdd) {\cpp{if (x > 0)}};
+              \node[below left of = drdd, diag] (drddl) {$\square$};
+                \node[below = -0.2em of drddl] {\tiny $[\alpha = 1]$};
+              \node[below right of = drdd, diag] (drddr) {\texttt{do\_work(x);}};
+                \node[below of = drddr] (drddrd) {\texttt{x-{}-;}};
+                  \node[below of = drddrd] (drddrdd) {\cpp{if (x > 0)}};
+                    \node[below left of = drddrdd, diag] (drddrddl) {$\square$};
+                      \node[below = -0.2em of drddrddl] {\tiny $[\alpha = 2]$};
+                    \node[below right of = drddrdd, diag] (drddrddr) {$\vdots$};
+    \path
+      (i) edge (d)
+      (d) edge node[al]{\tiny F} (dl)
+      (d) edge node[ar]{\tiny T} (dr)
+      (dr) edge (drd)
+      (drd) edge (drdd)
+      (drdd) edge node[al]{\tiny F} (drddl)
+      (drdd) edge node[ar]{\tiny T} (drddr)
+      (drddr) edge (drddrd)
+      (drddrd) edge (drddrdd)
+      (drddrdd) edge node[al]{\tiny F} (drddrddl)
+      (drddrdd) edge node[ar]{\tiny T} (drddrddr)
+    ;
+  \end{tikzpicture}
+\end{marginnote}
+The symbolic execution tree can be explored in different manners (e.g., depth-first search, random search) depending on the objective of the analysis, e.g., if it is desirable to explore all the behaviours of the program, or if some random sample should be analysed for the purpose of testing.
 
 \paragraph{Test Generation}
 
 Symbolic execution can be used to generate concrete test cases for a program (or function) -- each time the executor finishes a path (either the program terminates or an error is found) it can use a solver to generate concrete inputs which reproduce this path in a test case \mcite{Cadar2008}.
 This way it is possible to generate tests which cover the program well and do not execute the same path repeatedly.
+Even if the symbolic execution tree is large or infinite, the test generation can use random search or some other heuristics to provide good coverage of the code and therefore improve on manually-written tests.
+Furthermore, tests generated from symbolic execution can be very useful for bug fixing as the programmer can use their debugging tools of choice on the generated test and do not need to learn a verifier-specific way to analyse the counterexample.
 
 \paragraph{Concolic Execution}
 
 \emph{Concolic Execution}, also knows \emph{Concolic Testing}, \emph{Dynamic Sybolic Execution} or \emph{Directed Automated Random Testing} is a modification of symbolic execution which can eliminate some of the expensive solver queries during exploration \mcite{Godefroid2005,Sen2005}.
-With concolic execution, the program is executed with concrete values and it follows a single run, but the concolic executor records symbolic constraints and path condtion as with conventional symbolic execution.
+With concolic execution, the program is executed with concrete values and it follows a single run, but the concolic executor records the path condition as with conventional symbolic execution.
 When the run is finished, the executor uses the path condition and a solver to find values of input variables which will lead the program to follow different path.
 This is repeated until no more paths can be discovered, or until the given coverage criteria are met.
 
 \paragraph{Tools}
 
-CUTE \mcite{Sen2005,Majumdar2007}
-- concolic test generator for sequential C programs, specializes at dynamic memory
-- uses approximate constraints for pointers to prevent undecidable theories (constraints can contain pointer (in)equality and check for \texttt{NULL} pointers)
-- can generated input values for pointers (e.g., linked lists, ) + a test harness which creates corresponding files (and simulate system failures by replacing appropriate system calls)
-- assertion violatioms, memory access errors, certain cases of infinite loops
-- also has support for \emph{hybrid concolic testing} which combines concolic and random testing. It targets reactive programs and uses primarily random-generated inputs with concolic input generation to avoid getting stuck (i.e., the tool will switch to concolic input generation if it fails add coverage in a certain number of randomized tests).
+CUTE \mcite{Sen2005,Majumdar2007} is a concolic test generator for sequential C programs that specializes at dynamic memory.
+It can generated input values for pointers (e.g., linked list nodes) as well as scalars.
+CUTE uses approximate constraints for pointers to prevent undecidable theories (pointer constraints can contain pointer (in)equality and check for \texttt{NULL} pointers).
+It detects assertion violations, memory access errors, and certain cases of infinite loops.
+Furthermore, CUTE has support for \emph{hybrid concolic testing} which combines concolic and random testing.
+It targets reactive programs and uses primarily random-generated inputs.
+In this mode, concolic input generation is used to avoid getting stuck (i.e., the tool will switch to concolic input generation if it fails add coverage in a certain number of randomized tests).
 
-KLEE \mcite{Cadar2008}
-- real-world programs which communicate with the environment
-- can work with unmodified programs
-- memory safety, assertion safety
-- memory objects are mapped to solver arrays
-- sybolic pointers are handled by explicit enumeration of possibilities on dereferrence
-- heuristics for path selection
-- models of system calls (related to filesystem, …) written in C (can contain sybolic values), can also access real filesystem
-- fault injection for syscalls
-- uses uClibc for C standard library
+KLEE \mcite{Cadar2008} is a symbolic executor and test generator which targets realistic C and C++ programs that communicate with the environment.
+Its goal is to work with unmodified programs (with source code available, the program needs to be compiled to LLVM).
+KLEE can check for memory safety and assertion safety violations.
+It uses array theory with separate array for each memory object to facilitate analysis of programs with dynamic memory.
+In KLEE, sybolic pointers are handled by explicit enumeration of all possibilities on dereference.
+To achieve good coverage even if time and size of the symbolic execution tree does not allow for full exploration, KLEE uses path selection heuristics.
+KLEE is notable for its support of realistic programs which communicate with their environment.
+It has a models of some of the POSIX system calls (mostly related to filesystem) and these models can contain symbolic values (e.g., in files). 
+The system call models are written in C and can be modified without modification of KLEE itself.
+Furthermore, the program running in KLEE can also access real file system and KLEE can perform fault injection into system calls.
+When an error is encountered, KLEE generates a test harness which creates the corresponding files and fills them with values which reproduce the problem.
+% (and simulate system failures by replacing appropriate system calls)
+To support C standard library, KLEE uses uClibc standard library implementation which is linked to the program under analysis.
 
+Symbiotic~\mcite{Chalupa2018,Chalupa2020} is a tool for analysis of sequential C programs which uses KLEE symbolic executor as a backend.
+It can detect assertion violations, memory safety errors, memory leaks, and integral overflows.
+Symbiotic uses instrumentation to add pointer checks where needed and uses various analysis techniques (e.g., pointer analysis and shape analysis based on Predator \mcite{Dudka2013}) to limit number of inserted checks.
+%  - pointer analysis has to account for deallocation
+Furthermore, Symbiotic uses program slicing to remove code irrelevant for the property.
+Symbiotic has basic support for detection of termination and nontermination.
+It can detect simple cycles in the program state space and therefore in some cases decide the program does not terminate (for non-nested loops which preserve values of all variables).
+It can also conclude the program is terminating if all paths were explored.
 
+Pinaka \mcite{Chaudhary2019} is a symbolic executor for sequential C programs which uses uses incremental solver to check path feasibility.
+It can run either in fully incremental mode where it reuses one solver instance for the whole program, which can cause big formulas, or in partially incremental mode which creates new instance of solver on backtracking.
+Pinaka may not terminate on nonterminating programs and it has an option for loop unwinding limit.
+It can be used to show termination -- if a program is found to be safe without any unwinding limit, then all its paths terminate.
 
-Symbiotic~\mcite{Chalupa2018,Chalupa2020}
-- for sequential C programs
-- assertions, memory safety, memory leaks, integral overflows
-- uses instrumentation to add checks where needed (pointer analysis to limit number of inserted checks)
-  - pointer analysis has to account for deallocation
-- slicing to remove code irrelevant for the property 
-- uses Klee symbolic executor as a backend
-- integrates shape analysis based on Predator\cite{TODO} for memory safety checking
-- basic non/termination
-    - can detect simple cycles in the program state space and therefore in some cases decide the program does not terminate (non-nested loops which preserve values of all variables)
-    - can conclude the program is termingating if all paths were explored
-- sequential programs
+\textsc{JDart} \mcite{Mues2020,Luckow2016} is a concolic executor and test generator for sequential Java programs build on Java Path Finder.
+It can detect assertion violations and uncaught exceptions.
+JDart attempts to find small values for symbolic variables, which can make loops depending on symbolic values shorter.
 
-Pinaka~\mcite{Chaudhary2019}
-- C
-- uses incremental solver to check path feasibility (either fully incremental -- reuses one solver instance for the whole program, which can cause big formulas, or partially incremental -- creates new instance on backtracking)
-- may not terminate on nonterminating programs, option for unwinding limit
-- can be used to show termination -- if program is found to be safe without any unwinding limit, then all its paths terminate
+Java Ranger \mcite{Sharma2020} is a symbolic executor for Java based on Symbolic Path Finder.
+It can merge paths using summarization of regions with multiple paths (e.g., branches of an \texttt{if} statement). %(\TODO{veritesting})
 
-\textsc{JDart}~\mcite{Mues2020,Luckow2016}
-- java, assertion checking, uncaught exceptions
-- concolic execution, test generation
-- attempts to find small values for symbolic variables (can make loops depending on symbolic values shorter)
-- built on JPF
-- no concurrency
+COASTAL \mcite{Visser2020} combines concolic execution with fuzz testing for Java programs.
+% - uses instrumentation
+It uses fuzz testing for fast exploration, fuzzing mode tracks only direction of branches.
+Concolic execution can be used to get to parts of the program's state space which are harder to reach.
+COASTAL can explore different parts of the symbolic execution tree in parallel (with different fuzzer or concolic executor instances).
+To help with analysis of realistic programs, COASTAL has models for some of the standard Java classes. % but seems to be able to handle original java bitecode libraries (?)
+% - no symbolic arrays
 
-Java Ranger~\mcite{Sharma2020}
-- symbolic execution with path merging by summarization of regions with multiple paths (e.g., branches of an \texttt{if} statement) (\TODO{veritesting})
-- extension of SPF
-
-COASTAL~\mcite{Visser2020}
-- concolic execution + fuzz testing for Java
-- uses instrumentation
-- can explore different parts of the symbolic execution tree in parallel (with different fuzzer or concolic executor instances)
-- fuzz testing can be used for fast exploration, it tracks only direction of branches
-- in combilation uses fuzz testing to explore easily-accessible parts of state space and concolic execution to get to the harder
-- uses models for some Java classses, but seems to be able to handle original java bitecode libraries (?)
-- no symbolic arrays
-
-Map2Check~\mcite{Rocha2020}
-- fuzzing, symbolic execution, inductive invariants for safety checking C programs
-- uses LLVM, Klee
-- no concurrency
-- fuzzing used to find shallow bugs, symbolic execution for deep
-- can use multiple fuzzers in parallel
-
-Map2Check~\mcite{Rocha2015} (previous version)
-- memory safety + memory safety unit test generation for C using ESBMC
-  - including memory leaks, invalid free
-- ESBMC used to extract verification conditions (e.g., conditions of memory safety violation)
-- program is then instrumented convert memory safety to assertions about pointers
-- tests are executed (with concrete data)
-
-Threader~\mcite{Gupta2011}
-- compositional verification of parallel programs, thread-modular proofs for C programs
-- Horn clause encoding
-- uses compositional proof rules for concurrent programs~\mcite{Jones1983,Owicki1976}
-- abstract reachability + refinement
-- not limited to specific synchronization primitives
-- safety (assertions), can also prove termination properties
+Map2Check \mcite{Rocha2020} is a tool which combines fuzzing, symbolic execution, inductive invariants for safety checking for sequential C programs.
+It is LLVM based and uses Klee as a backend symbolic executor.
+The idea of this combination is that fuzzing is used to find shallow bugs, while symbolic execution finds deep bugs.
+Map2Check runs multiple fuzzers in parallel.
 
 
 
@@ -711,6 +735,10 @@ Another LLVM-based tool is LLVMVF \mcite{Sousa2013} which is a generic verificat
 Concurrency support in LLVMVF is incomplete, for example it lacks support for condition variables.
 % \TODO{unmaintained}
 
+An older version of Map2Check \mcite{Rocha2015} was a test generator for memory safety and leak detection unit tests for C programs.
+It uses ESBMC to extract verification conditions (conditions of memory safety violation).
+Then it instruments the program to convert memory safety to assertions about pointers and runs the tests with concrete data.
+
 Yogar-CBMC \mcite{Yin2018,Yin2019} is a derivative of CBMC which uses
 abstraction and refinement for the encoding of scheduling constraints in
 parallel programs in order to make the formulas smaller.
@@ -859,6 +887,14 @@ Skink~\mcite{Cassez2017}
 
 JayHorn~\mcite{Kahsai2019}
 -- encoding to horn-clauses, not conucerrency, not bitprecise, basic library (mostly assumes library calls return arbitrary values- can handle certain cases of unbounded heap data structures by deriving invariants, nonterminating programs
+
+Threader~\mcite{Gupta2011}
+- compositional verification of parallel programs, thread-modular proofs for C programs
+- Horn clause encoding
+- uses compositional proof rules for concurrent programs~\mcite{Jones1983,Owicki1976}
+- abstract reachability + refinement
+- not limited to specific synchronization primitives
+- safety (assertions), can also prove termination properties
 
 CPAchecker~\mcite{Dangl2015,Beyer2011}
 - C
