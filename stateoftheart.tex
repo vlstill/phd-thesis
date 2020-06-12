@@ -197,6 +197,11 @@ is accessed it can be expanded to either null pointer or another node of
 symbolic data~\mcite{Khurshid2003}.
 SPF has support for symbolic arrays~\mcite{Fromherz2017} and symbolic strings~\mcite{Bang2016}.
 
+An unnamed explicit state model checker for C\# is presented in \mcite{Huynh2006}.
+It targets a subset of .NET bytecode (which is an intermediate representation into which C\# and other .NET languages are translated) and it analyses parallel programs running under the .NET relaxed memory model.
+It can be used to detect behaviour which differs from any possible sequentially consistent behaviour and to insert memory barriers to recover sequential consistency.
+% The implementation of the exploration algorithm uses a list of delayed instructions to implement instruction reordering.
+
 DIVINE~\mcite{DIVINEToolPaper2017} is an explicit-state model checker developed
 by our research group.
 Historically it targeted several modelling languages for parallel systems and
@@ -249,7 +254,7 @@ in DIVINE.
 % - state space compression
 % - paralell LTL search
 
-\section{Stateless Model Checking}
+\section{Stateless Model Checking}\label{sec:stateoftheart:smc}
 
 Compared to explicit-state model checking, \emph{stateless model checking}
 (SMC) avoids storing the set of visited states and therefore has decreased
@@ -416,12 +421,6 @@ The proposed exploration algorithm is optimal for traces defined on this equival
 In practice this means that nondeterministical decision takes place at read operations and writes are only recorded, with the addition of backtracking for cases when a previous read might read from a later executed write.
 % - C/C++11 -- replaces implementations of atomic, threads, mutex to drive execution
 
-\paragraph{X}
-
-\TODO{ SATABS (unknown type)
-- according to \cite{Cordeiro2011} cannot handle arrays + arithmetic }
-
-
 
 \section{Symbolic and Concolic Execution}
 
@@ -560,7 +559,7 @@ Map2Check runs multiple fuzzers in parallel.
 
 
 
-\section{Bounded Model Checking \& Other Symbolic Techniques}
+\section{Bounded Model Checking \& Other Symbolic Techniques}\label{sec:stateoftheart:bmc}
 
 Bounded model checking (BMC) was introduced in~\mcite{Biere1999} as an alternative to
 symbolic model checking techniques which used binary decision diagrams.
@@ -926,6 +925,19 @@ It has only a limited ability to handle non-list types.
 To avoid parsing C directly, Predator uses intermediate representation of the GCC compiler.
 PredatorHP is a tool which runs several configurations of Predator in parallel (a verifier which can prove correctness but overapproximates and several bug hunters which can show incorrectness).
 
+SatAbs \mcite{Clarke2005} is a tool for bit-precise analysis of (possibly parallel) C programs.
+It uses predicate abstraction with counterexample guided refinement to decrease size of the analysed program -- the program is abstracted into a boolean program which is analysed by a backend model checker.
+If the backend model checker concludes the abstracted program is correct, then the original program is correct, otherwise the trace of the abstract program is validated using SAT-queries which simulate the corresponding path of the original program.
+If the counterexample is spurious SatAbs refines the abstraction.
+SatAbs uses bitvectors (bit-blasted to SAT formulas\mnote{Bit-blasing is a technique which rewrites a bitvector variables to a sequence of boolean variables and implements bitvector operations by respective boolean circuits.
+It allow solving (existentially-qualified) bitvector formulas with a SAT solver.}) and therefore is bit-precise.
+It can perform reachability and equivalence checking of a C program and the corresponding Verilog circuit.
+
+An unnamed tools that encodes behaviour of relaxed memory models in a program is presented in \mcite{Alglave2013}.
+Given a C program which is supposed to run under one of the supported relaxed memory model (including \xtso and a fragment of POWER) it transforms it into an equivalent program which can be analysed by an analyser for sequentially consistent parallel programs.
+The authors evaluate their approach with various backend analyses including CBMC, ESBMC, and SatAbs.
+The encoding of relaxed behaviour uses \emph{abstract event graph} that encode events of the program and dependencies between them.
+
 GACAL \mcite{Quiring2020} is a tool which analyses C programs by generating potential invariants from traces and verifies them using the ACL2 theorem prover.
 It supports only a subset of sequential C (it has no support for arrays, only 32 bit integers, …). \TODO{remove?}
 
@@ -953,6 +965,8 @@ VeriFuzz~\mcite{Basak2019}
 - \TODO{remove?}
 
 
+\section{XXX}
+
 \section{??? Termination and Temporal Logics}
 
 - sequential LTL (inf systems, inc. termination analysis): \cite{Dietsch2015}
@@ -975,29 +989,29 @@ Similarly, we do not mention techniques which specialise on checking sequential 
 
 Several techniques for checking properties other than safety exist -- indeed
 usage of various temporal logics, such as Linear Temporal Logic (LTL)
-\cite[Chapter 5]{PoMC} and Computation Tree Logic (CTL) \cite[Chapter 6]{PoMC} in the context of model checking dates way back to the beginning of research in formal methods.
+\mcite[Chapter 5]{PoMC} and Computation Tree Logic (CTL) \mcite[Chapter 6]{PoMC} in the context of model checking dates way back to the beginning of research in formal methods.
 Unfortunately, these techniques are not often applied to programs written in real-world programming languages such as C and C++.
 
 As for techniques which detect nontermination, both static and dynamic
 techniques exist for the detection of deadlocks caused by circular waiting for
-mutexes~\cite{CC14,agarwal2010detection,bensalem2005scalable}.
+mutexes~\mcite{CC14,agarwal2010detection,bensalem2005scalable}.
 However, these techniques specialise on mutexes and do not allow general nontermination detection, and it is unlikely that they could be naturally extended to cover it.
-There are also techniques that detect deadlocks of the whole program (i.e., a program state from which the program cannot move) \cite{Chaki2005,Demartini99}, but these techniques cannot find cases in which only some threads of the program are making progress, while other threads are blocked forever.
+There are also techniques that detect deadlocks of the whole program (i.e., a program state from which the program cannot move) \mcite{Chaki2005,Demartini99}, but these techniques cannot find cases in which only some threads of the program are making progress, while other threads are blocked forever.
 Also, these global deadlock detection techniques are inadequate in the presence of synchronisation mechanisms which causes busy waiting instead of blocking (for example spin locks) or in the cases when normally blocking operations are implemented using busy waiting (which can be easier to handle for the verifier in some cases).
-A somewhat different approach based on communicating channels is proposed in \cite{Ng2016}, but this approach is aiming at the Go programming language which primarily uses shared channels for communication between threads.
+A somewhat different approach based on communicating channels is proposed in \mcite{Ng2016}, but this approach is aiming at the Go programming language which primarily uses shared channels for communication between threads.
 Overall, neither of these techniques is applicable in general for the detection of nontermination in programs which use a combination of synchronisation primitives in shared memory.
-Finally, there are also techniques for checking termination of sequential programs, to name a few \cite{Giesl2017,Chen2018}.
+Finally, there are also techniques for checking termination of sequential programs, to name a few \mcite{Giesl2017,Chen2018}.
 
 \section{Termination Checking}
 
-SACO~\cite{Albert2017}
+SACO~\mcite{Albert2017}
 - for analysis of concurrent programs with loops
 - uses may-happen-in-parallel analysis to infer which part of the program can interfere
 - also infer upper bounds on iteration numbers
 - for modelling language (with shared memory)
 - generates constraints on how the shared state can be modified in order for the loop to terminate and than checks that this will eventually hold
 
-2LS~\cite{Malik2020,Malik2018,Chen2017}
+2LS~\mcite{Malik2020,Malik2018,Chen2017}
 - built on CPROVER (the backend of CBMC)
 - interprocedural termination analysis for sequential programs
 - bounded model checking with k-induction and abstract interpretation
@@ -1013,30 +1027,30 @@ SACO~\cite{Albert2017}
 - simple nontermination proofs for loops (repeated loop state; loops which iterate over numerical variables with constant increments in a way they cannot end)
 - no recursion, arrays, concurrency
 
-Arctor~\cite{Kupriyanov2014}
+Arctor~\mcite{Kupriyanov2014}
 - for concurrency
 - based on abstraction and refinement
 - based on well-founded relations
 - can show termination, or possibly non-terminating execution
 
 
-~\cite{Cook2007thr}
+~\mcite{Cook2007thr}
 - Other threads are abstracted into a model of environment which is incrementally refined
 - termination proving for threads (thread termination proving)
 
 
 \section{Benchmark Suites}
 
-- \cite{Sarkar2011,MadorHaim2012} POWER tests
+- \mcite{Sarkar2011,MadorHaim2012} POWER tests
 - http://www.cprover.org/wmm/
-- ESBMC (\cite{Cordeiro2011}): http://users.ecs.soton.ac.uk/lcc08r/esbmc/
-- ESBMC++ \cite{Ramalho2016:19,6,27,.} (sec. IV.A. Experimental Setup)
+- ESBMC (\mcite{Cordeiro2011}): http://users.ecs.soton.ac.uk/lcc08r/esbmc/
+- ESBMC++ \mcite{Ramalho2016:19,6,27,.} (sec. IV.A. Experimental Setup)
 - BLITZ:
   - Bugbench: % https://scholar.google.com/scholar?as_q=Bugbench%3A+Benchmarks+for+evaluating+bug+detection+tools&as_occt=title&hl=en&as_sdt=0%2C31
   - tools from http://www.isc.org/
 
 \section{MISC}
 
-- need for environemnt and application intefrace modelling: \cite{Cordeiro2016}
+- need for environemnt and application intefrace modelling: \mcite{Cordeiro2016}
 
 % vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en
