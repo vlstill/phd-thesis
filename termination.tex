@@ -104,33 +104,6 @@ The implementation, as well as all the examples, can be found on the paper webpa
 % In \autoref{sec:local-nontermination} we define our \emph{local nontermination} property, in \autoref{sec:detection} we discuss how it can be checked and the implementation in \divine, and it \autoref{sec:evaluation} we evaluate it.
 % Finally, \autoref{sec:conclusion} concludes this work.
 
-
-
-
-
-\section{Related Work} \label{sec:related}
-
-For the related work, we consider only results which go beyond safety checking.
-There are many approaches to find problems such as assertion violations or memory safety violations, but they are fundamentally limited to properties concerning finite runs of the program, and we are focusing here on an infinite behaviour, namely on the absence of termination.
-Similarly, we do not mention techniques which specialise on checking sequential programs and have no support for parallelism, as well as techniques which are tailored to a specific modelling language and cannot be applied in general.
-
-Several techniques for checking properties other than safety exist -- indeed
-usage of various temporal logics, such as Linear Temporal Logic (LTL)
-\cite[Chapter 5]{PoMC} and Computation Tree Logic (CTL) \cite[Chapter 6]{PoMC} in the context of model checking dates way back to the beginning of research in formal methods.
-Unfortunately, these techniques are not often applied to programs written in real-world programming languages such as C and C++.
-
-As for techniques which detect nontermination, both static and dynamic
-techniques exist for the detection of deadlocks caused by circular waiting for
-mutexes~\cite{CC14,agarwal2010detection,bensalem2005scalable}.
-However, these techniques specialise on mutexes and do not allow general nontermination detection, and it is unlikely that they could be naturally extended to cover it.
-There are also techniques that detect deadlocks of the whole program (i.e., a program state from which the program cannot move) \cite{Chaki2005,Demartini99}, but these techniques cannot find cases in which only some threads of the program are making progress, while other threads are blocked forever.
-Also, these global deadlock detection techniques are inadequate in the presence of synchronisation mechanisms which causes busy waiting instead of blocking (for example spin locks) or in the cases when normally blocking operations are implemented using busy waiting (which can be easier to handle for the verifier in some cases).
-A somewhat different approach based on communicating channels is proposed in \cite{Ng2016}, but this approach is aiming at the Go programming language which primarily uses shared channels for communication between threads.
-Overall, neither of these techniques is applicable in general for the detection of nontermination in programs which use a combination of synchronisation primitives in shared memory.
-% Finally, there are also techniques for checking termination of sequential programs, to name a few \cite{Giesl2017,Chen2018}.
-
-\TODO{TODO…}
-
 \section{Resource Sections}
 
 A \emph{resource section} of a program is a block of code with an identifier of a resource and type of the resource section.
@@ -969,6 +942,54 @@ queue which would never fill up. So far the test case was run under \divine with
 the safety algorithm only, therefore the error did not manifest and remained
 undetected.
 
+
+
+
+\section{Related Work} \label{sec:related}
+
+For the related work, we consider only results which go beyond safety checking.
+There are many approaches to find problems such as assertion violations or memory safety violations, but they are often fundamentally limited to properties concerning finite runs of the program, and we are focusing here on an infinite behaviour, namely on the absence of termination.
+Similarly, we do not mention techniques which specialise on checking sequential programs and have no support for parallelism, as well as techniques which are tailored to a specific modelling language and cannot be applied in general.
+
+Several techniques for checking properties other than safety exist -- indeed
+usage of various temporal logics, such as Linear Temporal Logic (LTL)
+\mcite[Chapter 5]{Baier2008} and Computation Tree Logic (CTL) \mcite[Chapter 6]{Baier2008} in the context of model checking dates way back to the beginning of research in formal methods.
+Unfortunately, these techniques are not often applied to programs written in real-world programming languages such as C and C++.
+
+As for techniques which detect nontermination, both static and dynamic
+techniques exist for the detection of deadlocks caused by circular waiting for
+mutexes~\mcite{CC14,agarwal2010detection,bensalem2005scalable}.
+However, these techniques specialise on mutexes and do not allow general nontermination detection, and it is unlikely that they could be naturally extended to cover it.
+There are also techniques that detect deadlocks of the whole program (i.e., a program state from which the program cannot move) \mcite{Chaki2005,Demartini99}, but these techniques cannot find cases in which only some threads of the program are making progress, while other threads are blocked forever.
+Also, these global deadlock detection techniques are inadequate in the presence of synchronisation mechanisms which causes busy waiting instead of blocking (for example spin locks) or in the cases when normally blocking operations are implemented using busy waiting (which can be easier to handle for the verifier in some cases).
+A somewhat different approach based on communicating channels is proposed in \mcite{Ng2016}, but this approach is aiming at the Go programming language which primarily uses shared channels for communication between threads.
+Overall, neither of these techniques is applicable in general for the detection of nontermination in programs which use a combination of synchronisation primitives in shared memory.
+% Finally, there are also techniques for checking termination of sequential programs, to name a few \cite{Giesl2017,Chen2018}.
+
+% SACO a tool for analysis of concurrent programs with loops is presented in \mcite{Albert2017}.
+% It uses may-happen-in-parallel analysis to infer which part of the program can interfere and it also also infers upper bounds on iteration numbers.
+% It targets a modelling language which contains shared memory.
+% It generates constraints on how the shared state can be modified in order for the loop to terminate and than checks that this will eventually hold.
+% Arctor \mcite{Kupriyanov2014} is another tool for termination detection of parallel programs written in a simple modelling language.
+% It uses abstraction and refinement and its termination checking is based on well-founded relations.
+% It can show termination, but cannot prove non-termination.
+
+A more realistically-targeted termination checker for parallel programs is presented in \mcite{Cook2007thr}.
+Its primary goal is to show a given thread terminates.
+It abstracts other threads into a model of environment which is incrementally refined and attempts to prove termination of the thread locally.
+It appears to support C programs, it does, however, assume the number of threads is fixed and does not support synchronization with mutexes and similar primitives.
+Another tool for termination-checking parallel C programs is presented in \mcite{Popeea2012}.
+Is similar to \cite{Cook2007thr} but more general.
+% rely-guarantee reasoning -- keeps track of communication of each thread with the rest of the program.
+It uses transition invariants and well-foundedness to prove termination of whole programs or of individual threads and uses predicate abstraction and refinement.
+The downside of this approach is that it can report unfair paths as termination counterexamples.
+
+Probably the closes relative to our approach is shown in \mcite{Atig2012term}, which presents a tool MUTANT that can detect fair nontermination.
+It aims to detect ultimately periodic executions (i.e., executions in which after a finite stem the same sequence of states is repeated) and therefore is complete only in programs with finite state space.
+Furthermore, the number of context switches in the stem and in each of the periods is bounded.
+The tool uses sequentialization -- it reduces the problem of (context-bounded) termination checking of a parallel program to assertion checking in a sequential program.
+It does not target any realistic programming language, however, it targets the Boogie modelling language for which translators from C and other languages exist; therefore, it might be possible to use this tool even for C and other programming languages.
+The main difference between our approach and the one in \cite{Atig2012term} is that our approach uses a different notion of fairness, targets primarily C and C++ and does not impose any limits on the number of context switches.
 
 \section{Conclusion} \label{sec:conclusion}
 

@@ -3805,3 +3805,31 @@ series = {POPL ’05}
     abstract="This paper presents a model checking tool, SatAbs, that implements a predicate abstraction refinement loop. Existing software verification tools such as Slam, Blast, or Magic use decision procedures for abstraction and simulation that are limited to integers. SatAbs overcomes these limitations by using a SAT-solver. This allows the model checker to handle the semantics of the ANSI-C standard accurately. This includes a sound treatment of bit-vector overflow, and of the ANSI-C pointer arithmetic constructs.",
     isbn="978-3-540-31980-1"
 }
+
+@InProceedings{Popeea2012,
+    doi="10.1007/978-3-642-28756-5_17",
+    author="Popeea, Corneliu and Rybalchenko, Andrey",
+    editor="Flanagan, Cormac and K{\"o}nig, Barbara",
+    title="Compositional Termination Proofs for Multi-threaded Programs",
+    booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+    year="2012",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="237--251",
+    abstract="Automated verification of multi-threaded programs is difficult. Direct treatment of all possible thread interleavings by reasoning about the program globally is a prohibitively expensive task, even for small programs. Rely-guarantee reasoning is a promising technique to address this challenge by reducing the verification problem to reasoning about each thread individually with the help of assertions about other threads. In this paper, we propose a proof rule that uses rely-guarantee reasoning for compositional verification of termination properties. The crux of our proof rule lies in its compositionality wrt. the thread structure of the program and wrt. the applied termination arguments -- transition invariants. We present a method for automating the proof rule using an abstraction refinement procedure that is based on solving recursion-free Horn clauses. To deal with termination, we extend an existing Horn-clause solver with the capability to handle well-foundedness constraints. Finally, we present an experimental evaluation of our algorithm on a set of micro-benchmarks.",
+    isbn="978-3-642-28756-5"
+}
+
+@InProceedings{Atig2012term,
+    doi="10.1007/978-3-642-31424-7_19",
+    author="Atig, Mohamed Faouzi and Bouajjani, Ahmed and Emmi, Michael and Lal, Akash",
+    editor="Madhusudan, P.  and Seshia, Sanjit A.",
+    title="Detecting Fair Non-termination in Multithreaded Programs",
+    booktitle="Computer Aided Verification",
+    year="2012",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="210--226",
+    abstract="We develop compositional analysis algorithms for detecting non-termination in multithreaded programs. Our analysis explores fair and ultimately-periodic executions---i.e., those in which the infinitely-often enabled threads repeatedly execute the same sequences of actions over and over. By limiting the number of context-switches each thread is allowed along any repeating action sequence, our algorithm quickly discovers practically-arising non-terminating executions. Limiting the number of context-switches in each period leads to a compositional analysis in which we consider each thread separately, in isolation, and reduces the search for fair ultimately-periodic executions in multithreaded programs to state-reachability in sequential programs. We implement our analysis by a systematic code-to-code translation from multithreaded programs to sequential programs. By leveraging standard sequential analysis tools, our prototype tool Mutant is able to discover fair non-terminating executions in typical mutual exclusion protocols and concurrent data-structure algorithms.",
+    isbn="978-3-642-31424-7"
+}

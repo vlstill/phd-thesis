@@ -964,7 +964,7 @@ VeriFuzz~\mcite{Basak2019}
 - uses loop unrolling (with increasing bounds)
 - \TODO{remove?}
 
-
+\iffalse
 \section{XXX}
 
 \section{??? Termination and Temporal Logics}
@@ -980,38 +980,7 @@ T2~\cite{Brockschmidt2016}
 - liveness + safety
 - no concurrency, heap, recursion
 
-
-\section{Termination of Parallel Programs}
-
-For the related work, we consider only results which go beyond safety checking.
-There are many approaches to find problems such as assertion violations or memory safety violations, but they are fundamentally limited to properties concerning finite runs of the program, and we are focusing here on an infinite behaviour, namely on the absence of termination.
-Similarly, we do not mention techniques which specialise on checking sequential programs and have no support for parallelism, as well as techniques which are tailored to a specific modelling language and cannot be applied in general.
-
-Several techniques for checking properties other than safety exist -- indeed
-usage of various temporal logics, such as Linear Temporal Logic (LTL)
-\mcite[Chapter 5]{PoMC} and Computation Tree Logic (CTL) \mcite[Chapter 6]{PoMC} in the context of model checking dates way back to the beginning of research in formal methods.
-Unfortunately, these techniques are not often applied to programs written in real-world programming languages such as C and C++.
-
-As for techniques which detect nontermination, both static and dynamic
-techniques exist for the detection of deadlocks caused by circular waiting for
-mutexes~\mcite{CC14,agarwal2010detection,bensalem2005scalable}.
-However, these techniques specialise on mutexes and do not allow general nontermination detection, and it is unlikely that they could be naturally extended to cover it.
-There are also techniques that detect deadlocks of the whole program (i.e., a program state from which the program cannot move) \mcite{Chaki2005,Demartini99}, but these techniques cannot find cases in which only some threads of the program are making progress, while other threads are blocked forever.
-Also, these global deadlock detection techniques are inadequate in the presence of synchronisation mechanisms which causes busy waiting instead of blocking (for example spin locks) or in the cases when normally blocking operations are implemented using busy waiting (which can be easier to handle for the verifier in some cases).
-A somewhat different approach based on communicating channels is proposed in \mcite{Ng2016}, but this approach is aiming at the Go programming language which primarily uses shared channels for communication between threads.
-Overall, neither of these techniques is applicable in general for the detection of nontermination in programs which use a combination of synchronisation primitives in shared memory.
-Finally, there are also techniques for checking termination of sequential programs, to name a few \mcite{Giesl2017,Chen2018}.
-
-\section{Termination Checking}
-
-SACO~\mcite{Albert2017}
-- for analysis of concurrent programs with loops
-- uses may-happen-in-parallel analysis to infer which part of the program can interfere
-- also infer upper bounds on iteration numbers
-- for modelling language (with shared memory)
-- generates constraints on how the shared state can be modified in order for the loop to terminate and than checks that this will eventually hold
-
-2LS~\mcite{Malik2020,Malik2018,Chen2017}
+2LS \mcite{Malik2020,Malik2018,Chen2017}
 - built on CPROVER (the backend of CBMC)
 - interprocedural termination analysis for sequential programs
 - bounded model checking with k-induction and abstract interpretation
@@ -1027,18 +996,6 @@ SACO~\mcite{Albert2017}
 - simple nontermination proofs for loops (repeated loop state; loops which iterate over numerical variables with constant increments in a way they cannot end)
 - no recursion, arrays, concurrency
 
-Arctor~\mcite{Kupriyanov2014}
-- for concurrency
-- based on abstraction and refinement
-- based on well-founded relations
-- can show termination, or possibly non-terminating execution
-
-
-~\mcite{Cook2007thr}
-- Other threads are abstracted into a model of environment which is incrementally refined
-- termination proving for threads (thread termination proving)
-
-
 \section{Benchmark Suites}
 
 - \mcite{Sarkar2011,MadorHaim2012} POWER tests
@@ -1052,5 +1009,6 @@ Arctor~\mcite{Kupriyanov2014}
 \section{MISC}
 
 - need for environemnt and application intefrace modelling: \mcite{Cordeiro2016}
+\fi
 
 % vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en
