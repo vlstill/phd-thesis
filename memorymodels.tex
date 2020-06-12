@@ -682,6 +682,54 @@ It can be seen that the dynamic shared object detection improves performance sig
 Interestingly, we can see that of the 3 versions which differ only in store buffer size (``+sd'', ``+sdu'', and ``+sd4''), the unbounded version performs the best.
 We expect this to be caused by the nondeterminism in flushing the excessive entries out of the store buffer when the bound is reached -- this can trigger flushing of matching entries from other store buffers and therefore increase nondeterminism.
 
+\section{Related work}
+
+A lot of techniques have support for program analysis under relaxed memory models, most of these were already described in \autoref{chap:stateoftheart} and therefore we will not replicate the description here.
+A lot of techniques is build on stateless model checking (see also \autoref{sec:stateoftheart:smc}) including \mcite{Demsky2015,Zhang2015,Huang2016,Abdulla2017tso} for \xtso and \mcite{Abdulla2016,Norris2016,Kokologiannakis2017,Abdulla2018} for other memory models. Bounded model checking (see also \autoref{sec:stateoftheart:bmc}) is another a popular choice for analysis of \xtso \mcite{Alglave2013po,Gavrilenko2019,Tomasco2017} and other memory models \mcite{Burckhardt2007,Abdulla2017}.
+An explicit state approach to programs running under the C\# relaxed memory model is presented in \mcite{Huang2016}.
+There are also previous works which use program transformation in the analysis of relaxed memory models \mcite{Alglave2013,Abdulla2017,SRB15weakmem}.
+
+Our approach to simulation of \xtso is somewhat similar to the approach presented in \mcite{Abdulla2018}. Both approaches perform nondeterministic choice primarily on memory loads. However, \cite{Abdulla2018} is focusing on the release-acquire fragment of C11 and therefore does not support sequential consistency.
+Similarly, \mcite{Kokologiannakis2017} presents a technique that attempts to minimize nondeterminism, this time in analysis of a modified version of the C11 memory model.
+
+There are also some approaches to analysis of relaxed memory models which were not mentioned in \autoref{chap:stateoftheart}, mostly because they lack implementation which works with realistic programming languages.
+In \mcite{Atig2011} a program transformation that uses context switch bounding but not buffer bounding is presented. It uses additional copies for shared variables for TSO simulation. However, the evaluated was performed with manually converted programs.
+An unbounded approach to verification of programs under TSO is presented in~\mcite{Linden2010}.
+It uses store buffers represented by automata and leverages cycle iteration acceleration to get a representation of store buffers on paths which would form cycles if values in store buffers were disregarded.
+It targets a modified Promela modelling language~\mcite{Holzmann1997}.
+Another unbounded approach is presented in~\mcite{Bouajjani2015}.
+It introduces TSO behaviors lazily by iterative refinement, and while it is not complete, it should eventually find all errors.
+The work~\mcite{Dan2013} presents verification of (potentially infinite state space) programs under TSO and PSO (with bounded store buffers) using predicate abstraction. If first analyses the program under sequential consistency and then extrapolates the predicates to TSO/PSO and performs further analysis (and possibly refinement).
+% CUPEX \mcite{Dan2013}
+% - explores possibilities for combination of predicate abstraction and relaxed memory models (TSO, PSO)
+% - new predictates are extrapolated from predicates used under SC
+% - first verifies the program under SC, then constructs a modified program which encodes the memory model (runs of the modified program under SC simulate buffer-bounded runs of the original program under the given memory model), finally it discovers new predicates for the modified program and check it.
+% - probably a modelling language
+
+\paragraph{Absence of Relaxed Behaviour}
+
+There are also techniques which aim to solve the problem of absence of relaxed behaviour in a given program.
+For these methods, the question is whether a program, when running under a relaxed memory model, exhibits any runs not possible under sequential consistency.
+This problem is explored under many names, e.g. (TSO-)safety~\mcite{Burckhardt2008}, robustness~\mcite{Bouajjani2013,Derevenetc2014}, stability~\mcite{Alglave2011}, and monitoring of sequential consistency~\mcite{Burnim2011}.
+A similar techniques are used in \mcite{Yang2004} to detect data races in Java programs.
+A related problem of correspondence between a parallel and sequential implementation of a data structure is explored in~\mcite{Ou2017}.
+Some of these techniques can also be used to insert memory fences into the programs to recover sequential consistency.
+
+Neither of these techniques is directly comparable to our method.
+For these techniques, a program is incorrect if it exhibits relaxed behavior, while for us, it is incorrect if it violates specification (e.g., assertion safety and memory safety).
+In practice, the appearance of relaxed behavior is often not a problem, provided the overall behavior of the data structure or algorithm matches desired specification.
+In many lock-free data structures, a relaxed behavior is essential to achieving high performance.
+
+\paragraph{Other Methods}\label{other-methods}
+
+In~\mcite{Park1995}, the SPARC hierarchy of memory models (TSO, PSO, RMO) is modeled using encoding from assembly to Mur\(\varphi\)~\mcite{Murphi}.
+A completely different approach is taken in~\mcite{Turon2014}.
+This work introduces a separation logic GPS, which allows proving properties about programs using (a fragment of) the C11 memory model.
+That is, this work is intended for manual proving of properties of parallel programs, not for automatic verification.
+The memory model is not complete; it lacks relaxed and consume-release accesses.
+Another fragment of the C11 memory model is targeted by the RSL separation logic introduced in~\mcite{Vafeiadis2013}.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
