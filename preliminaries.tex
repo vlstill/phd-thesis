@@ -823,12 +823,12 @@ but makes results of data races defined \mcite{llvm:langref}.
 The \emph{unordered} operations are intended to match semantics of the Java
 memory model for shared variables.
 
-\section{Approaches to Multi-Threaded Software}
+\subsection{Approaches to Multi-Threaded Software}
 
 At the highest level, multiple threads of a program can either use
 \emph{message passing}, or \emph{shared memory} to communicate.\mnote{This can
-be generalized to multiple programs which cooperate, but the distinction is
-mostly technical. With multiple programs, message passing is used more often,
+be generalized to multiple cooperating programs, but the distinction is mostly
+technical. With multiple programs, message passing is used more often,
 especially in distributed computing.}
 While message passing can be done in any reasonably expressive programming
 language with support for concurrency, there are programming languages which
@@ -841,6 +841,8 @@ we will focus on shared memory concurrency.
 In C++ and similar languages, message passing can be implemented as an
 abstraction over the shared memory.
 
+\paragraph{Lock-Based Synchronization}
+
 Synchronization plays a crucial role in shared memory concurrency -- concurrent
 unsynchronized access of two or more threads to the same memory location, with
 at least one of the threads writing to it will cause data race which can lead
@@ -848,18 +850,18 @@ to corruption of data and program malfunction.
 Lock-based synchronization (critical sections) is often used as it is
 reasonably simple to understand it, and is often natively supported by
 programming languages.\mnote{In C/C++ since the 2011 standards.}
-Furthermore, locks usually use operating system primitives to block threads
-which are waiting while other thread executes the critical section, which can
-increase performance of systems with more threads then available processors --
-the waiting threads are completely inactive and other threads can be executed
-in the meanwhile.
+Furthermore, locks usually use operating system primitives to block waiting
+threads while other thread executes the critical section, which can increase
+performance of systems with more threads then available processors as the
+waiting threads are completely inactive and other threads can be executed in
+the meanwhile.
 
 On the other hand, synchronization can degrade performance of concurrent
 software.
 In the extreme case when all interesting work is done in a single critical
-section executed by many threads, there will be no gain of concurrency and the
-overhead of threads and their synchronization will make the program slower then
-its sequential version.
+section executed by many threads, there will be no gain from parallel execution
+and the overhead of threads and their synchronization will make the program
+slower then its sequential version.
 For this reason, critical sections should be as short as safely possible and
 different areas of the shared memory should be protected by different locks so
 that the program can access different areas of the shared memory concurrently.
@@ -868,18 +870,21 @@ or deadlocks -- indeed deadlocks are easy to avoid with one lock, but with
 multiple locks care must be taken if more then one lock is held at one time,
 which is a common situation.
 
+
+\paragraph{Atomic Access and Lock-Free Programming}
+
 To further improve performance, it is sometimes useful to avoid
 operating-system-assisted synchronization and use atomic operations instead.
 These operations can be used to guarantee synchronization over a word-sized
 location of the memory.\mnote{The size of the atomically-accessed location is
 usually the same as the size of pointer on the given platform (e.g., 8 bytes on
-64bit platforms), or sometimes twice the size of the pointer (e.g. 16 bytes on
+64-bit platforms), or sometimes twice the size of the pointer (e.g. 16 bytes on
 newer x86-64 processors).}
 Atomic operations are used to implement \emph{lock-free} algorithms and data
 structures which do not require critical sections at all.
-In this case extra care must be taken to the ordering of operations which cannot
+In this case, extra care must be taken to the ordering of operations that cannot
 be performed atomically due to the size limit of atomic instructions and the
-programmer must carefully evaluate the impact of memory model for their
+programmer must carefully evaluate the impact of memory model on their
 algorithm.
 An example of (a fragment of) lock-free data structure can be found in \autoref{fig:prelim:lockfree}.
 
@@ -903,16 +908,17 @@ An example of (a fragment of) lock-free data structure can be found in \autoref{
         }
     }
   \end{cppcodeln}
-  \caption{A push (enqueue) operation of a single-producer-single-consumer
+  \caption[A push in a lock-free queue]{A push (enqueue) operation of a single-producer-single-consumer
     lock-free queue from an older version of DIVINE (modified to use C++11
     atomic operations).
-    The queue uses a linked list of blocks (of type \texttt{Node}) which can
-    hold a fixed number of elements of some type~\texttt{T}.
+    The queue uses a linked list of blocks (of type \texttt{Node}), each block
+    can hold a fixed number of elements of some type~\texttt{T}.
     On lines 2--8 the function checks whether there is a room in the last
     allocated block and allocates a new block if necessary.
     Both the \texttt{tail} and \texttt{write} fields in the \texttt{Node} are
     atomic variables and we explicitly use memory ordering to avoid expensive
-    synchronization on x86-64 processors.
+    synchronization unnecessary on x86-64 processors.
+
     Then, on line 10, the actual value is written to the node, on the location
     pointed-to by the \texttt{write} field -- please note that the
     \texttt{write} pointer is atomic, but the actual value it points to is not
@@ -920,27 +926,29 @@ An example of (a fragment of) lock-free data structure can be found in \autoref{
     On line 11 we shift the write pointer, which makes the data available to
     the consumer thread -- this is the point where we need to use release
     memory ordering to ensure safety on platforms which are more relaxed then
-    x86 -- the release ordering ensures that any changes performed by the
-    producer thread so far will be available to the consumer once it performs
-    an acquire load on the \texttt{write} pointer (to check that the queue is
-    not empty).
+    x86 and to prevent reordering by compiler -- the release ordering ensures
+    that any changes performed by the producer thread so far will be available
+    to the consumer once it performs an acquire load on the \texttt{write}
+    pointer (to check that the queue is not empty).
+
     Finally, on lines 13--16 we append the linked list of nodes if a new node
     was created on line 6.
     Again, we use the release memory ordering to ensure all operations
     performed so far (in particular the shift of \texttt{write} on line 11) are
     visible once these changes become visible.
+
     Please note that extending this approach to multiple producers is not
-    trivial as it requires that the check if there is space available and the
-    publication of the written value would need to be performed at the same
-    time -- which would require either modification of two different locations
-    in one atomic step (which is not possible on most processors and there is
-    no C++ API for this operation) or complete redesign of the queue block.
+    trivial as the check if there is space available and the publication of the
+    written value would need to be performed at the same time.
+    This would require either modification of two different locations in one
+    atomic step (which is not possible on most processors and there is no C++
+    API for this operation) or complete redesign of the queue block.
   }\label{fig:prelim:lockfree}
 \end{widefigure}
 
 Overall, there is often a steep compromise between code simplicity and
 performance.
-A code which uses a few locks can be often reasonably understandable and the
+A code that uses a few locks can be often reasonably understandable and the
 programmer need not concern themself with relaxed memory as correct use of
 locks makes its presence invisible, but performance might be degraded by
 synchronization.
@@ -963,9 +971,10 @@ of effort and relaxed memory must be taken into account.
 
 \section{Programming Languages Used in this Thesis}
 
-In this work, we often use example codes in figures.
-We will mainly use C++ for examples of high-level code written by programmers,
-and LLVM IR for example of low-level code more suitable for direct analysis.
+In this work, we are mostly focusing on analysis of C++.
+For this reason, we will now introduce some of the features of this programming language that are relevant to our work.
+After that, we will introduce LLVM intermediate representation, which is a low-level programming language used by clang and other LLVM-based compiler.
+DIVINE, the model checker in which the work presented in this thesis is implemented, actually analyses LLVM and uses the clang compiler to translate C++ to LLVM prior to the analysis.
 
 \subsection{C++}
 
@@ -996,16 +1005,15 @@ C++ comes with various high-level synchronization primitives.\mnote{They are
 usually based on operating system level blocking primitives -- i.e., a thread
 waiting on these synchronization primitives is suspended and not using any
 resources.}
-For the purposes of this work, we will use two synchronization primitives,
-\emph{mutexes} and \emph{condition variables}.
+Two of the main synchronization primitives are \emph{mutexes} and \emph{condition variables}.
 Mutexes can be used to create mutual exclusion: only one thread can lock a
 given mutex at any point.
 Condition variables allow some threads to wait for a signal from other threads.
 They are often used in producer-consumer scenarios to signal to consumers that
 there is some data ready for them.
-They have two main operations: \texttt{wait} and \texttt{signal}: \texttt{wait}
-is a blocking call which suspend its calling thread until another thread calls
-\texttt{signal}.
+They have two main operations -- \texttt{wait} and \texttt{signal} --
+\texttt{wait} is a blocking call that suspend its calling thread until another
+thread calls \texttt{signal}.
 Waiting can only be ended if \texttt{signal} is called after the wait started,
 the conditional variable has no way to detect that \texttt{signal} was called
 before \texttt{wait}.
@@ -1026,7 +1034,7 @@ Atomic variables are mainly used in lock-free data structures and algorithms.
 Atomic variables in C++ are variables of one of the atomic types:
 \cpp{std::atomic_flag} and \cpp{std::atomic<T>} for some type \cpp{T} (which is
 usually an integral of pointer type, for example \cpp{std::atomic<int>}).
-For integral types, \cpp{std::atomic<T>} defines various operations which allow
+For integral types, \cpp{std::atomic<T>} defines various operations that allow
 atomic modification of the value of an atomic variable: for example, by calling
 \cpp{fetch_add} on an atomic variable it is possible to atomically increment
 its value and return its original value before the increment.
@@ -1034,9 +1042,13 @@ Some of these operations are also available with the operator syntax (e.g.,
 using the operator \cpp{+=}).
 For all types, it is possible to exchange the current value with a new one
 (returning the previous value) and to preform compare-exchange (also sometimes
-called compare-and-swap), which is a compound operation which atomically checks
+called compare-and-swap), which is a compound operation that atomically checks
 that the value of an atomic variable is equal to a specified value and if so
 replaces the original value with a new one.
+
+The atomic operations are not required to be lock-free, but can use locks
+internally (with the exception of \texttt{std::atomic\_flag}.
+This allows implementation of atomic types for data types that are larger then the platform-specific limit of atomic instructions.
 
 \subparagraph{Memory Ordering for Atomic Operations} \label{sec:prelim:cppmemord}
 
@@ -1054,6 +1066,8 @@ We will now informally describe available memory orders.
         memory order.
         It forces operations with this memory order to be sequentially
         consistent.
+        It also prevents reordering of other operations (atomic or not) around
+        a sequentially consistent operation.
 
     \item[\texttt{std::memory\_order::release}] is memory order used with store
         operations.
@@ -1064,7 +1078,7 @@ We will now informally describe available memory orders.
         It prevents later memory operations in the same thread to be reordered
         before the acquire load.
         A release store and a subsequent acquire load from the same variable
-        create a synchronization which ensures that all modifications
+        create a synchronization that ensures that all modifications
         performed in the storing thread before the release store are
         visible to the loading thread after the corresponding acquire load.
 
@@ -1072,14 +1086,14 @@ We will now informally describe available memory orders.
         compound operations and combines the acquire and release orderings.
 
     \item[\texttt{std::memory\_order::consume}] is a weaker form of
-        \texttt{acquire} which only affects data-dependent variables.
+        \texttt{acquire} that only affects data-dependent variables.
         This memory ordering is not widely used and is often treated as
         \texttt{acquire} by compilers.
 
     \item[\texttt{std::memory\_order::relaxed}] is the weakest atomic
         ordering.
-        It guarantees no synchronization and does not affect operations
-        concerning other memory locations at all.
+        It guarantees no synchronization with operations on other memory
+        locations.
         It only guarantees atomicity of operations over the given location.
         Relaxed ordering can be used for example to implement atomic counters
         used for statistics.
@@ -1091,15 +1105,25 @@ C++ has support for exceptions and is also able to specify that a given function
 is not allowed to throw an exception.
 In C++ it is possible to throw value of any type as an exception.
 When an exception is thrown, it propagates to callers of the function which
-have throw it until it triggers a \cpp{catch} code block which can catch it --
-a \cpp{catch} block which either catches exactly the type of the exception, or
-if the class of the exception uses inheritance, the exception can be also
-caught a by a \cpp{catch} block which catches some of the predecessor types of
+have throw it until it triggers a \cpp{catch} code block that can catch it --
+a \cpp{catch} block that either catches exactly the type of the exception, or
+if the class of the exception uses inheritance, the exception can also be
+caught a by a \cpp{catch} block that catches some of the predecessor types of
 the exception.
 Whenever the propagation of an exception causes end of a scope of some variable, its destructor is called to release resources associated with the variable, for example close an open file, release memory or release a mutex.
 
 If a function is marked as \cpp{noexcept} and an exception would propagate from
 it, the program terminates.
+
+\paragraph{Deterministic Destruction of Objects}
+
+One of the core features of C++ is that is has deterministic destruction of objects, i.e., the end of lifetime of objects is precisely known (as opposed to being determined by garbage collector in garbage-collected languages such as Java or C\#).
+In C++, the end of life of an object happens either when it goes out of scope (for scope-allocated objects) or when it is explicitly deallocated (if the object was dynamically allocated).
+This in turn allows C++ destructors, which are special functions executed at the end of life of an object, to be used for resource control.
+For example a \texttt{std::unique\_lock} object might be initialised with an instance of a mutex and it will automatically lock the mutex when the \texttt{unique\_lock} is constructed and release the mutex when it goes out of scope.
+The same is used for example in C++ file streams to close the file handle when the stream goes out of scope or for memory management.
+
+An important property of this approach to resource management is that it is automatically exception safe -- if the resource-owning object is a local variable, the resource will be automatically release at the end of its scope, whether or not the end of scope was caused by exception propagation or normal control flow.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1107,21 +1131,21 @@ it, the program terminates.
 
 LLVM is a compilation infrastructure which can be used to build optimizing
 compilers.
-The compiler build on LLVM consists of a language-specific frontend which
+The compiler build on LLVM consists of a language-specific frontend that
 processes the source code and produces a language-independent LLVM intermediate
-representation, an optimizer which runs on the LLVM intermediate
-representation, and a code generator which produces executable code for the
+representation, an optimizer that runs on the LLVM intermediate
+representation, and a code generator that produces executable code for the
 given platform.
 LLVM intermediate representation (LLVM IR, LLVM code, or just LLVM), is a
-low-level programming language which is mostly independent of both the
-high-level language of the original program and the assembly language of the
-given hardware platform.
+low-level programming language mostly independent of both the high-level
+language of the original program and the assembly language of the given
+hardware platform.
 Nevertheless, LLVM IR is somewhat influenced by the languages that are mainly
 translated to it, namely C and C++.
 
 LLVM IR is a type-safe assembly-like language.
 Its basic operations are \emph{instructions} which take inputs of specific type
-and produce output of (possibly different) type.
+and produce output of possibly different type.
 Values can be stored either in registers (each register is only assigned at one
 place in the code -- the code is static single assignment, SSA) or in memory.
 Memory can be further divided into global variables, which exist for the entire
@@ -1131,12 +1155,13 @@ function is expected to be externally provided, memory allocation is not a part
 of LLVM).
 
 \paragraph{Memory Manipulation in LLVM}
+
 Unlike for example the x86 machine code, most LLVM instructions do not modify
 memory directly, but work with registers only.
 Therefore, to change a value in memory, it is first necessary to load it, using
 the \li{load} instruction, then modify it, and finally store it using the
 \li{store} instruction.
-There are two more instructions which can access memory, and these are used for
+There are two more instructions that can access memory, and these are used for
 \emph{atomic compound operations}.
 The \li{atomicrmw} instruction (atomic read-modify-write) can atomically
 perform a load, arithmetic or logic operation, and a store or atomically
@@ -1153,13 +1178,12 @@ Memory orders in LLVM are based on memory orders in C++ (see
 
 \paragraph{Threads and High-Level Synchronization in LLVM}
 
-LLVM has no primitives for starting and handling threads nor for high-level synchronization of threads in shared memory (mutexes, condition variables).
+LLVM has no primitives for starting and handling threads nor for high-level synchronization of threads in shared memory (mutexes, condition variables, …).
 Therefore, this functionality has to be provided by libraries.
 This matches well with the programming languages often translated to LLVM,
 which usually implement threading using a library of thread-manipulation and
 synchronization primitives.
-Nevertheless, LLVM has a notion of thread-local variables; i.e., variables
-which exist in a separate copy in each thread.
+Nevertheless, LLVM has a notion of thread-local variables; i.e., variables that exist in a separate copy in each thread.
 
 \paragraph{Memory Model}
 
@@ -1173,7 +1197,7 @@ LLVM has support for exceptions.
 Namely, there are two ways in which a function can be called in LLVM.
 The \li{call} instruction is used for calls which either cannot throw an
 exception, or which can throw an exception, but the exception does not need to
-be inspected or caught in the functions which performs the \li{call}.
+be inspected or caught in the functions that performs the \li{call}.
 The \li{invoke} instruction is used if the exception needs to be intercepted --
 an \li{invoke} is a branching point.
 If the function called by \li{invoke} returns normally, the \cpp{invoke}
