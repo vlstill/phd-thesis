@@ -1331,11 +1331,11 @@ On top of \dios, there is a set of libraries including implementations of C and 
 All the parts of DIVINE described so far process LLVM IR.
 To be able to handle C and C++, DIVINE uses the clang compiler (which is part of the LLVM project).
 However, if DIVINE is to analyse a program, it needs definitions of all the library functions this program uses in the form of LLVM IR (alternatively \divm itself would need to be able to understand these functions).
-Therefore, DIVINE needs substantial control over the compilation process, for example it is not allowed to use system-installed (binary) libraries with DIVINE.
+Therefore, DIVINE needs substantial control over the compilation process, for example it is not possible to use system-installed (binary) libraries with DIVINE.
 
 To make compilation reasonably simple for users, DIVINE integrates the clang compiler using its library interface.
-This integrated compiler compiles the program in an environment that contains only the libraries available in DIVINE, automatically links them, and produces LLVM IR that can be directly analysed with DIVINE.
-The compiler can be invoked either automatically by DIVINE when it is executed with a C or C++ file, or there is a standalone compiler that can be used in place of clang.
+This integrated compiler compiles programs in an environment that contains only the libraries available in DIVINE, automatically links them, and produces LLVM IR that can be directly analysed with DIVINE.
+The compiler can be invoked either automatically by DIVINE when it is executed with a C or C++ file, or with a standalone compiler that can be used in place of clang.
 
 As we have already mentioned, DIVINE needs LLVM IR of the used libraries.
 Therefore, DIVINE ships with implementations of standard C and C++ library, the POSIX threads library, and a stack unwinder library.
