@@ -4,7 +4,7 @@
 The text was brought up to date with certain implementation details of DIVINE
 and extended with the wider context of analysis of realistic programs in
 DIVINE.
-The benchmarks are unmodified from the original paper.}
+The evaluation is unmodified from the original paper.}
 
 \bigskip\noindent
 An important step toward adoption of formal methods in software development is
@@ -24,7 +24,7 @@ these principles.
 % \llvm{} bitcode which prepares exception-related metadata and replaces
 % associated special-purpose \llvm{} instructions.
 
-As we have already outlined in \autoref{sec:prelim:programs}, realistic
+As we have already outlined in \autoref{sec:intro:programs}, realistic
 programs have many features not present in verification-centric modelling
 languages.
 For example C has dynamic memory and pointer arithmetic (i.e., it is possible
@@ -35,41 +35,40 @@ have inheritance and dynamic dispatch of member functions based on the runtime
 type of the object they are caled on.
 Many languages also have exceptions which allow for non-local transfer of
 control between functions.
-C++ is particualrly complex, featuring things like function and class
-templates,
+C++ is particualrly complex, with features like function and class
+templates,%
 \mnote{Templates allow the programmer to write a generic code which
     does not depend on the concrete type, the compiler is then responsible for
     generation of implementations for concrete types the code is used with.}
 inheritance with multiple base classes, runtime type information (RTTI),
-compiler-generated special member functions,
-\mnote{C++ compiler can auto-generate code which handles copying, creation and
+compiler-generated special member functions,%
+\mnote{C++ compiler can auto-generate code that handles copying, creation and
     destruction of objects, and since C++20 also comparison of objects. Of
     course the programmer can override the default behaviour in case it is not
     sufficient, for example when implementing resource abstractions.}
-and support for concurrency including low-level atomic access.
-To make work for developers of analysis tools (and compiler and standard
-libraries) harder, many of these languages are also under constant development,
+and support for threads and thread synchronization including low-level atomic
+access.
+Furthermore, many of these languages are also under constant development,
 for example C++ releases a new standardy every three years since 2011, with
 major new language and library features added in each new revision.
-C++ compilers and standard libraries which keep up-to-date with the standard
+C++ compilers and standard libraries that keep up-to-date with the standard
 are usually developed either by big companies like Microsoft or Intel, or by
-large community efforts like GCC and clang (whith clang being also supported by
+community efforts like GCC and clang (whith clang being also supported by
 Apple).
 
 Considering the efforst put into compiler development and the complexity of
 programming languages like C++, it makes sence to reuse as much of the existing
-execution-oriented infrastructure which exists around thse programming
+execution-oriented infrastructure which exists around these programming
 languages.
 Re-implementing this infrastructure could easily consume large portion of the
 limited resources of developers of verification tools.
-For example, DIVINE and many other tool for analysis of C and C++, use the
-clang compiler to translate C and C++ into LLVM intermediate representation
-(IR).
-Similar approach can be applied to any language which uses LLVM in its
+For example, DIVINE and many other tool for analysis of C and C++ use the
+clang compiler to translate C and C++ into LLVM intermediate representation.
+Similar approach can be applied to any language that use LLVM in its
 translation (e.g., Rust, Swift, Objective-C), to Java (by tranalating it to
 Java Virtual Machine bytecode), or to C\# (by translating it to Common Language
 Infrastructure).
-For libraries existing open-source versions can also be used for verification to some extend.
+For libraries, existing open-source versions can also be used for verification to some extend.
 
 The rest of this chapter is structured as follows: \autoref{sec:lang:adv} takes a deeper look at advantages and disadvantages of reusal of execution-oriented components for program verification.
 \autoref{sec:lang:divine} then describes how DIVINE uses existing components in analysis of C and C++ and why the C standard library cannot be fully re-used from execution-oriented implementations.
@@ -90,24 +89,24 @@ The rest of this chapter is structured as follows: \autoref{sec:lang:adv} takes 
 
 \section{Component Reuse in Program Analysis}\label{sec:lang:adv}
 
-Reusal of execution-oriented componenents (such as compilers and libraries) for
+Reuse of execution-oriented componenents (such as compilers and libraries) for
 program analysis is a compromise and it is important to know the advantages and
 disadvantages of component reuse.
-On one hand, reuse can save developement time and offload the significant cost
-of development and testing to a third parties and therefore enable support for the whole complexity of the given programming language.
-This is important as the whole reason for analysis of realistic programming languages is to enable the programmer to use the the tool for analysis of the code they normally write, not a code written in a small subset of their language of choice.
-Furthermore, reusal can also increase precision of program analysis for the cases where the same components are used for analysis and execution -- for example if the same optimizing compiler is used in both situations and an optimized intermediate representation is used for the analysis, the analysis tool can now also find problems introduced by the compiler's optimizer (which is quite complex and error-prone) which were not in the original code.
-On the other hand, potential problems whith the reused components can also
-impact verification precisiton negatively, especially if they are able to hide
+On one hand, reuse can save developement time and offload significant cost
+of development and testing to a third parties and therefore enable support for the whole complexity of the given programming language, or at least its large parts.
+This is important as the whole reason for analysis of realistic programming languages is to enable the programmer to use the tool for analysis of the code they normally write, not a code written in a small subset of their language of choice.
+Furthermore, reuse can also increase precision of program analysis for the cases where the same components are used for analysis and execution -- for example if the same optimizing compiler is used in both situations the analysis tool can find problems introduced by the compiler's optimizer (which is quite complex and error-prone) which were not in the original code.
+On the other hand, potential problems with the reused components can also
+impact verification precision negatively, especially if they are able to hide
 problems is the analysed code.
-Even if there were no bugs in the reused components and they adhered to specification, the problem is that these components can under-approximate all behaviours allowed by the standard.
+Even if there were no bugs in the reused components and they adhered to specification, the problem is that these components can under-approximate all behaviours allowed by the standard -- the standard can define multiple allowed ways in which a particular feature can behave and the implementors of the library or compiler are free to choose from these options, for example, in C++ the order of evaluation of arguments of a function is not specified by the standard (and the program should not assume any particular order).
 The execution-oriented components are also usually performance oriented, which might make the task of program analysis harder.
 
 \subsection{Compilation}
 
 Compilers are now routinely re-used in verifiers, with the LLVM toolchain and
-clang compiler being especially populer in the are of C (and C++) analysis.
-Many program analysis tools are in fact analysing the LLVM IR and not C
+clang compiler being especially popular in the area of C (and C++) analysis.
+Many program analysis tools are in fact analysing the LLVM IR and not C/C++
 directly (for example DIVINE~\mcite{DIVINEToolPaper2017},
 Skink~\mcite{Cassez2017}, VVT~\mcite{Gunther2016}, Symbiotic~\mcite{Chalupa2018},
 and many more).
@@ -115,11 +114,11 @@ Building a verfier for LLVM IR is simpler since LLVM IR abstracts from many of
 the high-level concepts and presents only a reasonable amount of instructions
 which has to be implemented.
 The clang compiler (which can compile C and C++ to LLVM IR) can handle many
-features of the progamming languages in such a way that the program analysis
+features of these programming languages in such a way that the program analysis
 tools does not need to know about them.
 For example template instantiation, function overloading, dynamic dispatch, and
 local variable lifetime (in absence of exceptions) are handled in this way.
-The complete problem of parsing the rich grammar of the language such as C++ is
+The problem of parsing the rich grammar of languages such as C++ is
 also handled by the compiler and various control-flow constructs are translated
 to simple jumps.
 
@@ -132,10 +131,9 @@ Another disadvantage is the loss of possible behaviours -- for example the C++ s
 However, on the level of LLVM IR, the evaluation order is already fixed.
 
 Some of these disadvantages can be mitigated by reusing less of the compilation
-infastructure, for example using an approach similar to the one taked by
+infrastructure, for example using an approach similar to the one taken by
 ESBMC~\mcite{Gadelha2018}, which uses only the C and C++ parser from clang,
-building their own intermediate represenation from the abstract systax tree.
-\TODO{However, it does not appear that ESBMC takes advantage of the additional information to check for bugs caused by reliance on unspecified behaviour defined in the C/C++ standards.}
+building their own intermediate representation from the abstract syntax tree.
 Nevertheless, there is a cost to pay for the increased precision -- for example, ESBMC has to be able to handle many of the language features which are abstracted away in the compilation.
 
 \subsection{Libaries}
