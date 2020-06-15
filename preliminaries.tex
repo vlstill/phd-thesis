@@ -1223,7 +1223,7 @@ instructions.
 \section{DIVINE}
 
 DIVINE is an open-source verifier for C and C++ programs with focus on
-concurrency and hard to discover bugs~\mcite{DIVINEToolPaper2017}.
+concurrency and hard to discover bugs \mcite{DIVINEToolPaper2017,DIVINEWeb}.
 It aims to be a general tool usable by programmers and can work with wide
 variety of programs and check for different property violations, including
 assertion failures, memory access errors, memory leaks, use of uninitialized
@@ -1245,7 +1245,7 @@ Among the biggest differences between DIVINE and Linux on x86-64 are different
 calling conventions and stack layout; however, these differences should be
 transparent to a correct C or C++ program and programs which rely on
 platform-specific layout of the stack will be reported as buggy in most cases
-(the stack layout is not guaranteed by the C/C++ standards and therefore such
+(the stack layout is not guaranteed b the C/C++ standards and therefore such
 programs are not well-defined).
 
 \subsection{Architecture of DIVINE}
@@ -1258,6 +1258,8 @@ programs are not well-defined).
                    , state/.style={ rectangle, draw=black,
                      minimum height=1.7em, minimum width = 17.5em, inner
                      sep=2pt, text centered, node distance = 2em }
+                   , half/.style={ minimum width = 8.75em,
+                                   minimum height = 3.4em }
                    , shaded/.style = { fill = black!25!white }
                    ]
 
@@ -1266,9 +1268,9 @@ programs are not well-defined).
         (libs) {C/C++ standard libraries, \texttt{pthreads}};
     \node[state, shaded, below = 0em of libs.south west, anchor = north west]
         (dios) {\dios};
-    \node[state, below = 0em of dios.south west, anchor = north west]
+    \node[state, below = 0em of dios.south west, anchor = north west, half]
         (divm) {\divm};
-    \node[state, below = 0em of divm.south west, anchor = north west]
+    \node[state, below = 0em of dios.south east, anchor = north east, half]
         (alg) {Verification core};
 
     \draw[in=0, out=0, >=stealth', looseness=1.7]
@@ -1304,8 +1306,8 @@ exploration of the state space.
 To actually execute the program, DIVINE uses \divm, a verification-oriented
 virtual machine that executes LLVM instructions and \divm extensions to LLVM IR
 called \emph{hypercalls}~\mcite{RSCB2018}.
-\divm hypercall behave as functions from the point of view of LLVM IR, but they
-are treated as instructions by \divm.
+\divm hypercalls behave as functions from the point of view of LLVM IR, but
+they are treated as instructions by \divm.
 These hypercalls handle operations like memory allocation and feeing and
 nondeterministic choice.
 They can also be used to switch stacks (for example to implement threading),
@@ -1315,21 +1317,52 @@ space using interrupt points and cancellation.
 In DIVINE the \divm has only limited knowledge of threads -- it can take their
 existence into account for the purpose of state-space reductions, but cannot
 start or terminate them and does not direct their scheduling.
-Instead, scheduling is controlled by a scheduler which is linked to the
-verified program and which uses the nondeterministic choice hypercall provided
-by \divm.
+Instead, scheduling is controlled by a scheduler linked to the verified program
+which uses the nondeterministic choice hypercall provided by \divm to decide
+which thread to execute.
 Thread creation and termination is also implemented in a library.
 Scheduling, thread management and a basic POSIX-compatible interface including
 a filesystem model is grouped into \dios, a verification-oriented operating
-system~\mcite{RBMKB2019}.
+system \mcite{RBMKB2019}.
 On top of \dios, there is a set of libraries including implementations of C and C++ standard library, POSIX thread library (\texttt{pthreads}), and unwinder for exception handling (see also \autoref{chap:lang} and \mcite{SRB2017}).
+
+\subsection{Program Compilation \& Libraries}
+
+All the parts of DIVINE described so far process LLVM IR.
+To be able to handle C and C++, DIVINE uses the clang compiler (which is part of the LLVM project).
+However, if DIVINE is to analyse a program, it needs definitions of all the library functions this program uses in the form of LLVM IR (alternatively \divm itself would need to be able to understand these functions).
+Therefore, DIVINE needs substantial control over the compilation process, for example it is not allowed to use system-installed (binary) libraries with DIVINE.
+
+To make compilation reasonably simple for users, DIVINE integrates the clang compiler using its library interface.
+This integrated compiler compiles the program in an environment that contains only the libraries available in DIVINE, automatically links them, and produces LLVM IR that can be directly analysed with DIVINE.
+The compiler can be invoked either automatically by DIVINE when it is executed with a C or C++ file, or there is a standalone compiler that can be used in place of clang.
+
+As we have already mentioned, DIVINE needs LLVM IR of the used libraries.
+Therefore, DIVINE ships with implementations of standard C and C++ library, the POSIX threads library, and a stack unwinder library.
+The C and C++ standard libraries are mostly based on existing projects (that aim at normal execution), namely PDClib for the C library and libc++ and libc++abi for the C++ library.
+
+\paragraph{File System and POSIX API}
+
+C and C++ standard libraries provide, among other, access to the file system.
+To be able to use file system in programs analysed by DIVINE, DIVINE provides two possible approaches.
+The first is a virtual file system provided by \dios.
+In this mode, most file system operations are modelled by our Virtual File System library (which is part of \dios).
+The program can work with the file system as normally, but this has no effect on the file system of the computer the program runs on, instead the file system is part of the program's state.
+The file system can either start with an empty snapshot, or it can load a snapshot of a directory at start.
+
+An alternative approach is to actually allow the program to access file system of the machine.
+This, however, is not possible during normal state space exploration that explores the state space in BFS-like order as it could cause interference between independent parts of the state space.
+Instead, DIVINE can execute a single run of the program (giving random values to nondeterministic choices), record all supported system calls, and then use this recording in analysis \mcite{KRB2017}.
+A limitation of this approach is that it currently works only if all the system calls are executed in the same order in all runs of the program (which is unlikely if the program uses file system from more then one thread).
+
+On top of the file system support, DIVINE has also support for other parts of the POSIX API, including parts of networking and clock API \mcite{RBMKB2019}.
 
 \subsection{Program Instrumentation}
 
 To avoid unnecessary complexity in \divm, DIVINE uses program instrumentation
 as a preprocessing step.
-Instrumentation adds potential interruption points to the program to specify at
-which point the scheduler can be invoked.
+This steps runs on the LLVM IR of the program and all the libraries linked to it.
+Instrumentation adds potential interruption points to the program to specify point at which the scheduler can be invoked.
 These interruption points are used at memory access instructions and at
 back-edges of loops (to make sure \divm does not attempt run an infinite
 cycle).
@@ -1337,7 +1370,7 @@ Furthermore, instrumentation is used to calculate metadata used by \dios.
 
 Instrumentation is also used to implement some extensions of DIVINE.
 It is used by the symbolic and abstract extensions of
-DIVINE~\mcite{LRB2018,CLOR2019}, for C++ exceptions (\autoref{chap:lang},
+DIVINE \mcite{LRB2018,CLOR2019}, for C++ exceptions (\autoref{chap:lang},
 \mcite{SRB2017}), if the program is analysed for relaxed memory behaviour
 (\autoref{chap:mm}, \mcite{SB2018x86tso}), and to enable local nontermination
 checking (\autoref{chap:lnterm}, \mcite{SB2019}).
@@ -1351,31 +1384,29 @@ that most of the instructions of one thread do not interfere with instructions
 of other threads.
 For this reason, it is sufficient to enable thread interleaving only after a
 block of instructions, provided we can ensure that only one instruction that
-can interfere with instructions of other threads can happen in each block.
+can interfere with instructions of other threads can happen in each block and that each block terminates.
 
 In DIVINE we use heuristics to detect which instructions can interfere with
 other threads.
-A simplest version of such a heuristic is that only instructions which access
-memory can interfere with other threads in LLVM.\mnote{These are \li{load},
-\li{store}, \li{cmpxchg}, and \li{atomicrmw}.}
+A simple version of such a heuristic is that only instructions which access
+memory can interfere with other threads in LLVM.\mnote{In LLVM these are
+\li{load}, \li{store}, \li{cmpxchg}, and \li{atomicrmw}.}
 For this reason, the instrumentation in DIVINE only inserts potential interrupt
 points at these instructions.
 When successors of a state are generated by \divm, it uses information from the
 potential interrupt points (which includes memory address range and a type of
 the access) to determine if the interrupt is actually necessary.
-To do this, DIVINE locally searches for actions of other threads which can
+To do this, DIVINE locally searches for actions of other threads that can
 interfere with the given thread.
 
 As the size of instruction blocks executed together by \divm is dynamic, it
-needs to ensure that size of each block is finite.
+needs to ensure that each block is finite.
 To do this, \divm detects control flow cycles and ends a block of instructions
-if a back-edge in a control flow graph is repeated in it.
+if a back-edge in a control flow graph is repeated.
 
 \subsection{Implementation and Availability}
 
 DIVINE is an open-source software written mostly in C++.
 DIVINE source codes, as well as instruction on how to build and use it can be found on the project website~\mcite{DIVINEWeb}.
-
-\TODO{Filesystem, POSIX, compiler??}
 
 % vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en
