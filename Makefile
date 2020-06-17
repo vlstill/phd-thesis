@@ -26,6 +26,9 @@ list-of-publications.pdf : papers.tex
 %.bcf : $(wildcard *.bib) $(wildcard *.tex)
 	pdflatex -shell-escape $(@:%.bcf=%.tex)
 
+clean:
+	rm -f *.aux *.bbl *.bcf *.blg *.fdb_latexmk *.fls *.log *.out *.run.xml *.toc *.pyg
+
 .PRECIOUS: %.bcf %.bbl
 
-.PHONY: all
+.PHONY: all clean
