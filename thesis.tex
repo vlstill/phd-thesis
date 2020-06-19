@@ -288,17 +288,16 @@
 \newcommand{\mnote}[1]{\mnotemark{}\mnotetext{#1}}
 \newenvironment{marginnote}{%
         \mnotemark%
-        \raggedout% make sure the contents is or the right side of the box so it is not outside the page
         \expandafter\newbox\csname marginnotebox:\thechapter:\themnote\endcsname%
-        \expandafter\setbox\csname marginnotebox:\thechapter:\themnote\endcsname=\vbox\bgroup%
+        \expandafter\setbox\csname marginnotebox:\thechapter:\themnote\endcsname=\hbox to \marginparwidth\bgroup%
             \noindent%
             \begin{minipage}{\marginparwidth}%
             \hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}%
-            \raggedoutunsafe\footnotesize\noindent%
+            \raggedout\footnotesize\noindent%
     }{%
             \end{minipage}%
         \egroup%
-        \marginpar{\expandafter\unvbox\csname marginnotebox:\thechapter:\themnote\endcsname}
+        \marginpar{\expandafter\unhbox\csname marginnotebox:\thechapter:\themnote\endcsname{}}
     }
 
 % allows us to use make names in side margin citations link to DOI-based
