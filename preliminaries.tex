@@ -1,4 +1,4 @@
-This chapter gives an introduction to program analysis and to the working of
+This chapter gives an introduction to program analysis and the working of
 parallel programs and relaxed memory models.
 We will also introduce the C++ programming language as it is the language we are primarily targeting and the DIVINE model checker as all the contributions are implemented in DIVINE.
 
@@ -7,33 +7,31 @@ We will also introduce the C++ programming language as it is the language we are
 
 In this work, we will not be concerned with simple program analysis techniques like type-checkers and linters.
 Instead, we will focus on techniques based on formal verification, that is techniques which can provide some formally described guarantees about the program if they succeed.
-These techniques usually require a program and some specification the program should adhere to, and can check if that is really the case.
+These techniques usually require a program and some specification the program should adhere to and can check if that is the case.
 We will also focus mostly on techniques which can be directly applied to programs written in some mainstream programming language (i.e., techniques which do not require special verification-oriented languages as their inputs).
 
 Program analysis techniques can be broadly divided into two different areas, \emph{automatic techniques} that, provided a program and its specification, should produce a result automatically without further assistance, and \emph{human-assisted techniques} which require a substantial human effort during the analysis.
-Examples of the first area are symbolic execution and various model checking techniques, while theorem proves are example of the latter kind.
-As we focus on techniques that should be usable by programmers without a substantial background in formal logic we will focus on the automatic tools.
+Examples of the first area are symbolic execution and various model checking techniques, while theorem provers are an example of the latter kind.
+As we focus on techniques that should be usable by programmers without a substantial background in formal logic, we will focus on the automatic tools.
 
 
 \subsection{State Space}
 
-In order to be able to define program properties that should be checked and to describe various analysis methods, we first need to define the \emph{state space} of a program.
+To be able to define program properties that should be checked and to describe various analysis methods, we first need to define the \emph{state space} of a program.
 
 \begin{definition}[State Space]
 The \emph{state space} of a program is a directed multigraph with (optionally) labelled edges that describes all the ways in which the program can be executed.
 The vertices of the state space multigraph are called \emph{states} (of the program).
 Each state represents a certain point in the execution of the program -- it can be described by a snapshot of the program (its memory, program counters and stacks of all its threads, …).
 States $v_1, v_2$ are connected by an edge in the state space if $v_2$ can be reached from $v_1$ by a single step of the program.
-The edge can be optionally labelled, for example by the statements executed in each step, or by a selected actions specified by the program or verification tool (such as \emph{error} label to indicate an error occurs on this edge or an \emph{accepting} label that can be used in automata-based approach to LTL model checking).
-The state space contains all the states of the program reachable from a certain initial state (an initial configuration of the program).
+The edge can be optionally labelled, for example by the statements executed in each step, or by selected actions specified by the program or verification tool (such as \emph{error} label to indicate an error occurs on this edge or an \emph{accepting} label that can be used in the automata-based approach to LTL model checking).
+The state space contains all the states of the program reachable from an initial state (an initial configuration of the program).
 \end{definition}
 
-The input for the analysis is usually not the state space graph, instead the
-state space is specified by its implicit representation -- the program code, or
-possibly a function that describes the initial states and how to get from one
-state to its successors.
+The input for the analysis is usually not the state space graph.
+Typically, the state space is specified by its implicit representation -- the program code, or possibly a function that describes the initial states and how to get from one state to its successors.
 
-In practice, the state space of a program can be very large or infinite and it
+In practice, the state space of a program can be very large or infinite, and it
 is useful to be able to consider only a representative part of the state space.
 
 \begin{definition}[Reduced State Space]
@@ -137,18 +135,18 @@ Another possibility is:\\
 }
 \end{definition}
 
-There are several techniques that can be used to construct reduced state space in such a way that a given property (or a class of properties) holds in the reduced state space if and only if it holds in the original state space.
-For example, partial order reduction~\cite{Peled1993}, dynamic partial order reduction~\cite{Flanagan2005dpor} or $\tau+$ reduction~\cite{RBB13}.
+Several techniques can be used to construct reduced state space in such a way that a given property (or a class of properties) holds in the reduced state space if and only if it holds in the original state space.
+For example, partial order reduction~\mcite{Peled1993}, dynamic partial order reduction~\mcite{Flanagan2005dpor} or $\tau+$ reduction~\mcite{RBB13}.
 
 
 On top of the reductions, it is also possible to build an \emph{abstraction} of a state space, i.e., a state space that preserves some of the properties of the original but abstracts away some of its complexity.
 These abstractions are usually built from the implicit representation of the program.
 Abstractions are often used to reduce large or infinite state spaces to sizes that can be managed.
-Usually abstractions are designed such that results derived from the abstract state space can be used to derive some information about the original state space.
+Usually, abstractions are designed such that results derived from the abstract state space can be used to obtain some information about the original state space.
 
 \begin{definition}[Over- and Under-Approximations in Abstraction]
   Suppose we have an abstracted state space $\widehat{S}$ that corresponds to a (concrete) state space $S$.
-  Suppose further that we are interested in reachability of states that satisfy some property $P$ that can be evaluated both in $S$ and $\widehat{S}$.
+  Suppose further that we are interested in the reachability of states that satisfy some property $P$ that can be evaluated both in $S$ and $\widehat{S}$.
   \begin{itemize}
     \item We say that $\widehat{S}$ is an \emph{over-approximation} of $S$ if the fact that no state that satisfies $P$ is reachable in $\widehat{S}$ implies that no such state is reachable in $S$ (i.e., $\widehat{S}$ can contain more behaviour that leads to such a state).
     \item We say that $\widehat{S}$ is an \emph{under-approximation} of $S$ if the fact that a state that satisfies $P$ is reachable in $\widehat{S}$ implies that there is a state that satisfies $P$ reachable in $S$ (i.e., $\widehat{S}$ can contain less behaviour that leads to such a state).
@@ -165,12 +163,12 @@ Otherwise, we say the program has an \emph{infinite state space}.
 \begin{definition}[Run]
 A \emph{run} in the state space is a (possibly infinite) path in the state space (or reduced state space) that starts in the initial state.
 That is, a run is a sequence of states $\sigma = s_0, s_1, …$ such that $s_0$ is the initial state and for each consecutive pair of states $s_i, s_{i+1}$ there is an edge from $s_i$ to $s_{i + 1}$ in the corresponding (reduced) state space.
-Please note that states can be repeated in a run and the run can be infinite.
+Please note that states can be repeated in a run and a run can be infinite.
 \end{definition}
 
 \subsection{Program Properties}
 
-In order to be able to find errors in programs, an analysis tool has to have
+To be able to find errors in programs, an analysis tool has to have
 some specification of program correctness -- a \emph{property} that should be
 checked.
 In this section, we will introduce several categories of program properties
@@ -179,20 +177,19 @@ together with examples of particular properties.
 \paragraph{Safety Properties}
 %
 are properties that can be checked locally -- for each state of the program, we
-are able to determine if the state satisfies or violates given property.
-Therefore, to conclude the program is error-free under given safety property it
-suffices to show that there is no state that violates given safety property.
+can determine if the state satisfies or violates given property.
+Therefore, to conclude the program is error-free under given safety property, it suffices to show that no state violates the property.
 
-Examples of safety property include \emph{memory safety} (stating that every
-time we access a certain part of memory, this memory is in fact allocated and
-accessible to the program), \emph{assertion safety} (stating that a program
+Examples of safety property include \emph{memory safety} (every
+time we access a particular part of memory, this memory is allocated and
+accessible to the program), \emph{assertion safety} (a program
 does not violate any of the assertions in the source code), and
-\emph{control-flow definedness} (stating that every time a conditional jump is
+\emph{control-flow definedness} (every time a conditional jump is
 performed, the values the jump is based on must have well-defined value).
 
 Some program properties can be checked locally only if sufficient information
 is kept in the program state.
-For example checking \emph{absence of memory leaks} requires that it is
+For example, checking \emph{the absence of memory leaks} requires that it is
 possible to enumerate all allocated objects and all objects to which there are
 usable pointers.
 Similarly, mutex-related deadlocks can be detected by safety analysis if the program keeps track of the graph of waiting for mutexes.
@@ -200,24 +197,24 @@ Similarly, mutex-related deadlocks can be detected by safety analysis if the pro
 \paragraph{Temporal properties}
 %
 Not all properties can be directly described as safety properties.
-For example, we can have a property stating ,,every time a button is pressed, the elevator will eventually drive to the floor the button was pressed on''.
-Such a property cannot be checked directly in one state of the program, but instead it is a property of \emph{runs} of the program.
+For example, we can have a property stating ``every time a button is pressed, the elevator will eventually drive to the floor the button was pressed on''.
+Such a property cannot be checked directly in one state of the program, but it is a property of \emph{runs} of the program.
 
 Various temporal logics can be used to describe such properties, for example
 LTL, CTL, CTL* \mcite{Baier2008} or $\mu$-calculus \mcite{Kozen1982}.
 
 \paragraph{Termination Properties}
 %
-A distinguished form of temporal properties are termination properties, which are properties which allow us to specify that a program must (or must not) terminate, or that some of its part must (or must not) terminate.
+A distinguished kind of temporal properties are termination properties, which are properties which allow us to specify that a program must (or must not) terminate, or that some of its parts must (or must not) terminate.
 
 With tools that check for termination, we often distinguish \emph{termination analysis}, which is an analysis that aims to prove termination but is often unable to conclude that a program does not terminate, and \emph{nontermination analysis}, which aims to prove that the program does not terminate.
-This distinction is useful as the heuristics used for proving termination and nontermination are often different and therefore a single analyser might not posses both capabilities.
+This distinction is useful as the heuristics used for proving termination and nontermination are often different, and therefore a single analyser might not possess both capabilities.
 
 \subsection{Hardware and Platform Related Considerations}
 
-When a program is executed on a given hardware, some of its behaviour might
+When a program is executed on given hardware, its behaviour might
 depend on the concrete features of the hardware.
-Therefore, in order for the program analysis to be usable, one must know what
+Therefore, for the program analysis to be usable, one must know what
 hardware model(s) the program analysis tool adheres to and what is their
 relation to the real hardware the program will be executed on.
 In practice, it is often hard to prove that a program will be correct on
@@ -227,27 +224,28 @@ For example, the size (and therefore precision) of the standard C/C++ type
 \cpp{int} might depend on the hardware the program is using: on an 8-bit or
 16-bit embedded microprocessor, \cpp{int} will likely be a 16-bit type with a
 maximum value of $2^{15} - 1$, while on a common 64-bit (or 32-bit) computer it
-will be a 32-bit number with maximum value of $2^{31}-1$.
-This means a code that causes a bug due to integral overflow on a 16-bit
+will be a 32-bit number with the maximum value of $2^{31}-1$.
+Therefore, a code that causes a bug due to integral overflow on a 16-bit
 embedded microprocessor might be correct on a 64-bit machine.
 
-Another example concerns alignment of values in the memory -- often it is
-possible to address single bytes in the memory, but certain data types (larger
-that a byte) are only allowed to start on addresses divisible by a given
+Another example concerns the \emph{alignment} of values in memory.
+Often it is
+possible to address single bytes in memory, but certain data types (larger
+than a byte) are only allowed to start on addresses divisible by a given
 \emph{alignment}.
 For example, an alignment of a 32-bit \cpp{int} type might be 4 bytes (32
 bits).
 Depending on the hardware platform, reading and writing unaligned values might
-work (e.g., on x86 and x86-64), might trigger an error (e.g., on certain ARM
+work (e.g., on x86 and x86-64), might trigger an error (e.g., on some ARM
 processors) or the address might be silently rounded to the nearest
 aligned address (e.g., on some embedded ARM processors).
-Therefore, behaviour of the same program with an unaligned read can differ
+Therefore, the behaviour of the same program with an unaligned read can differ
 drastically depending on the platform on which it is executed.
 
 Furthermore, some features of the program are affected not only by the
 hardware, but also by the operating system (or more generally the platform) for
 which it is compiled.
-For example, the calling conventions of C programs compiled on Windows and on
+For example, the calling conventions of C programs compiled on Windows and
 Linux differ even on the same hardware.
 Similarly, sizes of data types might depend on the platform -- on Windows C++ \cpp{long} is 32 bits long even on 64-bit systems (and therefore cannot be used
 to hold values of pointers), while it is 64 bits long on 64-bit Linux systems.
@@ -256,65 +254,63 @@ to hold values of pointers), while it is 64 bits long on 64-bit Linux systems.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Parallelism \& Threading Model} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Parallelism is an important part in programming high-performance software that
+Parallelism is an essential part of programming high-performance software that
 can fully take advantage of the current hardware.
-However, parallelism comes with additional problems not present in development
-of sequential software.
-Namely, due to the need for synchronization, it is significantly harder to
-create correct parallel software compared to development of sequential
+However, parallelism comes with additional problems not present in the development of sequential software.
+Namely, due to the need for synchronisation, it is significantly harder to
+create correct parallel software compared to the development of sequential
 software.
 Furthermore, it is also hard to create parallel software that scales well with
 the number of processors (or processor cores) available.
 Improving scalability usually makes the problem of correctness even harder --
-it usually requires more more fine-grained (and therefore error-prone)
-synchronization.
+it often requires more fine-grained (and therefore error-prone)
+synchronisation.
 For example, fine-grained locking or lock-free programming can lead to
-high-performance code, but checking that the code uses synchronization properly
+high-performance code, but checking that the code uses synchronisation properly
 is significantly harder than for code that uses a few locks with well defined
-regions of the shared memory they guard.
+regions of shared memory they guard.
 
 Furthermore, relaxed memory behaviour comes into play once shared variables are
 not only accessed in critical sections (i.e., protected by mutexes).
-As processor manufactures strive to increase speed of processors, they have
-introduced various optimizations into the memory infrastructure to avoid
+As processor manufactures strive to increase the speed of processors, they have
+introduced various optimisations into the memory infrastructure to avoid
 waiting for the relatively slow main memory.
-These optimizations can be (and in most processors are) visible to a parallel
-program and are manifested in relaxed memory behaviour.
+These optimisations can be (and in most processors are) visible to a parallel
+program and result in relaxed memory behaviour.
 For example, on x86 processors (which are used in most laptop, desktop and
 server computers) a memory store can be delayed and appear, from the point of
 view of the other threads, later than a subsequent load.
 Some processors (for example POWER and higher-performance ARM processors) allow
-even more reordering, for example reordering of independent loads.
+even more reordering, for example, reordering of independent loads.
 
 In this section, we describe the basic model of parallelism we assume for our
 programs and follow some of its implications.
-We also outline basics of relaxed memory behaviour and memory models
+We also outline the basics of relaxed memory behaviour and memory models
 which describe it.
 
 \subsection{Basic Threading Model}
 
-We assume that a program consists of one or more threads that interact using a
+We assume that a program consists of one or more threads that interact using
 shared memory.\mnote{Other communication methods can be emulated using shared
 memory. Furthermore, many programming languages, including C++, have no native
 support for other communication schemes.}
 We also assume that execution of a thread can be interrupted at any point by a
-\emph{thread scheduler} (of the operating system on which the program runs) and
-will be later eventually resumed (unless the program exits in the meantime or
-the thread is \emph{blocked} infinitely).
+\emph{thread scheduler} (of the operating system on which the program runs).
+The execution will be later eventually resumed (unless the program exits in the meantime or the thread is \emph{blocked} infinitely).
 A thread can be \emph{blocked} if it waits for a resource provided by the
-operating system, for example availability of a lock or input from an input
+operating system, for example, availability of a lock or input from an input
 device.
 If a thread cannot be resumed because it is blocked and does never cease to be
 blocked we say there is a \emph{deadlock}.
 
-\begin{definition}[Dealock, Partial Dealock, Global Deadlock]\label{def:deadlock}
+\begin{definition}[Deadlock, Partial Deadlock, Global Deadlock]\label{def:deadlock}
     A \emph{deadlock} happens if a scheduler never allows a thread to run
     because it waits for a resource that never becomes available.
 
     Sometimes, when we need to distinguish between all the threads being
     blocked and only some of them being blocked, we will use the notion of
     \emph{partial deadlock} to signify a situation in a program where some
-    threads are blocked (in deadlock) but other can still proceed and
+    threads are blocked (in deadlock), but others can still proceed and
     \emph{global deadlock} for a deadlock which blocks all threads.
     Usually, we will just use \emph{deadlock} to refer to \emph{partial deadlock}.
 \end{definition}
@@ -326,7 +322,7 @@ Busy waiting can be used for example to implement exclusive sections without
 operating system support.
 
 \begin{definition}[Livelock]\label{def:livelock}
-    A \emph{livelock} is a situation in which a thread is allowed to run (by
+    \emph{Livelock} is a situation in which a thread is allowed to run (by
     the scheduler), but does not proceed in any meaningful way because it
     executes a loop that is waiting for an event that ever happens.
 \end{definition}
@@ -335,18 +331,18 @@ operating system support.
 
 In practice program threads can run concurrently, i.e., multiple cores of the
 processor can execute different threads at the same instant in time.
-Furthermore, the scheduler can map threads to processor cores arbitrarily and
+Furthermore, the scheduler can map threads to processor cores arbitrarily, and
 it can even change the core that executes a given thread.
 It is not practical (and not necessary) to simulate this behaviour when
-performing analysis of a parallel program.
+performing an analysis of a parallel program.
 Instead, we consider that threads are interleaved (\emph{interleaving
 semantics}) or we consider execution based on some relaxed memory model.
 
 \begin{definition}[Interleaving Semantics of Threads]
-    With the \emph{interleaving semantics} we assume that all possible
-    executions of parallel program can be obtained by interleaving.
-    That is, at any point in execution of the program, we consider which threads
-    are allowed to run and explore all possible selections.
+    With the \emph{interleaving semantics}, we assume that all possible
+    executions of a parallel program can be obtained by interleaving.
+    That is, at any point in the execution of the program, we consider which
+    threads are allowed to run and explore all possible selections.
     After a thread performs an action, we again consider all possible actions
     of all threads and so on.
 \end{definition}
@@ -355,9 +351,9 @@ semantics}) or we consider execution based on some relaxed memory model.
 
 \subsection{Relaxed Memory Models}
 
-A \emph{memory model} describes behaviour of memory operations on a given platform.
-A \emph{relaxed memory model} describes such a behaviour on a platform with relaxed memory.
-When considering relaxed memory models, it is also useful to consider memory
+A \emph{memory model} describes the behaviour of memory operations on a given platform.
+A \emph{relaxed memory model} describes such behaviour on a platform with relaxed memory.
+When considering relaxed memory models, it is also useful to consider a memory
 model that is not relaxed and corresponds to the interleaving semantics of
 threads.
 This memory model is \emph{sequential consistency}.
@@ -366,31 +362,31 @@ This memory model is \emph{sequential consistency}.
     \emph{Sequential consistency} is a memory model corresponding to the
     interleaving semantics of threads.
     Under sequential consistency, all effects of memory manipulating
-    instructions are visible to all threads immediately and no instruction
+    instructions are visible to all threads immediately, and no instruction
     reordering is observable.
 \end{definition}
 
-Sequential consistency's operational semantics is given by a machine has no instruction reordering and all memory operations are atomic and access the memory directly, without any caches.
+The operations semantics of sequential consistency is given by a machine that has no instruction reordering, and all memory operations are atomic and access memory directly, without any caches.
 Sequential consistency is the strongest memory model (it is not relaxed at all).
 Therefore, any behaviour observable under sequential consistency will also be possible under a relaxed memory model, but a relaxed memory model can exhibit additional behaviour.
 
 In practice, sequential consistency is not sufficient with modern processors
 that exhibit relaxed memory behaviour.
-The relaxed behavior of processors arises from optimizations in cache
+The relaxed behaviour of processors arises from optimisations in cache
 consistency protocols and observable effects of instruction reordering and
 speculation.
-The effect of this behavior is that memory-manipulating instructions can appear
+The effect of this behaviour is that memory-manipulating instructions can appear
 to be executed in a different order than the order in which they appear in a
 thread's code, and their effect can in some cases even appear to be in
-different order on different threads.
+a different order on different threads.
 For efficiency reasons, most modern processors (except for simple ones in
-embedded microcontroller and low-cost mobile devices) exhibit relaxed behavior.
+embedded microcontroller and low-cost mobile devices) exhibit relaxed behaviour.
 The extent of this relaxation depends on the processor architecture (e.g.,
 x86, ARM, POWER) but also on the concrete processor model.
-To make matters worse, the actual behavior of the processor is often not
+To make matters worse, the actual behaviour of the processor is often not
 precisely described by the processor vendor~\mcite{x86tso}.
 To abstract from the details of particular processor models, \emph{relaxed
-memory models} are used to describe (often formally) behavior of a given
+memory models} are used to describe (often formally) behaviour of given
 processor architecture.
 Examples of relaxed memory models of modern processors are the memory model of
 x86 and x86-64 CPUs described formally as \xtso \mcite{x86tso} and the multiple
@@ -398,15 +394,15 @@ variants of POWER \mcite{Sarkar2011,MadorHaim2012} and
 ARM \mcite{Alglave2014,Flur2016,Pulte2017} memory models.
 
 For the description of a relaxed memory model, it is sufficient to consider
-operations that affect the memory.
-These operations include loads (reading of data from the memory to a register
-in the processor), stores (writing of data from a register to the memory),
+operations that affect memory.
+These operations include loads (reading of data from memory to a register
+in the processor), stores (writing of data from a register to memory),
 memory barriers (used to prevent reordering), and \emph{atomic compound
 operations} (read-modify-write operations and compare-and-swap operation).
 Compound non-atomic instruction exist on some architectures (e.g., the
 \texttt{add} instruction in x86 can have one memory operand), but they
-might be rewritten to equivalent sequence of load to register, register
-modification, and store and therefore need not be considered.
+might be rewritten to an equivalent sequence of a load to register, a register
+modification, and a store, and therefore need not be considered.
 
 \subsection{The \xtso Memory Model\protect\mnotemark}\label{chap:prelim:xtso}%
 \mnotetext{\srcnote{This subsection contains text and figures originally from \cite{SB2018x86tso}.}}
@@ -505,12 +501,12 @@ found in \autoref{fig:xtso}.
   The thread 1 stores 1 to \texttt{x} and then loads \texttt{y} and \texttt{x}.
   Intuitively, we would expect it to be impossible for $a = 0$ and $b = 0$ to both be true at the end of the execution, as there is no interleaving of thread actions which would produce such a result.
   However, under \xtso, the stores are cached in the store buffers (marked \textcolor{red}{red}).
-  A load consults only shared memory and the store buffer of the given thread, which means it can load data from the memory and ignore newer values from the other thread (\textcolor{blue}{blue}).
-  Therefore \texttt{a} and \texttt{b} will contain old values from the memory.
+  A load consults only shared memory and the store buffer of the given thread, which means it can load data from memory and ignore newer values from the other thread (\textcolor{blue}{blue}).
+  Therefore \texttt{a} and \texttt{b} will contain old values from memory.
   On the other hand, \texttt{c} and \texttt{d} will contain local values from the store buffers (locally read values are marked \textcolor{frombuf}{green}).
-  The figure depicts state of the memory and buffer after the code of both
+  The figure depicts the state of memory and buffers after the code of both
   threads executed, but before the data was propagated from store buffers to
-  the main memory.
+  main memory.
   }
 
   \label{fig:xtso}
@@ -521,15 +517,15 @@ The corresponding machine has multiple hardware threads (or cores), each with
 associated local store buffer, a shared memory subsystem, and a shared memory
 lock.
 Store buffers are first-in-first-out caches into which store entries are saved
-before they are propagated to the shared memory.
+before they are propagated to shared memory.
 Load instructions first attempt to read from the store buffer of the given
-thread, and only if they are not successful, they read from the shared memory.
+thread, and only if they are not successful, they read from shared memory.
 Store instructions push a new entry to the local store buffer.
-Entries in the store buffer are not visible to threads other then the one
+Entries in the store buffer are not visible to threads other than the one
 owning the store buffer.
 Atomic instructions include various read-modify-write instructions, e.g. atomic
 arithmetic operations (that take memory address and a constant),\mnote{These
-  instructions have the \texttt{lock} prefix in the assembly, for example
+  instructions have the \texttt{lock} prefix in the assembly, for example,
   \texttt{lock xadd} for atomic addition.}
 or compare-and-swap instruction.\mnote{\texttt{lock cmpxchg}}
 All atomic instructions use the shared memory lock so that only one such
@@ -537,15 +533,15 @@ instruction can be executed at a given time, regardless of the number of
 hardware threads in the machine.
 Furthermore, atomic instructions flush the store buffer of their thread before
 they release the lock.
-This means that effects of atomic operations are immediately visible, i.e.,
+Therefore, the effects of atomic operations are immediately visible, i.e.,
 atomics are sequentially consistent on \xtso.
 On top of these instructions, \xtso has a full memory barrier (\texttt{mfence})
 which flushes the store buffer of the thread that executed it.\mnote{There
 are two more fence instructions in the x86 instruction set, but according
 to~\cite{x86tso} they are not relevant to normal program execution.}
 
-If a programmer (or a compirer) wishes to recover sequential consistency on
-x86, they need to ensure memory stores are propagated to the main memory before
+If a programmer (or a compiler) wishes to recover sequential consistency on
+x86, they need to ensure memory stores are propagated to main memory before
 subsequent loads execute.
 This is most commonly done by inserting a memory fence after each store.
 An alternative approach would be to store using atomic exchange instruction
@@ -553,25 +549,24 @@ An alternative approach would be to store using atomic exchange instruction
 memory slot.
 
 One of the specifics of x86 is that it can handle unaligned memory
-operations.\mnote{Other architectures, for example ARM, require loaded
+operations.\mnote{Other architectures, for example, ARM require loaded
 values to be aligned, usually so that the address is divisible by the value
 size.}
 While the \xtso paper does not give any specifics about handling unaligned and
-mixed memory operations (e.g., writing a 64-bit value and then reading a 16-bit
-value from inside it) it seems from our own experiments that such operations
-are not only fully supported, but they are also correctly synchronized if
+mixed memory operations\mnote{%
+  E.g., writing a 64-bit value and then reading a 16-bit value from inside it.},
+it seems from our experiments that such operations are not only fully supported, but they are also correctly synchronised if
 atomic instructions are used.
-This is in agreement with the aforementioned operational semantics of \xtso in
+This behaviour is in agreement with the aforementioned operational semantics of \xtso in
 which all the atomic operations share a single global lock.
 
 \subsection{Other Hardware Memory Models}
 
-Older works on analysis of programs under relaxed memory models usually
+Older works on the analysis of programs under relaxed memory models usually
 consider the SPARC TSO, PSO and RMO memory models~\mcite{SPARC94} or the memory
 model of ALPHA~\mcite{mckenney2010} processors.
-However, these memory models are not very relevant any more, with the exception
-of TSO, which is sometimes used interchangeably with the \xtso memory model, as
-they are very similar (the difference is in behaviour of atomic compound
+However, these memory models are not very relevant any more, except for TSO, which is sometimes used interchangeably with the \xtso memory model, as
+they are very similar (the difference is in the behaviour of atomic compound
 operations, but some works use TSO to stand for the memory model of x86 processors).
 
 Currently, apart from the \xtso memory model, mostly the memory models of
@@ -581,7 +576,7 @@ While these processors differ significantly in the area in which they are used
 devices), their memory models share some basic features.
 Recently, there is also interest in the memory model of RISC-V architecture, which is also similar to memory models of POWER and ARM.
 All of these types of processors exhibit more relaxed behaviour then \xtso,
-for example it is possible to reorder a load after a store, or to reorder
+for example, it is possible to reorder a load after a store or to reorder
 stores or loads with one another (provided they are independent).
 On POWER it can also happen that a sequence of operations executed by a single thread will be observed by different other threads in different orders.
 An example of such behaviour can be seen in \autoref{fig:prelim:iriw}.
@@ -640,10 +635,10 @@ There are several version (or generations) of ARM and POWER processors, and
 also multiple versions of memory models.
 The memory model of ARMv7 is described in~\mcite{Alglave2014}.
 The memory model of newer ARMv8 is described in~\mcite{Flur2016}, but it was
-later revised and simplified in collaboration with ARM and formalized
-in~\mcite{Pulte2017} and in the ARMv8 architecture description.
-Later in~\mcite{Pulte2019} an operation model of ARMv8 concurrency equivalent
-with the one presented in~\mcite{Pulte2017} and optimized for program analysis
+later revised and simplified in collaboration with ARM and formalised
+in~\mcite{Pulte2017} and the ARMv8 architecture description.
+Later in~\mcite{Pulte2019}, an operation model of ARMv8 concurrency equivalent
+with the one presented in~\mcite{Pulte2017} and optimised for program analysis
 was presented.
 Interestingly, \mcite{Pulte2019} also presents a memory model of RISC-V
 architecture which is similar to the revised ARMv8 memory model.
@@ -655,33 +650,33 @@ A more detailed memory model of POWER is presented in~\mcite{Gray2015},
 including for example behaviour of mixed-size memory operations.
 Axiomatic description of POWER is provided by~\mcite{MadorHaim2012} and
 \mcite{Alglave2010_fences}.
-In~\mcite{Flur2017} the authors describe behaviour of POWER and ARMv8 in
-presence of mixed-size memory operations.
+In~\mcite{Flur2017}, the authors describe the behaviour of POWER and ARMv8 in
+the presence of mixed-size memory operations.
 
 \subsection{Memory Models of Programming Languages\protect\mnotemark}%
 \mnotetext{\srcnote{The paragraphs describing memory models of C, C++, Java, and LLVM in this subsection are based on text originally from \cite{Still2018thesis-proposal}.}}
 
 Not all programming languages have concurrency and memory model defined in the
 language.
-Indeed, C and C++ prior to the 2011 revisions of their respective standards did
-not define concurrency and therefore majority of concurrent C code relies on
-non-standard concurrency.
-In absence of programming language support, the programmers wishing to use
-concurrency have to rely on combination of library and compiler support that
-provides (platform specific) means to support concurrency.
+Indeed, C and C++ before the 2011 revisions of their standards did
+not define concurrency and therefore, the majority of concurrent C code relies on non-standard concurrency.
+In the absence of programming language support, the programmers wishing to use
+concurrency have to rely on a combination of library and compiler support that
+provides (platform-specific) means to support concurrency.
 For example, on Linux and most POSIX-compatible operating systems, the POSIX
 threads library (\texttt{pthreads}) defines ways to launch threads, wait for
-them, and synchronize their execution using various (blocking) synchronization
+them, and synchronise their execution using various (blocking) synchronisation
 primitives such as mutexes and condition variables.
-A compiler compatible with this library then guarantees that its optimizations
-will not break this functionality, for example that it will not reorder
-operations around the calls to synchronization functions.
-The compiler also usually defines low-level synchronization primitives which correspond to common atomic compound operations.
+A compiler compatible with this library then guarantees that its optimisations
+will not break this functionality, for example, that it will not reorder
+operations around the calls to synchronisation functions.
+The compiler also usually defines low-level synchronisation primitives which correspond to atomic compound operations.
 For example, the GCC and clang compilers both define builtin functions such as \texttt{\_\_atomic\_compare\_exchange} and \texttt{\_\_atomic\_add\_fetch}.
-These buitins allow semi-portable use of atomic operations, in the sense they are not specific to the concrete hardware platform,\mnote{As would be the case if inline assembly was used to invoke the atomic instruction directly.} but they are instead bound to the given compiler or a group of compilers (such as GCC and clang).
+These builtins allow semi-portable use of atomic operations, in a sense, they are not specific to the concrete hardware platform.\mnote{As would be the case if the inline assembly was used to invoke the atomic instruction directly.}
+Still, they are bound to the given compiler or a group of compilers (such as GCC and clang).
 
 The downside of the library and compiler approach to concurrency is that it
-makes it hard to write truly platform-independent code in the given language.
+makes it hard to write genuinely platform-independent code in the given language.
 For this reason, many programming languages (eventually) provide concurrency
 primitives and define a memory model guaranteed by the language.
 
@@ -696,30 +691,30 @@ syntactic ways in which its features are used.\mnote{For example, C++ defines
 The C threading API is mostly similar to the API of POSIX threads, while the
 C++ threading has a more modern API which uses classes.}
 
-The C++ memory model was revised in the subsequent standards, with the most
-notable changes in the C++20~\mcite{cpp20}, including changes to the strongest sequentially-consistent version of atomic operations.
+The C++ memory model was revised in the following standards, with the most
+notable changes in the C++20~\mcite{cpp20}, including modifications to the strongest sequentially-consistent version of atomic operations.
 These latest changes mostly remedy problems in interaction between the
 sequentially consistent operations and weaker memory orderings presented
 in~\mcite{Lahav2017}.
 The actual changes are described in~\mcite{P0668R4}.
 
-The C++11 memory model is not formalized in the C++11 standard.
-An attempt to formalize it was given in \mcite{cppmemmod}, formalizing the
+The C++11 memory model is not formalised in the C++11 standard.
+An attempt to formalise it was given in \mcite{cppmemmod}, formalising the
 N3092 draft of the standard \cite{N3092}.
-While this formalization precedes the final C++11 standard, it seems that there were no changes in the specification of atomic operations after N3092.
-Nevertheless, there are some differences between the formalization and N3092
+While this formalisation precedes the final C++11 standard, it seems that there were no changes in the specification of atomic operations after N3092.
+Nevertheless, there are some differences between the formalisation and N3092
 (which are justified in the paper).
-The formalization was later revised in~\mcite{Lahav2017}, which led to the aforementioned revision of concurrency in C++20.
+The formalisation was later revised in~\mcite{Lahav2017}, which led to the aforementioned revision of concurrency in C++20.
 
 Overall, the C++ memory model is complex and complicated by its intention to
 allow high-performance on various existing or hypothetical future hardware
 platforms.
 Atomic variables and operations play a central role in in the C++ memory model.
-Atomic variables are variables of special types that define atomic operations
-such as as loads, stores, atomic read-modify-write, and compare-exchange.
-For any atomic operation, it is possible to specify the required memory
-ordering: C/C++ allows not only sequentially consistent atomic operations, but
-also weaker (low-level) atomic operations that allow implementation of
+Atomic variables are variables of particular types that define atomic operations
+such as loads, stores, atomic read-modify-write, and compare-exchange.
+For an atomic operation, it is possible to specify the required memory
+ordering: C/C++ allows not only sequentially consistent atomic operations but
+also weaker (low-level) atomic operations that enable implementation of
 efficient parallel data structures in a platform-independent way.
 An example of C++ code that leverages atomic variables is shown in \autoref{fig:prel:cppatomic0} and \autoref{fig:prel:cppatomic1}.
 
@@ -746,7 +741,7 @@ An example of C++ code that leverages atomic variables is shown in \autoref{fig:
   \vspace{-4ex}
   \caption{A basic example of C++ atomics.
       The variable \texttt{x} is atomic, and therefore can be safely used in
-      concurrent settings (the common modification operators for integral types
+      concurrent settings (the standard modification operators for integral types
       are available and atomic).
       On the other hand, the variable \texttt{y} is not atomic and therefore
       incrementing it from two threads causes data race.
@@ -774,13 +769,13 @@ An example of C++ code that leverages atomic variables is shown in \autoref{fig:
   \caption{A simple example of use of low-level atomic API.
       Here \texttt{thr0} loads \texttt{data} somehow and then signals to
       \texttt{thr1} that it should be processed.
-      The \texttt{data} variable itself is not atomic and presumably the type
+      The \texttt{data} variable itself is not atomic, and presumably, the type
       is not made for concurrent access.
       An atomic boolean is used to wait for \texttt{data} in \texttt{thr1} --
       once \texttt{data} is loaded the \texttt{ready} flag is set, using the
       \emph{release} memory ordering.
       The actual waiting in \texttt{thr1} uses the weakest \emph{relaxed}
-      ordering which does not cause any synchronization (it just ensures
+      ordering which does not cause any synchronisation (it just ensures
       concurrent changes to the variable itself are consistent), but once the
       wait ends a fence is executed.
       The fence uses \emph{acquire} ordering and therefore completes
@@ -788,18 +783,18 @@ An example of C++ code that leverages atomic variables is shown in \autoref{fig:
       -- anything written by \texttt{thr0} before the \emph{release} store is
       available to \texttt{thr1} after the \emph{acquire} fence.
       An interesting property of this example is that it compiles with no extra
-      synchronization or atomic instructions on x86 (atomic only affect
-      compiler optimizations there), but uses synchronization on more relaxed
+      synchronisation or atomic instructions on x86 (atomic only affects
+      compiler optimisations there), but uses synchronisation on more relaxed
       platforms.
   }\label{fig:prel:cppatomic1}
 \end{figure}
 
 A notable feature of the C++ memory model is that any program that contains a
 data race on a non-atomic variable\mnote{Data race is defined as two accesses
-to the same non-atomic variable, at least one of them being a write, which are
-not synchronized so that they cannot happen concurrently.} has undefined
+to the same non-atomic variable, at least one of them being a write, that are
+not synchronised so that they cannot happen concurrently.} has undefined
 behaviour.
-This means that synchronization is possible only by atomic variables and
+Therefore, synchronisation is possible only by atomic variables and
 concurrency primitives such as mutexes and condition variables.
 
 \paragraph{Java}
@@ -808,9 +803,9 @@ The Java memory model is rather different from the C/C++11 one.
 Its primary goal is to ensure that programs that cannot observe data races
 under sequential consistency will execute as if running under sequential
 consistency (the data race free guarantee)~\mcite{javamm_popl_Manson2005}.
-The primary means of synchronization in Java are mutexes (called monitors in Java), synchronized sections of code (which use monitors internally), and volatile variables, which roughly correspond to sequentially consistent atomics in C++11.
+The primary means of synchronisation in Java are mutexes (called monitors in Java), synchronised sections of code (which use monitors internally), and volatile variables, which roughly correspond to sequentially consistent atomics in C++11.
 
-Furthermore, as Java strives to be memory safe, it also defines behaviour of programs with data races.
+Furthermore, as Java strives to be memory safe, it also defines the behaviour of programs with data races.
 This behaviour is rather peculiar, as it is primarily concerned with prohibiting out-of-thin-air values -- values which, informally speaking, depend cyclically on themselves.
 These values are primarily prohibited to avoid forging pointers to invalid memory or memory which should be otherwise inaccessible to a given thread \mcite{javamm_popl_Manson2005}.
 
@@ -820,64 +815,62 @@ The LLVM Intermediate Representation has a memory model derived from the C++
 memory model, with the difference that it lacks release-consume ordering and
 offers additional \emph{unordered} ordering that does not guarantee atomicity
 but makes results of data races defined \mcite{llvm:langref}.
-The \emph{unordered} operations are intended to match semantics of the Java
+The \emph{unordered} operations are intended to match the semantics of the Java
 memory model for shared variables.
 
 \subsection{Approaches to Multi-Threaded Software}
 
 At the highest level, multiple threads of a program can either use
-\emph{message passing}, or \emph{shared memory} to communicate.\mnote{This can
-be generalized to multiple cooperating programs, but the distinction is mostly
+\emph{message passing}, or \emph{shared memory}, to communicate.\mnote{This can
+be generalised to multiple cooperating programs, but the distinction is mostly
 technical. With multiple programs, message passing is used more often,
 especially in distributed computing.}
 While message passing can be done in any reasonably expressive programming
 language with support for concurrency, there are programming languages which
-adopt it as a main way of implementing concurrent or distributed programs, for
-example Erlang or Go.
+adopt it as the primary way of implementing concurrent or distributed programs, for example, Erlang or Go.
 In this work, we are focusing on C++\mnote{And by extension to other
 general-purpose programming languages with concurrency support, e.g., Java and
 C\#.} which has no built-in support for message-passing concurrency, therefore
 we will focus on shared memory concurrency.
 In C++ and similar languages, message passing can be implemented as an
-abstraction over the shared memory.
+abstraction over shared memory.
 
-\paragraph{Lock-Based Synchronization}
+\paragraph{Lock-Based Synchronisation}
 
-Synchronization plays a crucial role in shared memory concurrency -- concurrent
-unsynchronized access of two or more threads to the same memory location, with
-at least one of the threads writing to it will cause data race which can lead
-to corruption of data and program malfunction.
-Lock-based synchronization (critical sections) is often used as it is
+Synchronisation plays a crucial role in shared memory concurrency.
+Concurrent unsynchronised access of two or more threads to the same memory location, with
+at least one of the threads writing to it, will cause data race which can lead
+to data corruption and program malfunction.
+Lock-based synchronisation (critical sections) is often used as it is
 reasonably simple to understand it, and is often natively supported by
 programming languages.\mnote{In C/C++ since the 2011 standards.}
 Furthermore, locks usually use operating system primitives to block waiting
-threads while other thread executes the critical section, which can increase
-performance of systems with more threads then available processors as the
-waiting threads are completely inactive and other threads can be executed in
-the meanwhile.
+threads while another thread executes the critical section, which can increase
+the performance of systems with more threads than available processors as the
+waiting threads are inactive and other threads can run in the meanwhile.
 
-On the other hand, synchronization can degrade performance of concurrent
+On the other hand, synchronisation can degrade the performance of concurrent
 software.
 In the extreme case when all interesting work is done in a single critical
 section executed by many threads, there will be no gain from parallel execution
-and the overhead of threads and their synchronization will make the program
-slower then its sequential version.
+and the overhead of threads and their synchronisation will make the program
+slower than its sequential version.
 For this reason, critical sections should be as short as safely possible and
-different areas of the shared memory should be protected by different locks so
-that the program can access different areas of the shared memory concurrently.
-This inherently increases complexity of synchronization and risks of data races
+different areas of shared memory should be protected by different locks so
+that the program can access different areas of shared memory concurrently.
+This inherently increases the complexity of synchronisation and risks of data races
 or deadlocks -- indeed deadlocks are easy to avoid with one lock, but with
-multiple locks care must be taken if more then one lock is held at one time,
+multiple locks, care must be taken if more then one lock is held at one time,
 which is a common situation.
 
 
 \paragraph{Atomic Access and Lock-Free Programming}
 
 To further improve performance, it is sometimes useful to avoid
-operating-system-assisted synchronization and use atomic operations instead.
-These operations can be used to guarantee synchronization over a word-sized
-location of the memory.\mnote{The size of the atomically-accessed location is
-usually the same as the size of pointer on the given platform (e.g., 8 bytes on
+operating-system-assisted synchronisation and use atomic operations instead.
+These operations can be used to guarantee synchronisation over a word-sized
+location of memory.\mnote{The size of the atomically-accessed area is
+usually the same as the size of a pointer on the given platform (e.g., 8 bytes on
 64-bit platforms), or sometimes twice the size of the pointer (e.g. 16 bytes on
 newer x86-64 processors).}
 Atomic operations are used to implement \emph{lock-free} algorithms and data
@@ -911,22 +904,24 @@ An example of (a fragment of) lock-free data structure can be found in \autoref{
   \caption[A push in a lock-free queue]{A push (enqueue) operation of a single-producer-single-consumer
     lock-free queue from an older version of DIVINE (modified to use C++11
     atomic operations).
-    The queue uses a linked list of blocks (of type \texttt{Node}), each block
-    can hold a fixed number of elements of some type~\texttt{T}.
+    The queue uses a linked list of blocks (of type \texttt{Node}).
+    Each block can hold a fixed number of elements of some type~\texttt{T}.
     On lines 2--8 the function checks whether there is a room in the last
     allocated block and allocates a new block if necessary.
     Both the \texttt{tail} and \texttt{write} fields in the \texttt{Node} are
-    atomic variables and we explicitly use memory ordering to avoid expensive
-    synchronization unnecessary on x86-64 processors.
+    atomic variables, and we explicitly use memory ordering to avoid expensive
+    synchronisation unnecessary on x86-64 processors.
 
     Then, on line 10, the actual value is written to the node, on the location
-    pointed-to by the \texttt{write} field -- please note that the
-    \texttt{write} pointer is atomic, but the actual value it points to is not
+    pointed to by the \texttt{write} field -- please note that the
+    \texttt{write} pointer is atomic, but the value it points to is not
     atomic.
-    On line 11 we shift the write pointer, which makes the data available to
-    the consumer thread -- this is the point where we need to use release
+    On line 11, we shift the write pointer, which makes the data available to
+    the consumer thread.
+    At this point, we need to use release
     memory ordering to ensure safety on platforms which are more relaxed then
-    x86 and to prevent reordering by compiler -- the release ordering ensures
+    x86 and to prevent reordering by the compiler.
+    The release ordering ensures
     that any changes performed by the producer thread so far will be available
     to the consumer once it performs an acquire load on the \texttt{write}
     pointer (to check that the queue is not empty).
@@ -942,17 +937,17 @@ An example of (a fragment of) lock-free data structure can be found in \autoref{
     written value would need to be performed at the same time.
     This would require either modification of two different locations in one
     atomic step (which is not possible on most processors and there is no C++
-    API for this operation) or complete redesign of the queue block.
+    API for this operation) or a complete redesign of the queue block.
   }\label{fig:prelim:lockfree}
 \end{widefigure}
 
 Overall, there is often a steep compromise between code simplicity and
 performance.
-A code that uses a few locks can be often reasonably understandable and the
+A code that uses a few locks can often be reasonably understandable, and the
 programmer need not concern themself with relaxed memory as correct use of
 locks makes its presence invisible, but performance might be degraded by
-synchronization.
-On the other hand, lock-free algorithms and data structures can have great
+synchronisation.
+On the other hand, lock-free algorithms and data structures can have excellent
 performance, but designing them and checking their correctness requires a lot
 of effort and relaxed memory must be taken into account.
 
@@ -961,7 +956,7 @@ of effort and relaxed memory must be taken into account.
 % Data structures which allow safe concurrent access are often used in
 % multi-threaded programs for communication and sharing of state between threads.
 % The advantage of their use is that often the communication can be restricted to
-% be done only using these data structures and the rest of the code can then be
+% be done only using these data structures, and the rest of the code can then be
 % designed more easily, without the need to consider concurrency.
 % Furthermore, there are existing libraries of concurrent data structures which
 % allow programmers to use high-performance and well-tested data structures
@@ -971,14 +966,14 @@ of effort and relaxed memory must be taken into account.
 
 \section{Programming Languages Used in this Thesis}
 
-In this work, we are mostly focusing on analysis of C++.
-For this reason, we will now introduce some of the features of this programming language that are relevant to our work.
-After that, we will introduce LLVM intermediate representation, which is a low-level programming language used by clang and other LLVM-based compiler.
-DIVINE, the model checker in which the work presented in this thesis is implemented, actually analyses LLVM and uses the clang compiler to translate C++ to LLVM prior to the analysis.
+In this work, we are mostly focusing on the analysis of C++.
+For this reason, we will now introduce some of the features of this programming language relevant to our work.
+After that, we will introduce LLVM intermediate representation, which is a low-level programming language used by clang and other LLVM-based compilers.
+DIVINE, the model checker in which the work presented in this thesis is implemented, actually analyses LLVM and uses the clang compiler to translate C++ to LLVM before the analysis.
 
 \subsection{C++}
 
-C++ is a high-level language well suited for wide variety of projects, from
+C++ is a high-level language well suited for a wide variety of projects, from
 code which directly interacts with hardware to GUI applications.
 It can be high-performance and has good support for building of abstractions.
 Since the C++11 version of the C++ standard, C++ also has native support for
@@ -998,7 +993,7 @@ examples.}
 Later, the thread can be waited-for by calling the \cpp{join} method of the
 \cpp{std::thread} object.
 Joining will block until the thread we are joining finishes.\begin{marginnote}%
-  In the following example you can see a code that spawns function \texttt{worker} in a separate thread and later waits for it.
+  In the following example, you can see a code that spawns function \texttt{worker} in a separate thread and later waits for it.
 
   \medskip
   \begin{cppcode}
@@ -1015,32 +1010,32 @@ Joining will block until the thread we are joining finishes.\begin{marginnote}%
   \end{cppcode}
 \end{marginnote}
 
-\paragraph{High-Level Synchronization promitives}
+\paragraph{High-Level Synchronisation promitives}
 
-C++ comes with various high-level synchronization primitives.\mnote{They are
+C++ comes with various high-level synchronisation primitives.\mnote{They are
 usually based on operating system level blocking primitives -- i.e., a thread
-waiting on these synchronization primitives is suspended and not using any
+waiting on these synchronisation primitives is suspended and not using any
 resources.}
-Two of the main synchronization primitives are \emph{mutexes} and \emph{condition variables}.
+Two of the primary synchronisation primitives are \emph{mutexes} and \emph{condition variables}.
 Mutexes can be used to create mutual exclusion: only one thread can lock a
 given mutex at any point.
 Condition variables allow some threads to wait for a signal from other threads.
 They are often used in producer-consumer scenarios to signal to consumers that
 there is some data ready for them.
 They have two main operations -- \texttt{wait} and \texttt{signal} --
-\texttt{wait} is a blocking call that suspend its calling thread until another
+\texttt{wait} is a blocking call that suspends its calling thread until another
 thread calls \texttt{signal}.
 Waiting can only be ended if \texttt{signal} is called after the wait started,
 the conditional variable has no way to detect that \texttt{signal} was called
 before \texttt{wait}.
-Furthermore, due to limitations of certain platforms, \texttt{wait} is allowed
+Furthermore, due to the limitations of some platforms, \texttt{wait} is allowed
 to end spuriously (without being signalled).
 For these two reasons, condition variables are usually used together with a
 shared variable which indicates whether or not the consumer thread should
 proceed; this variable should be guarded by the same mutex the condition
 variable uses for signalling.
 
-\paragraph{Atomic Variables and Low-Level Synchronization}
+\paragraph{Atomic Variables and Low-Level Synchronisation}
 %
 C++ has also support for atomic variables and atomic operations with them.
 These atomic variables allow the program to take advantage of atomic hardware
@@ -1057,24 +1052,23 @@ its value and return its original value before the increment.
 Some of these operations are also available with the operator syntax (e.g.,
 using the operator \cpp{+=}).
 For all types, it is possible to exchange the current value with a new one
-(returning the previous value) and to preform compare-exchange (also sometimes
+(returning the previous value) and to perform compare-exchange (also sometimes
 called compare-and-swap), which is a compound operation that atomically checks
 that the value of an atomic variable is equal to a specified value and if so
 replaces the original value with a new one.
 
-The atomic operations are not required to be lock-free, but can use locks
-internally (with the exception of \texttt{std::atomic\_flag}.
-This allows implementation of atomic types for data types that are larger then the platform-specific limit of atomic instructions.
+The atomic operations are not required to be lock-free but can use locks
+internally (with the exception of \texttt{std::atomic\_flag}).
+Therefore, atomic types can be implemented even for data types larger than the platform-specific limit of atomic instructions.
 
 \subparagraph{Memory Ordering for Atomic Operations} \label{sec:prelim:cppmemord}
 
-Without any additional settings all atomic instructions in C++ are sequentially
+Without any additional settings, all atomic instructions in C++ are sequentially
 consistent.\mnote{There is a single global ordering of atomic operations on
 which all threads agree.}
-However, C++ aims to allow programmers to fully utilize the performance of a
-given platform and therefore it is possible to specify weaker constraints for
+However, C++ aims to allow programmers to utilise the performance of a given platform fully, and therefore, it is possible to specify weaker constraints for
 atomic operations.
-These constraints are specified using so-called \emph{memory order}.
+These constraints are specified using a \emph{memory order}.
 We will now informally describe available memory orders.
 
 \begin{description}
@@ -1094,7 +1088,7 @@ We will now informally describe available memory orders.
         It prevents later memory operations in the same thread to be reordered
         before the acquire load.
         A release store and a subsequent acquire load from the same variable
-        create a synchronization that ensures that all modifications
+        create a synchronisation that ensures that all modifications
         performed in the storing thread before the release store are
         visible to the loading thread after the corresponding acquire load.
 
@@ -1108,10 +1102,10 @@ We will now informally describe available memory orders.
 
     \item[\texttt{std::memory\_order::relaxed}] is the weakest atomic
         ordering.
-        It guarantees no synchronization with operations on other memory
+        It guarantees no synchronisation with operations on other memory
         locations.
         It only guarantees atomicity of operations over the given location.
-        Relaxed ordering can be used for example to implement atomic counters
+        Relaxed ordering can be used, for example, to implement atomic counters
         used for statistics.
 \end{description}
 
@@ -1119,37 +1113,38 @@ We will now informally describe available memory orders.
 
 C++ has support for exceptions and is also able to specify that a given function
 is not allowed to throw an exception.
-In C++ it is possible to throw value of any type as an exception.
+In C++, it is possible to throw value of any type as an exception.
 When an exception is thrown, it propagates to callers of the function which
-have throw it until it triggers a \cpp{catch} code block that can catch it --
-a \cpp{catch} block that either catches exactly the type of the exception, or
+have thrown it until it triggers a \cpp{catch} code block that can catch it --
+a \cpp{catch} block that either catches exactly the type of the exception or
 if the class of the exception uses inheritance, the exception can also be
 caught a by a \cpp{catch} block that catches some of the predecessor types of
 the exception.
-Whenever the propagation of an exception causes end of a scope of some variable, its destructor is called to release resources associated with the variable, for example close an open file, release memory or release a mutex.
+Whenever the propagation of an exception causes  a scope of some variable to end, the variable's destructor is called to release resources associated with it (for example, close an open file, release memory or release a mutex).
 
 If a function is marked as \cpp{noexcept} and an exception would propagate from
 it, the program terminates.
 
 \paragraph{Deterministic Destruction of Objects}
 
-One of the core features of C++ is that is has deterministic destruction of objects, i.e., the end of lifetime of objects is precisely known (as opposed to being determined by garbage collector in garbage-collected languages such as Java or C\#).
-In C++, the end of life of an object happens either when it goes out of scope (for scope-allocated objects) or when it is explicitly deallocated (if the object was dynamically allocated).
-This in turn allows C++ destructors, which are special functions executed at the end of life of an object, to be used for resource control.
-For example a \texttt{std::unique\_lock} object might be initialised with an instance of a mutex and it will automatically lock the mutex when the \texttt{unique\_lock} is constructed and release the mutex when it goes out of scope.
-The same is used for example in C++ file streams to close the file handle when the stream goes out of scope or for memory management.
+One of the core features of C++ is that it has deterministic destruction of objects, i.e., the end of the lifetime of objects is precisely known (as opposed to being determined by the garbage collector in garbage-collected languages such as Java or C\#).
+In C++, the end of life of an object happens either when it goes out of scope (for scope-allocated objects), when it is explicitly deallocated (for dynamically allocated objects) or when the program terminates (for global objects).
+This allows C++ destructors, which are special functions executed at the end of life of an object, to be used for resource control.
+For example, an \texttt{std::unique\_lock} object might be initialised with an instance of a mutex, and it will automatically lock the mutex when the \texttt{unique\_lock} is constructed and release the mutex when it goes out of scope.
+The same is used for example in C++ file streams to close the file handle when the stream goes out of scope, or for memory management.
 
-An important property of this approach to resource management is that it is automatically exception safe -- if the resource-owning object is a local variable, the resource will be automatically release at the end of its scope, whether or not the end of scope was caused by exception propagation or normal control flow.
+An important property of this approach to resource management is that it is exception-safe.
+If the resource-owning object is a local variable, the resource will be automatically released at the end of its scope, whether or not the end of scope was caused by exception propagation or normal control flow.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{LLVM IR} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-LLVM is a compilation infrastructure which can be used to build optimizing
+LLVM is a compilation infrastructure which can be used to build optimising
 compilers.
-The compiler build on LLVM consists of a language-specific frontend that
+A compiler built on LLVM consists of a language-specific frontend that
 processes the source code and produces a language-independent LLVM intermediate
-representation, an optimizer that runs on the LLVM intermediate
+representation, an optimiser that runs on the LLVM intermediate
 representation, and a code generator that produces executable code for the
 given platform.
 LLVM intermediate representation (LLVM IR, LLVM code, or just LLVM), is a
@@ -1160,50 +1155,49 @@ Nevertheless, LLVM IR is somewhat influenced by the languages that are mainly
 translated to it, namely C and C++.
 
 LLVM IR is a type-safe assembly-like language.
-Its basic operations are \emph{instructions} which take inputs of specific type
-and produce output of possibly different type.
+Its basic operations are \emph{instructions} which take inputs of a specific type
+and produce an output of possibly different type.
 Values can be stored either in registers (each register is only assigned at one
-place in the code -- the code is static single assignment, SSA) or in memory.
+place in the code -- the code is in static single assignment (SSA) form) or in memory.
 Memory can be further divided into global variables, which exist for the entire
 run of the program, and dynamically allocated memory, which is obtained by a
-call to an allocation function provided by the platform (i.e., the allocation
-function is expected to be externally provided, memory allocation is not a part
-of LLVM).
+call to an allocation function provided by the platform.
+The allocation function is expected to be externally provided; memory allocation is not a part of LLVM.
 
 \paragraph{Memory Manipulation in LLVM}
 
-Unlike for example the x86 machine code, most LLVM instructions do not modify
-memory directly, but work with registers only.
+Unlike the x86 machine code, most LLVM instructions do not modify
+memory directly but work with registers only.
 Therefore, to change a value in memory, it is first necessary to load it, using
 the \li{load} instruction, then modify it, and finally store it using the
 \li{store} instruction.
-There are two more instructions that can access memory, and these are used for
+Two more instructions can access memory, and these are used for
 \emph{atomic compound operations}.
 The \li{atomicrmw} instruction (atomic read-modify-write) can atomically
 perform a load, arithmetic or logic operation, and a store or atomically
-replace a value in the memory with another value.
-In all cases it returns the old value of the memory.
+replace a value in memory with another value.
+In all cases, it returns the old value of the memory location.
 The \li{cmpxchg} (compare exchange) can atomically check if the value in memory
 is the same as expected, and if so, replace it with a new value.
 Atomic compound operations have memory order argument which specifies their
 level of atomicity.
-Similarly, \li{load} and \li{store} instructions can be atomic and their atomic
+Similarly, \li{load} and \li{store} instructions can be atomic, and their atomic
 versions also come with a memory order argument.
 Memory orders in LLVM are based on memory orders in C++ (see
 \autoref{sec:prelim:cppmemord}).
 
-\paragraph{Threads and High-Level Synchronization in LLVM}
+\paragraph{Threads and High-Level Synchronisation in LLVM}
 
-LLVM has no primitives for starting and handling threads nor for high-level synchronization of threads in shared memory (mutexes, condition variables, …).
-Therefore, this functionality has to be provided by libraries.
-This matches well with the programming languages often translated to LLVM,
+LLVM has no primitives for starting and handling threads nor for high-level synchronisation of threads in shared memory (mutexes, condition variables, …).
+Therefore, this functionality has to be provided by libraries, which matches well with the programming languages often translated to LLVM,
 which usually implement threading using a library of thread-manipulation and
-synchronization primitives.
+synchronisation primitives.
 Nevertheless, LLVM has a notion of thread-local variables; i.e., variables that exist in a separate copy in each thread.
 
 \paragraph{Memory Model}
 
-Memory model of LLVM is mostly based on the memory model of C++, but instead of
+The memory model of LLVM is mostly based on the memory model of C++.
+However, instead of
 atomic variables, it uses only atomic operations (i.e., it is theoretically
 possible to combine atomic and non-atomic access to the same variable in LLVM).
 
@@ -1213,42 +1207,44 @@ LLVM has support for exceptions.
 Namely, there are two ways in which a function can be called in LLVM.
 The \li{call} instruction is used for calls which either cannot throw an
 exception, or which can throw an exception, but the exception does not need to
-be inspected or caught in the functions that performs the \li{call}.
-The \li{invoke} instruction is used if the exception needs to be intercepted --
-an \li{invoke} is a branching point.
+be inspected or caught in the functions that perform the \li{call}.
+The \li{invoke} instruction is used if the exception needs to be intercepted.
+An \li{invoke} is a branching point.
 If the function called by \li{invoke} returns normally, the \cpp{invoke}
 behaves like a \li{call} followed by a jump to the next instruction after the
 \li{invoke}.
-However, if an exception is propagated through \li{invoke}, it transfers control
+If an exception is propagated through \li{invoke}, it transfers control
 to a block of code which starts with a \li{landingpad} instruction.
 The \li{landingpad} instruction returns information about the exception and the
-code which starts with it then decides how to handle the exception -- it can be
-handled by this function, or a cleanup can be run and the propagation of the
+code which starts with it then decides how to handle the exception.
+The exception can be
+handled by this function, or cleanup can be run, and the propagation of the
 exception can be resumed using the \li{resume} instruction.
 
 Interestingly, there is no instruction in LLVM to throw an exception.
 Instead, the whole design assumes the platform for
-which the code is compiled provides an exception support library -- so called
-\emph{unwinder} which has also ability to throw the exception.
+which the code is compiled provides an exception support library -- so-called
+\emph{unwinder} which can throw the exception.
 When the program is executing, the unwinder also takes care of the actual
 propagation of the exception through the call stack (\emph{unwinding}).
-For this purpose it needs metadata which is generated by the code generator
+For this purpose, it needs metadata which is generated by the code generator
 from the information in the \li{invoke}, \li{landingpad}, and \li{resume}
 instructions.
 
 \section{DIVINE}
 
-DIVINE is an open-source verifier for C and C++ programs with focus on
+DIVINE is an open-source verifier for C and C++ programs with a focus on
 concurrency and hard to discover bugs \mcite{DIVINEToolPaper2017,DIVINEWeb}.
-It aims to be a general tool usable by programmers and can work with wide
+It aims to be a general tool usable by programmers and can work with a wide
 variety of programs and check for different property violations, including
-assertion failures, memory access errors, memory leaks, use of uninitialized
+assertion failures, memory access errors, memory leaks, use of uninitialised
 memory and mutex locking errors.
-There is also a limited support for liveness properties and an extension to
+There is also limited support for liveness properties and an extension to
 checking nontermination of parallel programs (\autoref{chap:lnterm},
 \mcite{SB2019}).
-Furthermore, DIVINE aims at full support of C and C++ including their standard
-libraries -- currently we support C++17 with most of its standard library
+Furthermore, DIVINE aims at full support of C and C++, including their standard
+libraries.
+Currently we support C++17 with most of its standard library
 (\autoref{chap:lang}, \mcite{SRB2017}).
 
 DIVINE's platform model is loosely based on x86-64 Linux -- it uses 64
@@ -1257,11 +1253,11 @@ platform.
 With the optional support for the \xtso memory model (\autoref{chap:mm},
 \mcite{SB2018x86tso}), DIVINE also respects the memory models of x86-64
 processors.
-Among the biggest differences between DIVINE and Linux on x86-64 are different
+Among the most significant differences between DIVINE and Linux on x86-64 are different
 calling conventions and stack layout; however, these differences should be
-transparent to a correct C or C++ program and programs which rely on
-platform-specific layout of the stack will be reported as buggy in most cases
-(the stack layout is not guaranteed b the C/C++ standards and therefore such
+transparent to a correct C or C++ program, and programs which rely on
+a platform-specific layout of the stack will be reported as buggy in most cases
+(the stack layout is not guaranteed bu the C/C++ standards, and therefore such
 programs are not well-defined).
 
 \subsection{Architecture of DIVINE}
@@ -1319,7 +1315,7 @@ programs are not well-defined).
 The architecture of DIVINE is illustrated by \autoref{fig:prelim:divine:arch}.
 At the base of DIVINE, there is an explicit-state core which controls
 exploration of the state space.
-To actually execute the program, DIVINE uses \divm, a verification-oriented
+To execute the program, DIVINE uses \divm, a verification-oriented
 virtual machine that executes LLVM instructions and \divm extensions to LLVM IR
 called \emph{hypercalls}~\mcite{RSCB2018}.
 \divm hypercalls behave as functions from the point of view of LLVM IR, but
@@ -1331,14 +1327,14 @@ associate metadata with addresses, and to control the exploration of the state
 space using interrupt points and cancellation.
 
 In DIVINE the \divm has only limited knowledge of threads -- it can take their
-existence into account for the purpose of state-space reductions, but cannot
+existence into account for the state-space reductions, but cannot
 start or terminate them and does not direct their scheduling.
 Instead, scheduling is controlled by a scheduler linked to the verified program
 which uses the nondeterministic choice hypercall provided by \divm to decide
 which thread to execute.
 Thread creation and termination is also implemented in a library.
 Scheduling, thread management and a basic POSIX-compatible interface including
-a filesystem model is grouped into \dios, a verification-oriented operating
+a filesystem model are grouped into \dios, a verification-oriented operating
 system \mcite{RBMKB2019}.
 On top of \dios, there is a set of libraries including implementations of C and C++ standard library, POSIX thread library (\texttt{pthreads}), and unwinder for exception handling (see also \autoref{chap:lang} and \mcite{SRB2017}).
 
@@ -1347,7 +1343,7 @@ On top of \dios, there is a set of libraries including implementations of C and 
 All the parts of DIVINE described so far process LLVM IR.
 To be able to handle C and C++, DIVINE uses the clang compiler (which is part of the LLVM project).
 However, if DIVINE is to analyse a program, it needs definitions of all the library functions this program uses in the form of LLVM IR (alternatively \divm itself would need to be able to understand these functions).
-Therefore, DIVINE needs substantial control over the compilation process, for example it is not possible to use system-installed (binary) libraries with DIVINE.
+Therefore, DIVINE needs substantial control over the compilation process; for example, it is not possible to use system-installed (binary) libraries with DIVINE.
 
 To make compilation reasonably simple for users, DIVINE integrates the clang compiler using its library interface.
 This integrated compiler compiles programs in an environment that contains only the libraries available in DIVINE, automatically links them, and produces LLVM IR that can be directly analysed with DIVINE.
@@ -1355,34 +1351,34 @@ The compiler can be invoked either automatically by DIVINE when it is executed w
 
 As we have already mentioned, DIVINE needs LLVM IR of the used libraries.
 Therefore, DIVINE ships with implementations of standard C and C++ library, the POSIX threads library, and a stack unwinder library.
-The C and C++ standard libraries are mostly based on existing projects (that aim at normal execution), namely PDClib for the C library and libc++ and libc++abi for the C++ library.
+The C and C++ standard libraries are based on existing projects (that aim at normal execution), namely PDClib for the C library and libc++ and libc++abi for the C++ library.
 
 \paragraph{File System and POSIX API}
 
-C and C++ standard libraries provide, among other, access to the file system.
-To be able to use file system in programs analysed by DIVINE, DIVINE provides two possible approaches.
+C and C++ standard libraries provide, among others, access to the file system.
+To be able to use the file system in programs analysed by DIVINE, DIVINE provides two possible approaches.
 The first is a virtual file system provided by \dios.
 In this mode, most file system operations are modelled by our Virtual File System library (which is part of \dios).
-The program can work with the file system as normally, but this has no effect on the file system of the computer the program runs on, instead the file system is part of the program's state.
-The file system can either start with an empty snapshot, or it can load a snapshot of a directory at start.
+The program can work with the file system as usual, but this has no effect on the file system of the computer the program runs on, the file system is part of the program's state.
+The file system can either start with an empty snapshot, or it can load a snapshot of a directory at the start.
 
-An alternative approach is to actually allow the program to access file system of the machine.
-This, however, is not possible during normal state space exploration that explores the state space in BFS-like order as it could cause interference between independent parts of the state space.
+An alternative approach is to allow the program to access the file system of the machine.
+However, this is not possible during normal state-space exploration that explores the state space in BFS-like order as it could cause interference between independent parts of the state space.
 Instead, DIVINE can execute a single run of the program (giving random values to nondeterministic choices), record all supported system calls, and then use this recording in analysis \mcite{KRB2017}.
 A limitation of this approach is that it currently works only if all the system calls are executed in the same order in all runs of the program (which is unlikely if the program uses file system from more then one thread).
 
-On top of the file system support, DIVINE has also support for other parts of the POSIX API, including parts of networking and clock API \mcite{RBMKB2019}.
+On top of the file system support, DIVINE also has support for other parts of the POSIX API, including parts of networking and clock API \mcite{RBMKB2019}.
 
 \subsection{Program Instrumentation}
 
 To avoid unnecessary complexity in \divm, DIVINE uses program instrumentation
 as a preprocessing step.
-This steps runs on the LLVM IR of the program and all the libraries linked to it.
-Instrumentation adds potential interruption points to the program to specify point at which the scheduler can be invoked.
+This step runs on the LLVM IR of the program and all the libraries linked to it.
+Instrumentation adds potential interruption points to the program to specify points at which the scheduler can be invoked.
 These interruption points are used at memory access instructions and at
 back-edges of loops (to make sure \divm does not attempt run an infinite
 cycle).
-Furthermore, instrumentation is used to calculate metadata used by \dios.
+Furthermore, the instrumentation is used to calculate metadata used by \dios.
 
 Instrumentation is also used to implement some extensions of DIVINE.
 It is used by the symbolic and abstract extensions of
@@ -1402,7 +1398,7 @@ For this reason, it is sufficient to enable thread interleaving only after a
 block of instructions, provided we can ensure that only one instruction that
 can interfere with instructions of other threads can happen in each block and that each block terminates.
 
-In DIVINE we use heuristics to detect which instructions can interfere with
+In DIVINE, we use heuristics to detect which instructions can interfere with
 other threads.
 A simple version of such a heuristic is that only instructions which access
 memory can interfere with other threads in LLVM.\mnote{In LLVM these are
@@ -1411,18 +1407,18 @@ For this reason, the instrumentation in DIVINE only inserts potential interrupt
 points at these instructions.
 When successors of a state are generated by \divm, it uses information from the
 potential interrupt points (which includes memory address range and a type of
-the access) to determine if the interrupt is actually necessary.
+the access) to determine if the interrupt is necessary.
 To do this, DIVINE locally searches for actions of other threads that can
 interfere with the given thread.
 
 As the size of instruction blocks executed together by \divm is dynamic, it
 needs to ensure that each block is finite.
-To do this, \divm detects control flow cycles and ends a block of instructions
+Therefore, \divm detects control flow cycles and ends a block of instructions
 if a back-edge in a control flow graph is repeated.
 
 \subsection{Implementation and Availability}
 
-DIVINE is an open-source software written mostly in C++.
-DIVINE source codes, as well as instruction on how to build and use it can be found on the project website~\mcite{DIVINEWeb}.
+DIVINE is open-source software written mostly in C++.
+DIVINE source codes, as well as instruction on how to build and use it, can be found on the project website~\mcite{DIVINEWeb}.
 
 % vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en
