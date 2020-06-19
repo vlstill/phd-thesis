@@ -115,6 +115,7 @@ repeated loads have to be also visible (shown by me in~\mcite{S2016}, fixed in
 \mcite[Section 6]{RSCB2018}).\begin{marginnote}%
 Consider this program with threads \texttt{t0} and \texttt{t1}:
 
+\medskip
 \begin{cppcode}
   int x = 0;
   void t0() {
@@ -125,6 +126,7 @@ Consider this program with threads \texttt{t0} and \texttt{t1}:
     assert(a == x);
   }
 \end{cppcode}
+\smallskip
 
 The assertion is violated if \cpp{t0} executes between the (local, invisible)
 assignment and the assertion in \cpp{t1}.
@@ -439,6 +441,8 @@ Unlike previously discussed techniques, symbolic execution mostly targets sequen
 The state space explored by a symbolic executor forms a tree with branches at conditions.
 This \emph{symbolic execution tree} can be quite large even for small sequential programs with loops or recursion -- this is the problem known as \emph{path explosion}.\begin{marginnote}%
   Consider this code:
+
+  \medskip
   \begin{cppcode}
     unsigned x = input();
     while (x > 0) {
@@ -446,6 +450,7 @@ This \emph{symbolic execution tree} can be quite large even for small sequential
         x--;
     }
   \end{cppcode}
+  \smallskip
 
   Its symbolic execution tree has as many branches as there are values in the \cpp{unsigned} data type:
   \begin{tikzpicture}[node distance=2em,

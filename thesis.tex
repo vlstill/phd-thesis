@@ -286,12 +286,14 @@
 \newcommand{\mnotemark}{\stepcounter{mnote}\hyperlink{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}$}\xspace}
 \newcommand{\mnotetext}[1]{\marginpar{\raggedout\hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}\footnotesize{}#1}}
 \newcommand{\mnote}[1]{\mnotemark{}\mnotetext{#1}}
+
 \newenvironment{marginnote}{%
         \mnotemark%
         \expandafter\newbox\csname marginnotebox:\thechapter:\themnote\endcsname%
         \expandafter\setbox\csname marginnotebox:\thechapter:\themnote\endcsname=\hbox to \marginparwidth\bgroup%
             \noindent%
             \begin{minipage}{\marginparwidth}%
+            \RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}%
             \hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}%
             \raggedout\footnotesize\noindent%
     }{%

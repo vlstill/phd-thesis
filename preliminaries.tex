@@ -997,7 +997,23 @@ belongs to the C++ standard library. We will sometimes omit it in the
 examples.}
 Later, the thread can be waited-for by calling the \cpp{join} method of the
 \cpp{std::thread} object.
-Joining will block until the thread we are joining finishes.\mnote{\TODO{Maybe example?}}
+Joining will block until the thread we are joining finishes.\begin{marginnote}%
+  In the following example you can see a code that spawns function \texttt{worker} in a separate thread and later waits for it.
+
+  \medskip
+  \begin{cppcode}
+    void worker(int a,
+                int b) {
+      /* do something */
+    }
+    int main() {
+      std::thread
+          w(worker, 1, 2);
+      /* do something */
+      w.join(); // wait
+    }
+  \end{cppcode}
+\end{marginnote}
 
 \paragraph{High-Level Synchronization promitives}
 
