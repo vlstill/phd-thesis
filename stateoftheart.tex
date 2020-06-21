@@ -1,15 +1,15 @@
-Historically, automatic analysis techniques for parallel programs focused on analysis of models of systems.
+Historically, automatic analysis techniques for parallel programs focused on the analysis of models of systems.
 A programmer wishing to use such a tool would either start by creating a model
 of the system (in the specification step of the development), and then provide
 an executable implementation for this model or, if they already had a working
-product, they would have to create a model in order to analyze it.
+product, they would have to create a model to analyse it.
 Such tools include for example SPIN~\mcite{Holzmann1997}, older versions of DIVINE~\mcite{BBCS05}, LTSmin~\mcite{Kant2015} and BMC~\mcite{Biere1999}.
-The modell-based approach requires an extra investment in the modelling phase
+The model-based approach requires an extra investment in the modelling phase
 and, even if analysis of the model concludes it is correct, it does not prove
 that the final product is indeed correct.
 
 Later, with improvements of both analysis techniques, as well as overall
-improvements in available computing power, analysys tools for programs written
+improvements in available computing power, analysis tools for programs written
 in mainstream programming languages become available.
 Early examples of such tools are Java Path Finder~\mcite{Visser2003} (an explicit-state model checker for Java) and CBMC~\mcite{Clarke2004} (a SAT-based bounded model checker for C).
 Since 2012, the Software Verification Competition (SV-COMP) \mcite{Beyer2020svc}
@@ -18,30 +18,30 @@ C and lately also Java.
 While it includes mostly sequential programs, there is also a subcategory for
 parallel C programs in SV-COMP.
 
-We will now focus in more details on automatic techniques for verification of
+We will focus in more details on automatic techniques for verification of
 parallel programs.
-We will not consider program analysis techniques which require substantial manual effort (e.g., proof-assistant-based techniques), or techniques which are not applicable to realistic programs (e.g., techniques which use a special modelling language).
+We will not consider program analysis techniques which require substantial manual effort (e.g., proof-assistant-based techniques), or techniques which are not applicable to realistic programs (e.g., techniques which use a modelling language).
 We will also mostly disregard techniques with no support for parallel programs.
-Finally, we are primarily concerned with techniques that were implemented and evaluated -- existence of a tool that can handle a programming language (as opposed to a modelling language) can be seen as a witness of maturity of a technique.
+Finally, we are primarily concerned with techniques that were implemented and evaluated -- the existence of a tool that can handle a programming language (as opposed to a modelling language) can be seen as a witness of maturity of a technique.
 
 \section{Explicit-State Model Checking}
 
-Explicit-state model checking is based on exhaustive exploration of the
+Explicit-state model checking is based on an exhaustive exploration of the
 state-space graph.
 It checks that a given (finite-state) system satisfies given property.
-The property is often given by an LTL formula and the automata-based approach
+The property is often provided by an LTL formula and the automata-based approach
 to LTL verification is used (i.e., the problem is reduced to the problem of
 repeated reachability of a state in the state-space graph)~\mcite[\S
 5.2]{Baier2008}.
-In the special case of safety properties, it is sufficient to perform graph
-search for a state which violates the safety property, for example using the
+In the particular case of safety properties, it is sufficient to perform graph
+search for a state which violates the safety property, for example, using the
 depth-first search algorithm, or any other graph search.
 
 The advantage of explicit-state model checking is that it is conceptually easy
 to apply it to verification of parallel programs (under sequential
 consistency), as the interleaving semantics of threads naturally gives rise to
 the state space graph.
-Furthermore, explicit-state model checking does not require the program to terminate, it is sufficient that its state space is finite.\mnote{A finite state space can contain cyclical infinite behaviour -- a loop in the state space.
+Furthermore, explicit-state model checking does not require the program to terminate; it is sufficient that its state space is finite.\mnote{A finite state space can contain cyclical infinite behaviour -- a loop in the state space.
 
 \medskip
 \begin{tikzpicture}[>=latex,>=stealth',auto,node distance=2cm,semithick,initial text=]
@@ -60,14 +60,14 @@ Furthermore, explicit-state model checking does not require the program to termi
 In practice, explicit-state model checking is prone to the \emph{state-space
 explosion} problem: the number of states in the state-space graph of a
 reasonable system can easily be so big it is not possible to store the state
-space in available memory and explore the state space in reasonable time.
+space in available memory and explore the state space in a reasonable time.
 Since the algorithm which explores the state-space graph needs to detect which
 states were already seen to ensure termination (and to check for LTL
 properties), available memory is often the limiting factor, at least without
 advanced state space reduction techniques.
 
-To mitigate state-space explosion, several state-space reduction techniques
-were introduced.
+
+Several state-space reduction techniques were introduced to mitigate the state-space explosion.
 Using these techniques, it is possible to explore only some of the states of
 the state space in such a way that the property holds for these states if and
 only if it holds for the entire state space.
@@ -77,12 +77,12 @@ particular order \mcite{Peled1993,Godefroid1996partial}.
 
 Another wide family of reductions are techniques that can coalesce a path in a
 state space into a single edge and hide all intermediate states.
-An early example of this idea was introduced by Lipton in \mcite{Lipton1975}.
-Lipton used the notion of right movers (``resource acquire operations'') and
+Lipton introduced an early example of this idea in \mcite{Lipton1975}.
+He used the notion of right movers (``resource acquire operations'') and
 left movers (``resource release operations'') to identify statements in a
 program which can be executed atomically.
-However, in analysis of realistic parallel programs a notion of instruction (or
-action) visibility is often used -- a group of instructions from one thread can
+However, in the analysis of realistic parallel programs, a notion of instruction (or action) visibility is often used.
+A group of instructions from one thread can
 be executed atomically, provided that at most one of them is observable by the
 other threads, and that this grouping does not interfere with checking of the
 verified property or termination of the search.
@@ -104,7 +104,7 @@ for the program analysis \cite{Clarke1998}.
 For example, using the \emph{heap-symmetry} reduction, two states that differ
 only in the order in which memory objects were allocated can be considered
 equal \mcite{RBB13}, \mcite[Chapter 6]{RSCB2018}.
-A dead-variable elimination \mcite{Yorav2004} can be also seen as an instance
+A dead-variable elimination \mcite{Yorav2004} can also be seen as an instance
 of symmetry reduction.
 
 These state-space reduction techniques can reduce the number of states by
@@ -131,26 +131,26 @@ Consider a program with threads \texttt{t0} and \texttt{t1}:
 \end{cppcode}
 \smallskip
 
-If the two loads in \texttt{t1} are not considered visible, they are coalesced
+If the two loads in \texttt{t1} are not considered visible, they are coalesced,
 and the assertion violation is missed.
 \end{marginnote}
 %
 A similar problem was present in \mcite{Cordeiro2011}, where ESBMC could
 perform two conditional jumps that read the same shared variable with no
 context switch between them (section 3.1, rule R3).
-Interestingly, the authors notice the possibility of missing context switches,
+Interestingly, the authors notice the possibility of missing context switches
 but only introduce an option to fix it, leaving the problematic behaviour as
 default.
 
-To further improve capabilities of explicit-state model checking, several
+To further improve the capabilities of explicit-state model checking, several
 techniques for memory-efficient representation of the set of visited states
 were introduced.
 These techniques include \emph{hash compaction} and \emph{bitstate
-hashing}~\mcite{Holzmann1998}, which are incomplete techniques that store
+hashing} \mcite{Holzmann1998}, which are incomplete techniques that store
 hashes of states instead of storing the entries states (and therefore can omit
 some parts of the state space if there is hash collision),
-\emph{conditional and external storage of states}~\mcite{Hammer2007}, and
-\emph{lossless compression techniques}~\mcite{RSB15TC,Laarman2019}.
+\emph{conditional and external storage of states} \mcite{Hammer2007}, and
+\emph{lossless compression techniques} \mcite{RSB15TC,Laarman2019}.
 
 \paragraph{Data Nondeterminism}
 While explicit-state model checking can easily represent control-flow
@@ -165,45 +165,44 @@ representation \mcite{Pasareanu2013,MBLB2016}.
 
 The pioneering tool is the SPIN LTL model checker
 \mcite{Holzmann1997,Holzmann2004}.
-SPIN has a very limited support for analysis of realistic programs, it targets
-a parallel modelling language PROMELA, which has support to embed C code to
-define an atomic step.
+SPIN has very limited support for analysis of realistic programs.
+It targets a parallel modelling language PROMELA, which has support to embed C
+code to define an atomic step.
 In~\mcite{Zaks2008} SPIN was extended to have partial support for C.
 Even so, this version needs to have a test driver in PROMELA.
 
 Java Pathfinder (JPF)~\mcite{Visser2003,Artho2019} is an explicit state model
 checker (with symbolic extensions) for Java and other JVM-based\mnote{Java is
 not executing directly on the target hardware but instead uses an intermediate
-language which is executed by JVM.} languages (e.g., Scala, Kotlin).
+language which is run by JVM.} languages (e.g., Scala, Kotlin).
 From its beginning, JPF targets parallel Java programs.
 It can check for safety properties, namely for uncaught exceptions which in Java also subsume assertion checking and bound checking.
 To reduce the state space, JPF uses hash-compaction (and therefore under-approximates all possible behaviours), symmetry reduction (with respect to class loading order and heap symmetry), optionally predicate abstraction (with user-provided predicates), partial order reduction, and groups instructions with local effects.
 Interestingly, the instruction grouping in JPF uses a heuristic which can cause it to miss some behaviours.
-JPF has also model of parts of the Java standard library (including limited IO
+JPF also has models of parts of the Java standard library (including limited IO
 support) and limited support for execution of native code from the Java
 code\mnote{Java programs can use the Java Native Interface (JNI) to interfere
-with native code, for example in order to access operating system primitives
+with native code, for example, to access operating system primitives
 directly.}
 In addition to scheduling nondeterminism, JPF can use explicit choice as an
 additional source of nondeterminism.
 The symbolic extension, Symbolic Pathfinder (SPF) \mcite{Pasareanu2013,Noller2019} adds
 support for symbolic data representation using symbolic execution.
 It supports test generation and detection of assertions and errors related to parallel execution.
-It primarily targets unit tests and sub-system level testing and has a
-possibility to use unit preconditions and combine symbolic and explicit
-execution.
+It primarily targets unit tests and sub-system level testing and can use unit
+preconditions and combine symbolic and explicit execution.
 To explore different possible interleavings, SPF uses the explicit JPF without
 state comparison and with depth bound to ensure termination (the state
-comparison can be enabled but it disregards the symbolic data and therefore
+comparison can be enabled, but it disregards the symbolic data and therefore
 can miss many behaviours).
-SPF is able to handle certain cases of dynamically allocated
-linked symbolic data by \emph{lazy initialization} -- when a symbolic pointer
+SPF can handle some instances of dynamically allocated
+linked symbolic data by \emph{lazy initialisation} -- when a symbolic pointer
 is accessed, it can be expanded to either null pointer or another node of
 symbolic data \mcite{Khurshid2003}.
 SPF has support for symbolic arrays \mcite{Fromherz2017} and symbolic strings \mcite{Bang2016}.
 
 An unnamed explicit-state model checker for C\# is presented in \mcite{Huynh2006}.
-It targets a subset of .NET bytecode (which is an intermediate representation into which C\# and other .NET languages are translated) and it analyses parallel programs running under the .NET relaxed memory model.
+It targets a subset of .NET bytecode (which is an intermediate representation into which C\# and other .NET languages are translated), and it analyses parallel programs running under the .NET relaxed memory model.
 It can be used to detect behaviour that differs from any possible sequentially consistent behaviour and to insert memory barriers to recover sequential consistency.
 % The implementation of the exploration algorithm uses a list of delayed instructions to implement instruction reordering.
 
@@ -211,11 +210,11 @@ DIVINE \mcite{DIVINEToolPaper2017} is an explicit-state model checker developed
 by our research group.
 Historically, it targeted several modelling languages for parallel systems and
 LTL verification using parallel and distributed algorithms, but later it
-shifter towards analysis of C and C++ using the LLVM intermediate representation.
+shifted towards the analysis of C and C++ using the LLVM intermediate representation.
 While it now aims primarily at verification of safety properties (assertion
 violations, memory access safety, detection of use of undefined variables,
 detection of memory leaks, numeric manipulation errors, and deadlock-freedom for
-the POSIX mutexes), it has also limited support for LTL and an
+the POSIX mutexes), it also has limited support for LTL and an
 extension for detection of nontermination in parallel programs
 (\autoref{chap:lnterm}, \mcite{SB2019}).
 To tackle realistic programs, DIVINE uses a dynamic detection of invisible
@@ -224,7 +223,7 @@ which facilitates heap-symmetry reduction and state-space
 compression \mcite{RSCB2018}.
 DIVINE also supports symbolic and abstract data representation using program
 transformations \mcite{LRB2018}.
-Currently, it supports symbolic bitvector manipulations for both integeral and floating-point data types and symbolic string representation \mcite{CLOR2019}.
+Currently, it supports symbolic bitvector manipulations for both integral and floating-point data types and symbolic string representation \mcite{CLOR2019}.
 With the symbolic data representation using bitvectors, DIVINE uses SMT solvers
 to check for feasibility of traces and to compare symbolic states -- this way
 it retains the ability to join states that are semantically equivalent even if
@@ -237,17 +236,17 @@ programs which use existing libraries.
 To this end, DIVINE has almost complete standard C and C++ libraries (as of
 C++17), the POSIX thread library (\texttt{pthreads}), and it also supports C++
 exceptions (\autoref{chap:lang}, \mcite{SRB2017}).
-To reflect behaviour of parallel programs on contemporary hardware, DIVINE
+To reflect the behaviour of parallel programs on contemporary hardware, DIVINE
 has support to analyse programs with respect to the \xtso memory
 model (\autoref{chap:mm}, \mcite{SB2018x86tso}).
-DIVINE has also an in-built compiler based on LLVM's clang and supports
+DIVINE also has an in-built compiler based on LLVM's clang and supports
 significant parts of POSIX file system and process APIs \mcite{RBMKB2019}.
 
 SymDIVINE \mcite{MBLB2016} was another explicit-state model checker from our research group.
-It combines explicit control flow handling with symbolic representation of data
+It combines explicit control flow handling with a symbolic representation of data
 using bitvectors (with symbolic state equality).
 SymDIVINE targets safety and LTL properties in C programs.
-This tool is now discontinued in favor of aforementioned symbolic data support
+This tool is now discontinued in favour of the aforementioned symbolic data support
 in DIVINE.
 
 % LTSmin~\cite{Kant2015}
@@ -758,7 +757,7 @@ abstraction and refinement for the encoding of scheduling constraints in
 parallel programs in order to make the formulas smaller.
 Unlike CBMC, it has no support for relaxed memory.
 It can run multiple counterexample-guided refinement loops in parallel and they
-share the learned scheduling constraints in order to analyze the program
+share the learned scheduling constraints in order to analyse the program
 faster.
 Yogar-CBMC was able to solve all concurrency benchmarks in SV-COMP 2019 and significantly outperformed CBMC.
 
@@ -771,7 +770,7 @@ DepthK \mcite{Rocha2017,Rocha2017svc}, is a tool based on ESBMC with
 addition of polyhedral invariants which aim to strengthen inductive step in the
 $k$-induction.
 It was presented before ESBMC gained ability to compute invariants itself and it uses an external tool for invariant generation.
-DepthK can analyze concurrent C programs.
+DepthK can analyse concurrent C programs.
 
 Dartagnan~\mcite{PonceDeLeon2020,Gavrilenko2019} is a BMC for analysis of parallel C programs under relaxed memory models.
 In this case, the relaxed memory model is specified on input, not encoded in the verifier.
@@ -834,7 +833,7 @@ NBIS uses LLVM IR to facilitate analysis of C programs.
 
 VVT \mcite{Gunther2016,Gunther2017} is a successor to NBIS which combines bounded model checking for fast bug discovery with CTIGAR, a SMT-based version of IC3 with counterexample refinement.
 It aims at analysis of parallel C software and uses LLVM IR internally.
-VVT can analyze infinite-state systems (with finite number of threads and with arrays with statically known bounds).
+VVT can analyse infinite-state systems (with finite number of threads and with arrays with statically known bounds).
 To improve performance with parallel programs, VVT uses dynamic state-space reduction based on conditionally atomic blocks of code (which are instruented into the code).
 VVT is not bit-precise, it uses integer arithmetics instead of arithmetics with overflows and therefore cannot find problems caused by bounded bitwidth of computer integers.
 % - not maintained
@@ -886,7 +885,7 @@ To avoid false counterexamples, CPAchecker performs bit-precise validation of co
 % - memory graphs for memory safety as of~\mcite{Dangl2015} (but later in SV-COMP yes)
 Various tools build on the CPAchecker framework are participating in the SV-COMP, among these CPA-Seq appears to be just a version of CPAchecker tuned for SV-COMP.
 
-CPA-BAM-BnB \mcite{Andrianov2017} is a CPAchecker-based tool that uses Block Abstraction Memoization, which means it divides programs into blocks (often a block is a function) and analyzes blocks separately.
+CPA-BAM-BnB \mcite{Andrianov2017} is a CPAchecker-based tool that uses Block Abstraction Memoization, which means it divides programs into blocks (often a block is a function) and analyses blocks separately.
 It uses a cache of existing block abstractions.
 Furthermore, it uses value analysis and predicate analysis with refinement on spurious counterexamples.
 It also uses BnB, which is a model of memory that uses predicate analysis and uninterpreted functions to map memory locations to memory values.
