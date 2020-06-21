@@ -329,6 +329,8 @@
   \expandafter\def\csname mcite: \oddpage@page : \ci\endcsname{}%
   \marginpar{%
     \raggedout\footnotesize\cite{\ci} \citeauthor*{\ci}, \citefield{\ci}[titlelink]{title}.#3%
+    % define note is on this page it once more in case we were forced to the next page
+    \expandafter\gdef\csname mcite: \oddpage@page : \ci\endcsname{}%
   }%
 \fi%
 }%
