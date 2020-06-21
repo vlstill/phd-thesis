@@ -1,28 +1,28 @@
-Historically, automatic analysis techniques for parallel programs started with
-analysis of models of systems.
+Historically, automatic analysis techniques for parallel programs focused on analysis of models of systems.
 A programmer wishing to use such a tool would either start by creating a model
 of the system (in the specification step of the development), and then provide
 an executable implementation for this model or, if they already had a working
 product, they would have to create a model in order to analyze it.
 Such tools include for example SPIN~\mcite{Holzmann1997}, older versions of DIVINE~\mcite{BBCS05}, LTSmin~\mcite{Kant2015} and BMC~\mcite{Biere1999}.
-Such an approach requires an extra investment in the modelling phase and, even
-if analysis of the model concludes it is correct, it does not prove that the
-final product is indeed correct.
+The modell-based approach requires an extra investment in the modelling phase
+and, even if analysis of the model concludes it is correct, it does not prove
+that the final product is indeed correct.
 
-Later, with the improvement of both analysis techniques, as well as overall
-improvement in available computing power, tools which analyse programs written
+Later, with improvements of both analysis techniques, as well as overall
+improvements in available computing power, analysys tools for programs written
 in mainstream programming languages become available.
 Early examples of such tools are Java Path Finder~\mcite{Visser2003} (an explicit-state model checker for Java) and CBMC~\mcite{Clarke2004} (a SAT-based bounded model checker for C).
 Since 2012, the Software Verification Competition (SV-COMP) \mcite{Beyer2020svc}
-aims to showcase tools which support direct verification of software written in
-C and later also Java.
+aims to showcase tools that support direct verification of software written in
+C and lately also Java.
 While it includes mostly sequential programs, there is also a subcategory for
 parallel C programs in SV-COMP.
 
 We will now focus in more details on automatic techniques for verification of
 parallel programs.
-We will not consider program analysis techniques which require substantial manual effort (e.g., proof-theorem-based techniques), or techniques which are not applicable to realistic programs (e.g., techniques which use a special modelling language).
-We will also mostly disregard tools with no support for parallel programs.
+We will not consider program analysis techniques which require substantial manual effort (e.g., proof-assistant-based techniques), or techniques which are not applicable to realistic programs (e.g., techniques which use a special modelling language).
+We will also mostly disregard techniques with no support for parallel programs.
+Finally, we are primarily concerned with techniques that were implemented and evaluated -- existence of a tool that can handle a programming language (as opposed to a modelling language) can be seen as a witness of maturity of a technique.
 
 \section{Explicit-State Model Checking}
 
@@ -39,9 +39,9 @@ depth-first search algorithm, or any other graph search.
 
 The advantage of explicit-state model checking is that it is conceptually easy
 to apply it to verification of parallel programs (under sequential
-consistency), as the interleaving semantics of thread naturally gives rise to
+consistency), as the interleaving semantics of threads naturally gives rise to
 the state space graph.
-Furthermore, explicit-state model checking does not require the program to be terminating, it is sufficient that its state space is finite.\mnote{A finite state space can contain cyclical infinite behaviour -- a loop in the state space.
+Furthermore, explicit-state model checking does not require the program to terminate, it is sufficient that its state space is finite.\mnote{A finite state space can contain cyclical infinite behaviour -- a loop in the state space.
 
 \medskip
 \begin{tikzpicture}[>=latex,>=stealth',auto,node distance=2cm,semithick,initial text=]
@@ -60,7 +60,7 @@ Furthermore, explicit-state model checking does not require the program to be te
 In practice, explicit-state model checking is prone to the \emph{state-space
 explosion} problem: the number of states in the state-space graph of a
 reasonable system can easily be so big it is not possible to store the state
-space in the available memory and explore the state space in reasonable time.
+space in available memory and explore the state space in reasonable time.
 Since the algorithm which explores the state-space graph needs to detect which
 states were already seen to ensure termination (and to check for LTL
 properties), available memory is often the limiting factor, at least without
@@ -71,49 +71,52 @@ were introduced.
 Using these techniques, it is possible to explore only some of the states of
 the state space in such a way that the property holds for these states if and
 only if it holds for the entire state space.
-One of these techniques is \emph{Partial Order Reduction} (POR), which
+One of these techniques is \emph{Partial Order Reduction} (POR) which
 can eliminate some states by exploring independent events only in one
-particular order~\mcite{Peled1993,Godefroid1996partial}.
+particular order \mcite{Peled1993,Godefroid1996partial}.
 
-Another wide family of reductions are reductions which can coalesce a path in a
+Another wide family of reductions are techniques that can coalesce a path in a
 state space into a single edge and hide all intermediate states.
-This idea was introduced by Lipton in~\mcite{Lipton1975}, who introduced the
-notion of right movers (``resource acquire operations'') and left movers
-(``resource release operations'') to identify statements in program which can
-be executed atomically.
+An early example of this idea was introduced by Lipton in \mcite{Lipton1975}.
+Lipton used the notion of right movers (``resource acquire operations'') and
+left movers (``resource release operations'') to identify statements in a
+program which can be executed atomically.
 However, in analysis of realistic parallel programs a notion of instruction (or
 action) visibility is often used -- a group of instructions from one thread can
-be executed atomically provided that at most one of them is observable by the
-other threads and that this grouping does not influence checking of the
+be executed atomically, provided that at most one of them is observable by the
+other threads, and that this grouping does not interfere with checking of the
 verified property or termination of the search.
 Both static and dynamic reduction methods were proposed, under many names,
-including D-reduction~\mcite{Lipton1975}, path reduction~\mcite{Yorav2004}, $\tau$ reduction~\mcite{BBR2012} for the static variants and $\tau+$ reduction~\mcite{RBB13} and \mcite[Section 6]{RSCB2018} for the dynamic once.
-The reductions are also often used without naming the technique, for example in
+including \emph{D-reduction} \mcite{Lipton1975}, \emph{path reduction}
+\mcite{Yorav2004}, \emph{$\tau$ reduction} \mcite{BBR2012} for the static
+variants and \emph{$\tau+$ reduction} \mcite{RBB13} and \mcite[Section
+6]{RSCB2018} for the dynamic once.
+These reductions are also often used without naming the technique, for example in
 Java Path Finder~\mcite{Visser2003}.
 Quite naturally, the dynamic methods are better suited for the complex control-
 and data-flow of realistic programs.
-
-Both partial order reductions and path reductions are often also used in tools
+Both partial order reductions and path reductions are also often used in tools
 based on other principles then explicit-state exploration.
 
-Additionally, there are variants of \emph{symmetry reductions} which reduce the
+Additionally, there are variants of \emph{symmetry reduction} that reduce the
 state space by coalescing states which differ only in properties not relevant
 for the program analysis \cite{Clarke1998}.
-For example the \emph{heap-symmetry} reduction allows to consider two states
-that differ only in the order in which memory objects were allocated to be the
-same~\mcite{RBB13}, \mcite[Chapter 6]{RSCB2018}.
-A dead-variable elimination~\mcite{Yorav2004} can be also seen as an instance of symmetry reductions.
+For example, using the \emph{heap-symmetry} reduction, two states that differ
+only in the order in which memory objects were allocated can be considered
+equal \mcite{RBB13}, \mcite[Chapter 6]{RSCB2018}.
+A dead-variable elimination \mcite{Yorav2004} can be also seen as an instance
+of symmetry reduction.
 
-These state space reduction techniques can reduce the number of states by
-several orders of magnitude~\mcite{RBB13}, and therefore enable verification of
+These state-space reduction techniques can reduce the number of states by
+several orders of magnitude \mcite{RBB13}, and therefore enable verification of
 realistic (but still relatively small) programs.
 
 Interestingly, the proposed reduction techniques which aim to preserve verified
 properties are not always correct, for example the original version of $\tau+$
 reduction considered only stores to be visible, but it was later shown that
-repeated loads have to be also visible (shown by me in~\mcite{S2016}, fixed in
+repeated loads have to be also visible (shown by me in \mcite{S2016}, fixed in
 \mcite[Section 6]{RSCB2018}).\begin{marginnote}%
-Consider this program with threads \texttt{t0} and \texttt{t1}:
+Consider a program with threads \texttt{t0} and \texttt{t1}:
 
 \medskip
 \begin{cppcode}
@@ -128,14 +131,16 @@ Consider this program with threads \texttt{t0} and \texttt{t1}:
 \end{cppcode}
 \smallskip
 
-The assertion is violated if \cpp{t0} executes between the (local, invisible)
-assignment and the assertion in \cpp{t1}.
-However, if repeated loads are not considered visible, they are coalesced and
-the assertion is not violated.
+If the two loads in \texttt{t1} are not considered visible, they are coalesced
+and the assertion violation is missed.
 \end{marginnote}
 %
-Similar problem was present in \mcite{Cordeiro2011} where ESBMC could perform two conditional jumps which read the same shared variable with no context switch between them (section 3.1, rule R3).
-Interestingly, the authors notice the possibility of missing context switches, but only introduce an option to fix it, leaving the problematic behaviour as default.
+A similar problem was present in \mcite{Cordeiro2011}, where ESBMC could
+perform two conditional jumps that read the same shared variable with no
+context switch between them (section 3.1, rule R3).
+Interestingly, the authors notice the possibility of missing context switches,
+but only introduce an option to fix it, leaving the problematic behaviour as
+default.
 
 To further improve capabilities of explicit-state model checking, several
 techniques for memory-efficient representation of the set of visited states
@@ -154,27 +159,25 @@ practical (or even possible) to explicitly enumerate all possible values of
 data domains.
 Therefore, if data nondeterminism is required, explicit-state model checking
 needs to be combined with some technique for symbolic of abstract data
-representation.
+representation \mcite{Pasareanu2013,MBLB2016}.
 
 \paragraph{Tools}
 
-The pioneering tool is the SPIN LTL model
-checker~\mcite{Holzmann1997,Holzmann2004}, however, it has a very limited
-support for analysis of realistic programs.
-SPIN targets a parallel modelling language PROMELA, which has support to embed
-C code to define atomic an atomic step.
-In~\mcite{Zaks2008} SPIN was extended to have partial support of C with the
-need to define a test driver in PROMELA.
+The pioneering tool is the SPIN LTL model checker
+\mcite{Holzmann1997,Holzmann2004}.
+SPIN has a very limited support for analysis of realistic programs, it targets
+a parallel modelling language PROMELA, which has support to embed C code to
+define an atomic step.
+In~\mcite{Zaks2008} SPIN was extended to have partial support for C.
+Even so, this version needs to have a test driver in PROMELA.
 
-Java Pathfinder (JPF)~\mcite{Artho2019,Visser2003} is an explicit state model
-checker (with symbolic extensions) for Java and JVM-based\mnote{Java is
+Java Pathfinder (JPF)~\mcite{Visser2003,Artho2019} is an explicit state model
+checker (with symbolic extensions) for Java and other JVM-based\mnote{Java is
 not executing directly on the target hardware but instead uses an intermediate
-language which is executed by JVM. Other languages (e.g., Scala, Kotlin) can
-also target JVM and share the intermediate representation with Java.}
-languages.
-From its beginning JPF targets parallel Java programs.
-It checks for safety properties, namely for uncaught exceptions which in Java also subsume assertion checking and bound checking.
-To reduce state space, JPF uses hash-compaction (and therefore under-approximates all possible behaviours), symmetry reduction (with respect to class loading order and heap symmetry), optionally predicate abstraction (with user-provided predicates), partial order reduction, and groups instructions with local effects.
+language which is executed by JVM.} languages (e.g., Scala, Kotlin).
+From its beginning, JPF targets parallel Java programs.
+It can check for safety properties, namely for uncaught exceptions which in Java also subsume assertion checking and bound checking.
+To reduce the state space, JPF uses hash-compaction (and therefore under-approximates all possible behaviours), symmetry reduction (with respect to class loading order and heap symmetry), optionally predicate abstraction (with user-provided predicates), partial order reduction, and groups instructions with local effects.
 Interestingly, the instruction grouping in JPF uses a heuristic which can cause it to miss some behaviours.
 JPF has also model of parts of the Java standard library (including limited IO
 support) and limited support for execution of native code from the Java
@@ -183,7 +186,7 @@ with native code, for example in order to access operating system primitives
 directly.}
 In addition to scheduling nondeterminism, JPF can use explicit choice as an
 additional source of nondeterminism.
-The symbolic extension, Symbolic Pathfinder (SPF)~\mcite{Pasareanu2013,Noller2019} adds
+The symbolic extension, Symbolic Pathfinder (SPF) \mcite{Pasareanu2013,Noller2019} adds
 support for symbolic data representation using symbolic execution.
 It supports test generation and detection of assertions and errors related to parallel execution.
 It primarily targets unit tests and sub-system level testing and has a
@@ -191,60 +194,59 @@ possibility to use unit preconditions and combine symbolic and explicit
 execution.
 To explore different possible interleavings, SPF uses the explicit JPF without
 state comparison and with depth bound to ensure termination (the state
-comparison can be enabled but then disregards the symbolic data and therefore
+comparison can be enabled but it disregards the symbolic data and therefore
 can miss many behaviours).
-Interestingly, SPF is able to handle certain cases of dynamically allocated
+SPF is able to handle certain cases of dynamically allocated
 linked symbolic data by \emph{lazy initialization} -- when a symbolic pointer
-is accessed it can be expanded to either null pointer or another node of
-symbolic data~\mcite{Khurshid2003}.
-SPF has support for symbolic arrays~\mcite{Fromherz2017} and symbolic strings~\mcite{Bang2016}.
+is accessed, it can be expanded to either null pointer or another node of
+symbolic data \mcite{Khurshid2003}.
+SPF has support for symbolic arrays \mcite{Fromherz2017} and symbolic strings \mcite{Bang2016}.
 
-An unnamed explicit state model checker for C\# is presented in \mcite{Huynh2006}.
+An unnamed explicit-state model checker for C\# is presented in \mcite{Huynh2006}.
 It targets a subset of .NET bytecode (which is an intermediate representation into which C\# and other .NET languages are translated) and it analyses parallel programs running under the .NET relaxed memory model.
-It can be used to detect behaviour which differs from any possible sequentially consistent behaviour and to insert memory barriers to recover sequential consistency.
+It can be used to detect behaviour that differs from any possible sequentially consistent behaviour and to insert memory barriers to recover sequential consistency.
 % The implementation of the exploration algorithm uses a list of delayed instructions to implement instruction reordering.
 
-DIVINE~\mcite{DIVINEToolPaper2017} is an explicit-state model checker developed
+DIVINE \mcite{DIVINEToolPaper2017} is an explicit-state model checker developed
 by our research group.
-Historically it targeted several modelling languages for parallel systems and
+Historically, it targeted several modelling languages for parallel systems and
 LTL verification using parallel and distributed algorithms, but later it
-shifter towards analysis of C and C++ using the LLVM intermediate language.
+shifter towards analysis of C and C++ using the LLVM intermediate representation.
 While it now aims primarily at verification of safety properties (assertion
 violations, memory access safety, detection of use of undefined variables,
-detection of memory leads, numeric manipulation errors, and deadlock-freedom for
-the POSIX mutexes) it has also limited support for LTL and there is also an
+detection of memory leaks, numeric manipulation errors, and deadlock-freedom for
+the POSIX mutexes), it has also limited support for LTL and an
 extension for detection of nontermination in parallel programs
 (\autoref{chap:lnterm}, \mcite{SB2019}).
 To tackle realistic programs, DIVINE uses a dynamic detection of invisible
 actions ($\tau+$ reduction) and an efficient representation of program memory
 which facilitates heap-symmetry reduction and state-space
-compression~\mcite{RSCB2018}.
-DIVINE has also support for symbolic and abstract data representation using
-program transformations~\mcite{LRB2018}.
-Currently it supports symbolic bitvector manipulations for integers and floats
-and symbolic string representation~\mcite{CLOR2019}.
+compression \mcite{RSCB2018}.
+DIVINE also supports symbolic and abstract data representation using program
+transformations \mcite{LRB2018}.
+Currently, it supports symbolic bitvector manipulations for both integeral and floating-point data types and symbolic string representation \mcite{CLOR2019}.
 With the symbolic data representation using bitvectors, DIVINE uses SMT solvers
 to check for feasibility of traces and to compare symbolic states -- this way
-it retains the ability to join states which are semantically equivalent even if
+it retains the ability to join states that are semantically equivalent even if
 the symbolic data are represented by a different formula.
-This allows DIVINE with symbolic data to ensure termination for programs with
-finite symbolic state space and allows LTL properties.
+The state comparison allows DIVINE with symbolic data to ensure termination for
+programs with finite symbolic state space, and it also enables checking LTL
+properties.
 One of the main goals of DIVINE is to support verification of C and C++
 programs which use existing libraries.
 To this end, DIVINE has almost complete standard C and C++ libraries (as of
 C++17), the POSIX thread library (\texttt{pthreads}), and it also supports C++
 exceptions (\autoref{chap:lang}, \mcite{SRB2017}).
 To reflect behaviour of parallel programs on contemporary hardware, DIVINE
-has also support to analyse programs with respect to the \xtso memory
-model~(\autoref{chap:mm}, \mcite{SB2018x86tso}).
-DIVINE has also an in-built compiler based on LLVM's clang and support for
-significant parts of POSIX filesystem and process APIs~\mcite{RBMKB2019}.
+has support to analyse programs with respect to the \xtso memory
+model (\autoref{chap:mm}, \mcite{SB2018x86tso}).
+DIVINE has also an in-built compiler based on LLVM's clang and supports
+significant parts of POSIX file system and process APIs \mcite{RBMKB2019}.
 
-Another explicit-state model checker from our research group is
-\textsf{SymDIVINE}~\mcite{MBLB2016} which combines explicit control flow
-handling with symbolic representation of data using bitvectors (with symbolic
-state equality).
-\textsf{SymDIVINE} targets safety and LTL properties in C programs.
+SymDIVINE \mcite{MBLB2016} was another explicit-state model checker from our research group.
+It combines explicit control flow handling with symbolic representation of data
+using bitvectors (with symbolic state equality).
+SymDIVINE targets safety and LTL properties in C programs.
 This tool is now discontinued in favor of aforementioned symbolic data support
 in DIVINE.
 
@@ -269,13 +271,13 @@ A stateless model checker usually explores the state space in depth-first
 manner and it can explore some parts of the state space multiple times (since
 it does not store the set of visited states).
 Therefore, the requirement that input program is terminating is necessary to
-ensure the verification procedure terminates.
+ensure the analysis terminates.
 In practice, this requirement is often ensured by imposing loop iteration
-bounds -- loops are assigned maximum allowed number of iterations, if the
-program under test requires more iterations of some loop, the loop bound can be
-increased, or the analysis can be terminated as inconclusive.
+bounds.
+If the program under test requires more iterations of a loop, the loop bound
+can be increased, or the analysis can be terminated as inconclusive.
 
-Stateless model checking is also sometimes presented under names like \emph{systematic concurrency testing}~\mcite{Christakis2013}.
+Stateless model checking is also sometimes presented under names like \emph{systematic concurrency testing} \mcite{Christakis2013}.
 
 \paragraph{State Space Reductions}
 
@@ -283,12 +285,12 @@ Without additional state space reductions, SMC would lead to redundant
 explorations of many parts of the state space -- in parallel programs it is
 common that two or more actions of different threads are independent and
 regardless of their order they lead to the same end state.
-In this case a stateless model checker would explore a state as many times as
+In this case, a stateless model checker would explore a state as many times as
 is the number of paths from the initial state to this state (in the worst case
 the number of paths to a given state can be exponential to its distance from
 the initial state).
 To mitigate this problem, \emph{dynamic partial order reduction}
-(\emph{DPOR})~\mcite{Flanagan2005dpor} is often employed with SMC.
+(\emph{DPOR}) \mcite{Flanagan2005dpor} is often employed with SMC.
 DPOR is a version of partial order reduction that tightly integrates with
 the SMC exploration algorithm and keeps track of parts of the state space which
 still need to be explored.
@@ -308,13 +310,14 @@ unsafe state -- i.e., the equivalence preserves safety properties.
 Over the years, multiple DPOR techniques were introduced
 \mcite{Flanagan2005dpor,Sen2007,Tasharofi2012,Saarikivi2012,Abdulla2014,Zhang2015,Chalupa2017,Abdulla2018,Aronis2018,Abdulla2019}.
 Among these \mcite{Abdulla2014} is interesting since it provides an optimal algorithm for equivalence based on \emph{Mazurkiewicz traces} \mcite{Mazurkiewicz1987} (where traces are considered equivalent if one of them can be obtained from the other by swapping adjacent non-conflicting execution steps).
-However, the optimal DPOR presented by \mcite{Abdulla2014} is optimal for the
+The optimal DPOR presented by \mcite{Abdulla2014} is optimal for the
 given trace equivalence (i.e., it explores exactly one execution in each equivalence class of the used trace equivalence).
 In recent years, several works have explored coarser equivalences and optimal algorithms for them.
 
-In \mcite{Chalupa2017} the authors use a notion of observation of write operations and an consider traces to be equivalent if the corresponding reads observe the same writes in both traces, however, their algorithm is optimal only for programs in which the graph of intra-thread communication is acyclic.
+In \mcite{Chalupa2017} the authors use a notion of observation of write operations and consider traces to be equivalent if the corresponding reads observe the same writes in both traces.
+However, their algorithm is optimal only for programs in which the graph of inter-thread communication is acyclic.
 A similar notion of observation is used in \mcite{Aronis2018}, in this case to only consider write events as interfering if at least one of them can be observed later.
-In \mcite{Abdulla2018} the authors use a notion of reads-from equivalence (i.e., trace equivalence based on program order and reads-from relation which connects reads to writes which produced the read value) for analysis of a fragment of the C11 memory model which contains only relase and acquire memory orders.
+In \mcite{Abdulla2018} the authors use a notion of reads-from equivalence (i.e., trace equivalence based on program order and reads-from relation which connects reads to writes which produced the read value) for analysis of a fragment of the C11 memory model that contains only release and acquire memory orders.
 The advantage of this trace equivalence is that it does not distinguish traces which differ in order of unobserved writes.
 The authors argue that working with this equivalence is easier for release-acquire ordering than for sequential consistency due to complexity of checking if a reads-from relation can correspond to a run of a program.
 The same trace equivalence is used in \mcite{Abdulla2019} for sequentially-consistent programs.
@@ -322,51 +325,49 @@ To avoid the need for expensive (NP-complete) checks for consistency of reads-fr
 
 A somewhat different modification of DPOR is presented in \mcite{Albert2017cspor}.
 It uses a notion of context-sensitive independence to improve on previous DPOR techniques.
-In essence, it considers two actions $a$ and $b$ independent in a given state, if they can be executed in both as $ab$ and $ba$ and both executions lead to the same final state.
+In essence, it considers two actions $a$ and $b$ independent in a given state if they can be executed in both as $ab$ and $ba$ and both executions lead to the same final state.
 This technique uses a (local) state comparison and therefore is not completely stateless.
 This approach was later combined with observers to achieve further reduction improvements \mcite{Albert2019}.
 
 Another reduction approach based on observation of read and written values is
-\emph{Maximal Causality Reduction} (\emph{MCR})~\mcite{Huang2015}, which can be
+\emph{Maximal Causality Reduction} (\emph{MCR}) \mcite{Huang2015}, which can be
 seen as an alternative to DPOR.
 MCR employs an SMT solver to find new traces to explore, which allows it to
 explore less interleavings then Mazurkiewicz-trace-based DPOR techniques.
-Each time a new trace is found it is guaranteed that at least one read will read a different value than read on already observed traces.
+Each time a new trace is found, it is guaranteed that at least one read will read a different value than read on already observed traces.
 An advantage of MCR is that it can be easily modified for parallel
 exploration (DPOR cannot be easily executed in parallel).
 The MCR was also applied to the TSO and PSO memory models \mcite{Huang2016}.
-
-% \TODO{RCMC?} \mcite{Kokologiannakis2017}
 
 \paragraph{Data Nondeterminism}
 
 In most works, stateless model checking with DPOR expects that the thread
 scheduling is the only source of nondeterminism in the system \mcite{Flanagan2005dpor}.
-However, there are combinations of SMC with other techniques which can handle
+However, there are combinations of SMC with other techniques that can handle
 nondeterministic data.
 In \mcite{Saarikivi2012} a combination of DPOR with concolic execution is presented.
 Another combination of concolic execution with SMC is presented in \mcite{Sen2007}, this one uses a different approach to DPOR then \mcite{Flanagan2005dpor}.
 
 \paragraph{Tools and Techniques}
 
-VeriSoft \mcite{Godefroid1997,Godefroid2005verisoft} the pioneering tool of stateless model checking.
+VeriSoft \mcite{Godefroid1997,Godefroid2005verisoft} is the pioneering tool of stateless model checking.
 It aims at safety verification of realistic parallel programs, primarily in C and C++, but also in other programming languages -- VeriSoft works with compiled executable programs and uses a custom scheduler to explore (bounded) runs of these programs.
-To limit re-exploration of states and state space size, VeriSoft allows scheduling only on visible operations and uses partial order reduction.
+To limit re-exploration of states and state-space size, VeriSoft allows scheduling only on visible operations and uses partial order reduction.
 
-jCUTE \mcite{Sen2007} is a tool which combines concolic execution and stateless model checking for Java programs, which allows it to handle both parallelism and data nondeterminism.
+jCUTE \mcite{Sen2007} is a tool that combines concolic execution and stateless model checking for Java programs, and therefore can handle both parallelism and data nondeterminism.
 To explore all possible behaviours of parallel programs, jCUTE detect data races (concurrent access of two threads to the same location, at least one of which is a write or a lock operation) and rearranges schedules which led to them.
 % - assumes locks are disjoint from R/W memory locations
 
-CHESS \mcite{Musuvathi2008} an SMC tool which uses a custom scheduler to drive execution of compiled executable programs mainly in C, C++ and .NET languages (such as C\#).
+CHESS \mcite{Musuvathi2008} uses a custom scheduler to drive execution of compiled executable programs written mainly in C, C++ and .NET languages such as C\#.
 It uses binary instrumentation to control programs' scheduling and record order of events.
-To limit state space explosion it explores runs with fewer context switches first and uses a cache of happens-before graphs of events to avoid redundant explorations (and therefore is not truly stateless).
+To limit state space explosion, it explores runs with fewer context switches first, and uses a cache of happens-before graphs of events to avoid redundant explorations (and therefore is not truly stateless).
 To handle the environment of the operating system better, CHESS can record and relay environmental values such as current time, process identifiers and output of platform's random number generators.
-However, the user must ensure that other parts for the environment (e.g., filesystem, network) is used in such a way that the program is executes the same way if the same thread scheduling is repeated.
+However, the user must ensure that other parts for the environment (e.g., file system, network) are used such that the program executes the same way if the same thread scheduling is repeated.
 The authors argue that this approach is practical for most unit tests.
 
 LCT \mcite{Saarikivi2012,Kahkonen2013} is another tool which combines concolic execution and SMC to handle parallel Java programs with data nondeterminism.
-It uses program instrumentation to add symbolic operations where needed and allows scheduling to happen only on visible operations.
-To speedup the analysis, LCT can run multiple executions of the program with different inputs in parallel distributed over the network.
+It uses program instrumentation to add symbolic operations where needed, and allows scheduling to happen only on visible operations.
+To speedup the analysis, LCT can run multiple executions of the program with different inputs in parallel and distributed over the network.
 
 SATCheck \mcite{Demsky2015} is a stateless model checker for C programs with support for sequential consistency and TSO.
 It records dependencies between program events and uses SAT solver to reorder the events on a concrete run to get new interleavings with new behaviour.
@@ -382,28 +383,29 @@ for sequential consistency.
 The maximal causality reduction (MCR) is implemented in an unnamed tool for analysis of Java programs \mcite{Huang2015,Huang2016}.
 It supports both sequential concurrency and the TSO and PSO relaxed memory models.
 
-CDSChecker \mcite{Norris2016} is a stateless model checker for C and C++ with support for the C11/C++11 memory model (with exception of release-consume synchronisation and out-of-thin-air values\mnote{Which are discouraged by the standard, but the C11/C++11 memory models allow them.}).
+CDSChecker \mcite{Norris2016} is a stateless model checker for C and C++ with support for the C11/C++11 memory model (with the exception of release-consume synchronisation and out-of-thin-air values which are discouraged by the standard, but the C11/C++11 memory models allow them).
 It can simulate load speculation and delays by forwarding stored values to previous loads and validating this speculation.
-According to the authors, CDSChecker primarily aims to help with unit testing concurrent data structures.
+CDSChecker primarily aims to help with unit testing concurrent data structures.
 
 Concuerror \mcite{Christakis2013,Abdulla2014,Aronis2018} is an SMC for Erlang programs.
 In Erlang, the primary way of communication between processes is message passing.
-Concuerror uses context bounding and it has also an implementation of optimal DPOR for Mazurkiewicz traces and optimal DPOR based on observers.
+Concuerror uses context bounding and contains an implementation of the optimal DPOR for Mazurkiewicz traces and optimal DPOR based on observers.
 
-Nidhugg \mcite{Abdulla2016,Abdulla2017tso,Aronis2018,Abdulla2019}, is a stateless model
-checker which focuses on C programs running under relaxed memory models. It
-has support for sequential consistency, TSO, PSO, POWER, and partially ARM
+Nidhugg \mcite{Abdulla2016,Abdulla2017tso,Aronis2018,Abdulla2019}, is a
+stateless model checker that focuses on C programs running under relaxed memory
+models.
+It has support for sequential consistency, TSO, PSO, POWER, and partially ARM
 memory models.
-For TSO and PSO, Nidhugg uses the optimal DPOR algorithm from \mcite{Abdulla2014} to explore exactly one execution from each equivalence class given by \emph{chronological traces} that capture dependencies between memory operations.
+For TSO and PSO, Nidhugg uses the optimal DPOR algorithm from \mcite{Abdulla2014} to explore exactly one execution from each equivalence class given by \emph{chronological traces} which capture dependencies between memory operations.
 The combination of chronological traces and optimal DPOR algorithm means that
-for programs which do not exhibit relaxed behaviour under TSO/PSO, Nidhugg
+for programs that do not exhibit relaxed behaviour under TSO/PSO, Nidhugg
 explores the same number of traces under TSO/PSO as it would explore under
 sequential consistency.
-For POWER, Nidhugg uses a different algorithm which can perform a redundant exploration of incomplete traces, but does not generate redundant complete traces (for the trace equivalence given by Shasha-Snir traces~\mcite{Shasha1988}).
+For POWER, Nidhugg uses a different algorithm which can perform a redundant exploration of incomplete traces, but does not generate redundant complete traces (for the trace equivalence given by Shasha-Snir traces \mcite{Shasha1988}).
 Nidhugg has also option to use a \emph{reads-from}-based trace equivalence for sequential consistency, together with an optimal exploration algorithm for this equivalence.
-This equivalence does not distinguish traces which differ only in order of conflicting writes and therefore can be exponentially more coarse.
+This equivalence does not distinguish traces that differ only in order of conflicting writes and therefore can be exponentially more coarse.
 The corresponding algorithm needs to decide if a given read-from relation is consistent, which is a NP-complete problem.
-However, the authors show that the expensive check can be avoided in most cases by use of faster but incomplete checks.
+However, the authors show that the expensive check can be avoided in most cases by use of a faster but incomplete checks.
 Nidhugg uses LLVM to avoid the cost of direct analysis of C programs.
 
 % \mcite{Abdulla2019}
@@ -413,30 +415,31 @@ Nidhugg uses LLVM to avoid the cost of direct analysis of C programs.
 % - checking consistency of a given reads-from relation is NP-complete -- the exploration algorithm first uses two incomplete but faster checks (to detect inconsistency and consistency)
 %   - on all programs they tesed the incomplete checks were sufficient
 
-RCMC \mcite{Kokologiannakis2017} is a stateless model checker for C and C++ running under the RC11 memory model \mcite{Lahav2017} (which is an attempt to formalize and fix the C11 memory model).
+RCMC \mcite{Kokologiannakis2017} is a stateless model checker for C and C++ programs running under the RC11 memory model \mcite{Lahav2017} (which is an attempt to formalize and fix the C11 memory model).
 Instead of exploring interleavings, the tool uses execution graphs which represent visible program actions and dependencies between them.
 
 Tracer \mcite{Abdulla2018} is a tool for analysis of the release-acquire fragment of the C11/C++11 relaxed memory model.
-I can work with C and C++ program which do not use any other atomic orderings then release and acquire, i.e., it has no support for sequentially consistent atomics or relaxed atomics.
+It can work with C and C++ programs that do not use any other atomic orderings than release and acquire, i.e., it has no support for sequentially consistent or relaxed atomics.
 Tracer does not explore all possible orderings of conflicting writes, instead, the equivalence relation at the core of their DPOR implementation is given only by program orders and read-from to avoid redundancy.
 The proposed exploration algorithm is optimal for traces defined on this equivalence.
-In practice this means that nondeterministical decision takes place at read operations and writes are only recorded, with the addition of backtracking for cases when a previous read might read from a later executed write.
+In practice, this means that nondeterministic decisions take place at read operations and writes are only recorded, and backtracking is used for cases when a previous read might read from a later executed write.
 % - C/C++11 -- replaces implementations of atomic, threads, mutex to drive execution
 
 
 \section{Symbolic and Concolic Execution}
 
 Sybolic execution was introduced in~\mcite{King1976}.
-It executes the program with symbolic values instread of concrete once and tracks the relations between these symbolic values.
-When a symbolic value is used in a conditional branch, the symbolic executor can follow one or both of the branches based on the concrete values which are permitted by the sybolic values.
+It executes the program with symbolic values instead of concrete once, and tracks the relations between these symbolic values.
+When a symbolic value is used in a conditional branch, the symbolic executor can follow one or both of the branches based on the concrete values which are permitted by the symbolic values.
 If both of the branches are followed, the corresponding branching condition (or its negation) is added to the \emph{path condition}.
-The path condition therefore collects the contraints required to get to the given code location.
+The path condition therefore collects the constraints required to get to the given code location.
 Symbolic executors usually use SAT or SMT solvers to decide which paths can be taken.\mnote{SAT solvers are used for propositional formulas while SMT solvers
-can solve first order formulas which use some theory, for example theory of
+can solve first order formulas that use some theory, for example theory of
 bitvectors which can be used to precisely model computer integers. The
-advantage of SMT solvers for BMC is that the encoding is simpler and the solver
+advantage of SMT solvers is that the encoding is simpler and the solver
 can make use of the additional information encoded in the richer theory.}
 Unlike previously discussed techniques, symbolic execution mostly targets sequential programs with inputs, i.e., it deals primarily with data nondeterminism and not scheduling nondeterminism.
+For this thesis, symbolic execution is notable because symbolic executors often have good support for real-world programs, including programs that use libraries and interact with their environment.
 
 The state space explored by a symbolic executor forms a tree with branches at conditions.
 This \emph{symbolic execution tree} can be quite large even for small sequential programs with loops or recursion -- this is the problem known as \emph{path explosion}.\begin{marginnote}%
@@ -492,16 +495,16 @@ The symbolic execution tree can be explored in different manners (e.g., depth-fi
 
 \paragraph{Test Generation}
 
-Symbolic execution can be used to generate concrete test cases for a program (or function) -- each time the executor finishes a path (either the program terminates or an error is found) it can use a solver to generate concrete inputs which reproduce this path in a test case \mcite{Cadar2008}.
-This way it is possible to generate tests which cover the program well and do not execute the same path repeatedly.
+Symbolic execution can be used to generate concrete test cases for a program (or a function) -- each time the executor finishes a path (either the program terminates or an error is found) it can use a solver to generate concrete inputs that reproduce this path in a test case \mcite{Cadar2008}.
+This way, it is possible to generate tests which cover the program well and do not execute the same path repeatedly.
 Even if the symbolic execution tree is large or infinite, the test generation can use random search or some other heuristics to provide good coverage of the code and therefore improve on manually-written tests.
 Furthermore, tests generated from symbolic execution can be very useful for bug fixing as the programmer can use their debugging tools of choice on the generated test and do not need to learn a verifier-specific way to analyse the counterexample.
 
 \paragraph{Concolic Execution}
 
-\emph{Concolic Execution}, also knows \emph{Concolic Testing}, \emph{Dynamic Sybolic Execution} or \emph{Directed Automated Random Testing} is a modification of symbolic execution which can eliminate some of the expensive solver queries during exploration \mcite{Godefroid2005,Sen2005}.
-With concolic execution, the program is executed with concrete values and it follows a single run, but the concolic executor records the path condition as with conventional symbolic execution.
-When the run is finished, the executor uses the path condition and a solver to find values of input variables which will lead the program to follow different path.
+\emph{Concolic Execution}, also knows \emph{Concolic Testing}, \emph{Dynamic Symbolic Execution} or \emph{Directed Automated Random Testing} is a modification of symbolic execution which can eliminate some of the expensive solver queries issued during exploration \mcite{Godefroid2005,Sen2005}.
+Using concolic execution, the program is executed with concrete values and it follows a single run, but the concolic executor records the path condition as with conventional symbolic execution.
+When the run is finished, the executor uses the path condition and a solver to find values of input variables that will lead the program to follow a different path.
 This is repeated until no more paths can be discovered, or until the given coverage criteria are met.
 
 \paragraph{Tools}
@@ -512,37 +515,37 @@ CUTE uses approximate constraints for pointers to prevent undecidable theories (
 It detects assertion violations, memory access errors, and certain cases of infinite loops.
 Furthermore, CUTE has support for \emph{hybrid concolic testing} which combines concolic and random testing.
 It targets reactive programs and uses primarily random-generated inputs.
-In this mode, concolic input generation is used to avoid getting stuck (i.e., the tool will switch to concolic input generation if it fails add coverage in a certain number of randomized tests).
+In this mode, concolic input generation is used to avoid getting stuck (i.e., the tool will switch to concolic input generation if it fails to add to coverage in a certain number of randomized tests).
 
-KLEE \mcite{Cadar2008} is a symbolic executor and test generator which targets realistic C and C++ programs that communicate with the environment.
+KLEE \mcite{Cadar2008} is a symbolic executor and test generator that targets realistic C and C++ programs that communicate with the environment.
 Its goal is to work with unmodified programs (with source code available, the program needs to be compiled to LLVM).
 KLEE can check for memory safety and assertion safety violations.
 It uses array theory with separate array for each memory object to facilitate analysis of programs with dynamic memory.
 In KLEE, sybolic pointers are handled by explicit enumeration of all possibilities on dereference.
-To achieve good coverage even if time and size of the symbolic execution tree does not allow for full exploration, KLEE uses path selection heuristics.
-KLEE is notable for its support of realistic programs which communicate with their environment.
-It has a models of some of the POSIX system calls (mostly related to filesystem) and these models can contain symbolic values (e.g., in files).
+To achieve good coverage even if time and the size of the symbolic execution tree do not allow for full exploration, KLEE uses path selection heuristics.
+KLEE is notable for its support of realistic programs that communicate with their environment.
+It has a models of some of the POSIX system calls (mostly related to the file system) and these models can contain symbolic values (e.g., in files).
 The system call models are written in C and can be modified without modification of KLEE itself.
 Furthermore, the program running in KLEE can also access real file system and KLEE can perform fault injection into system calls.
 When an error is encountered, KLEE generates a test harness which creates the corresponding files and fills them with values which reproduce the problem.
 % (and simulate system failures by replacing appropriate system calls)
-To support C standard library, KLEE uses uClibc standard library implementation which is linked to the program under analysis.
+To support the C standard library, KLEE uses uClibc standard library implementation which is linked to the program under analysis.
 
 Symbiotic~\mcite{Chalupa2018,Chalupa2020} is a tool for analysis of sequential C programs which uses KLEE symbolic executor as a backend.
 It can detect assertion violations, memory safety errors, memory leaks, and integral overflows.
-Symbiotic uses instrumentation to add pointer checks where needed and uses various analysis techniques (e.g., pointer analysis and shape analysis based on Predator \mcite{Dudka2013}) to limit number of inserted checks.
+Symbiotic uses instrumentation to add pointer checks where needed and uses various analysis techniques (e.g., pointer analysis and shape analysis based on Predator \mcite{Dudka2013}) to limit the number of inserted checks.
 %  - pointer analysis has to account for deallocation
 Furthermore, Symbiotic uses program slicing to remove code irrelevant for the property.
 Symbiotic has basic support for detection of termination and nontermination.
-It can detect simple cycles in the program state space and therefore in some cases decide the program does not terminate (for non-nested loops which preserve values of all variables).
-It can also conclude the program is terminating if all paths were explored.
+It can detect simple cycles in the program's state space and therefore in some cases decide the program does not terminate (for non-nested loops that preserve values of all variables).
+It can also conclude the program terminates if all paths were explored.
 
-Pinaka \mcite{Chaudhary2019} is a symbolic executor for sequential C programs which uses uses incremental solver to check path feasibility.
+Pinaka \mcite{Chaudhary2019} is a symbolic executor for sequential C programs which uses incremental solver to check path feasibility.
 It can run either in fully incremental mode where it reuses one solver instance for the whole program, which can cause big formulas, or in partially incremental mode which creates new instance of solver on backtracking.
 Pinaka may not terminate on nonterminating programs and it has an option for loop unwinding limit.
 It can be used to show termination -- if a program is found to be safe without any unwinding limit, then all its paths terminate.
 
-\textsc{JDart} \mcite{Mues2020,Luckow2016} is a concolic executor and test generator for sequential Java programs build on Java Path Finder.
+JDart \mcite{Mues2020,Luckow2016} is a concolic executor and test generator for sequential Java programs build on Java Path Finder.
 It can detect assertion violations and uncaught exceptions.
 JDart attempts to find small values for symbolic variables, which can make loops depending on symbolic values shorter.
 
@@ -551,7 +554,7 @@ It can merge paths using summarization of regions with multiple paths (e.g., bra
 
 COASTAL \mcite{Visser2020} combines concolic execution with fuzz testing for Java programs.
 % - uses instrumentation
-It uses fuzz testing for fast exploration, fuzzing mode tracks only direction of branches.
+It uses fuzz testing for fast exploration, the fuzzing mode tracks only direction of branches.
 Concolic execution can be used to get to parts of the program's state space which are harder to reach.
 COASTAL can explore different parts of the symbolic execution tree in parallel (with different fuzzer or concolic executor instances).
 To help with analysis of realistic programs, COASTAL has models for some of the standard Java classes. % but seems to be able to handle original java bitecode libraries (?)
