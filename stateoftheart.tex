@@ -853,48 +853,48 @@ While the presented tool uses CBMC, the authors claim that their program transfo
 
 There are many program analysis techniques relevant to realistic parallel programs which were not covered in the previous sections.
 These techniques are often very different and categorizing them does not seem to provide much benefit.
-Therefore, we will now outline these techniques as they are represented by notable tools which implement them.
+Therefore, we will now outline these techniques as they are represented by notable tools that implement them.
 
 \paragraph{Tools}
 
-Ultimate Automizer \mcite{Heizmann2017,Heizmann2013} is a program analysis tool for sequential and concurrent C programs.
-It uses \emph{automata-theoretic verification approach} which in essence converts a program to automaton (starting with automaton derived from control-flow graph), and then checks reachability of error states in this automaton and possibly refines it.
+Ultimate Automizer \mcite{Heizmann2017,Heizmann2013} is a program analysis tool for sequential and parallel C programs.
+It uses \emph{automata-theoretic verification approach} which, in essence, converts a program to an automaton (starting with automaton derived from the control-flow graph), and then checks reachability of error states in this automaton and possibly refines it.
 The automata are constructed in such a way that the set of traces of the automaton over-approximates program traces and therefore if the automaton cannot reach error location the program is correct.
 If the automaton can reach error location, the feasibility of the error trace is checked and if it is not feasible, the automaton is refined (otherwise an error was found).
 Therefore, automata-theoretic verification is an instance of CEGAR.
-The refinement is peformed by construction of automaton of spurious traces -- Floyd-Hoare automaton -- which is constructed on-demand.
-The construction of refinement automaton uses SMT solver.
+The refinement is performed by construction of automaton of spurious traces -- Floyd-Hoare automaton -- which is constructed on-demand using an SMT solver.
 Furthermore, Ultimate Automizer uses nested words automata for interprocedural analysis and Büchy automata and ranking functions for termination and nontermination analysis.
 Ultimate Automizer can detect assertion violations, memory safety errors, check for integral overflows, and termination.
 
 Ultimate Taipan \mcite{Dietsch2020,Greitschus2017} is a close relative of Ultimate Automizer that uses refinement based on \emph{path programs}.
-When a possible error is found it projects the original program into the error trace to obtain a corresponding path program which can contain loops and only contains statements found on the trace.
+When a possible error is found, it projects the original program into the error trace to obtain a corresponding path program that can contain loops and only contains statements found on the trace.
 It then attempts to show trace infeasibility by proving unreachability of the error location in the path program using invariants.
 % - newer version uses SMT formulas to represent program states
 
 Ultimate Kojak \mcite{Nutz2015} is another related tool which uses a different algorithm for the refinement step.
-This algorithm is based on proofs of unsatisfiability provided by an SMT solver which is used to check feasibility of error paths.
+This algorithm is based on proofs of unsatisfiability provided by an SMT solver used to check feasibility of error paths.
 
 Skink \mcite{Cassez2017} is a LLVM-based tool for assertion checking of sequential and concurrent C programs.
 It uses the automata-theoretic verification approach similar to Ultimate Automizer (with automata-based refinement).
-However, Skink is limited to programs which can be fully inlined, i.e., it does not support function calls and it uses mathematical integers and therefore is not bit-precise.
-To improve efficiency with parallel programs, Skink uses POR based on source-DPOR algorithm used more often in stateless model checking \mcite{Abdulla2014}.
+However, Skink is limited to programs which can be fully inlined, i.e., it does not support function calls.
+Furthermore, it uses mathematical integers and therefore is not bit-precise.
+To improve efficiency with parallel programs, Skink uses reduction based on the source-DPOR algorithm used more often in stateless model checking \mcite{Abdulla2014}.
 
 CPAchecker \mcite{Dangl2015,Beyer2011,Beyer2020pdr} is a program analysis tool for C programs and a modular framework which aims at easy integration of new components and research of new verification ideas.
-It uses a combination of abstract domains and has support for various techniques such as $k$-induction, predicate abstraction, and property directed reachability.
+It uses a combination of abstract domains and has support for various techniques such as $k$-induction, predicate abstraction, and property directed reachability (PDR/IC3).
 To avoid false counterexamples, CPAchecker performs bit-precise validation of counterexamples.
 % - memory graphs for memory safety as of~\mcite{Dangl2015} (but later in SV-COMP yes)
-Various tools build on the CPAchecker frameworks are participating in the SV-COMP, among these CPA-Seq appears to be just a version of CPAchecker tuned for SV-COMP.
+Various tools build on the CPAchecker framework are participating in the SV-COMP, among these CPA-Seq appears to be just a version of CPAchecker tuned for SV-COMP.
 
-CPA-BAM-BnB \mcite{Andrianov2017} is a CPAchecker-based tool that uses Block Abstraction Memoization which means it divides programs into blocks (often a block is a function) and analyzes blocks separately.
+CPA-BAM-BnB \mcite{Andrianov2017} is a CPAchecker-based tool that uses Block Abstraction Memoization, which means it divides programs into blocks (often a block is a function) and analyzes blocks separately.
 It uses a cache of existing block abstractions.
 Furthermore, it uses value analysis and predicate analysis with refinement on spurious counterexamples.
-It also uses BnB which is a model of memory that uses predicate analysis and uninterpreted functions to map memory locations to memory values.
+It also uses BnB, which is a model of memory that uses predicate analysis and uninterpreted functions to map memory locations to memory values.
 In this model, the memory is split into regions and each region has its own mapping function.
 
-CPALockator \mcite{Andrianov2018} is a version of CPAchecker which specializes on concurrency and data race detection.
+CPALockator \mcite{Andrianov2018} is a version of CPAchecker which specializes on parallel programs and data race detection.
 The aim of CPALockator is to provide lightweight analysis at the cost of possibly missing errors.
-To do this it tracks locks and thread that are active at the given time.
+To do this, it tracks locks and threads that are active at the given time.
 CPALockator uses predicate analysis and CEGAR to exclude spurious race conditions.
 
 PeSCo \mcite{Richter2019,Czech2017} is a tool build on top of CPAchecker that tries to predict efficient verification approach for a given task using machine learning.
@@ -906,18 +906,18 @@ Abstracted programs track values of only a selected set of variables (which is i
 On top of that, functions are inlined on-demand if an over-approximation of a function's effects causes a spurious error.
 Corral supports parallel programs using sequentialization.
 
-SMACK \mcite{Rakamaric2014,Carter2016,Garzella2020} is a bug-finder for various programming languages which can be translated to LLVM.
+SMACK \mcite{Rakamaric2014,Carter2016,Garzella2020} is a bug-finder for various programming languages that can be translated to LLVM.
 It translates LLVM IR into Boogie intermediate verification language and then uses Boogie, Corral (default) or other Boogie-based verifiers as a backend.
 This approach is intended to allow easy prototyping of backend verifiers which do not need to handle some of the complexities of programming languages.
-SMACK can use either bitvector (i.e., be bit-precise) or arbitrary precision integers.
-Since Boogie has not support for dynamic memory, SMACK partitions the memory into disjoint regions that are represented by maps in Boogie.
-While SMACK originally targeted C, it was later extended to (partially) support various other programming languages which can be translated to LLVM: C++, Rust, Objective-C, D, Fortran, Swift, and Kotlin.
+SMACK can use either bitvectors (i.e., be bit-precise) or arbitrary precision integers.
+Since Boogie has no support for dynamic memory, SMACK partitions the memory into disjoint regions that are represented by maps in Boogie.
+While SMACK originally targeted C, it was later extended to (partially) support various other programming languages that can be translated to LLVM: C++, Rust, Objective-C, D, Fortran, Swift, and Kotlin.
 In this effort SMACK relies heavily on LLVM-based language frontends to provide basic language support.
 On top of that, SMACK has a basic support for standard libraries (allocation, C string and math operations, POSIX threads, models of most common parts of the libraries), but the authors claim these models must be written manually which they consider to be a major undertaking.
 This is shown to be a limiting factor especially for languages with heavy runtime components, such as Swift, Objective-C and Kotlin.
-%  - shows limits of SMACK's handling of LLVM
-%    - pratialy reuse of existing library (Kotlin arithmetics)
-Thanks to compilation to a common intermediate representation (LLVM), SMACK has support for cross-language program analysis.
+% - shows limits of SMACK's handling of LLVM
+% - pratialy reuse of existing library (Kotlin arithmetics)
+Furthermore, thanks to compilation to a common intermediate representation (LLVM), SMACK has support for cross-language program analysis.
 With a concurrency-enabled backend (e.g., Corral), Smack also supports parallel programs.
 
 JayHorn \mcite{Kahsai2019} is tool for analysis of sequential Java programs.
@@ -926,55 +926,55 @@ JayHorn is not bit precise (it uses unbounded integers) and has only a basic mod
 
 Threader \mcite{Gupta2011} is a tool for compositional verification of parallel C programs.
 It uses thread-modular proofs based on proof rules from \mcite{Jones1983,Owicki1976}.
-The analysis is based on abstract reachability with refinement and uses a Horn clause solver.
+The analysis is based on abstract reachability with refinement, and uses a Horn clause solver.
 Threader can detect safety violations and termination properties, it is not limited to specific synchronization primitives.
 
 Predator and PredatorHP \mcite{Peringer2020,Dudka2013} are tools for checking memory safety of sequential C programs.
 Predator uses shape analysis, i.e., it describes shape of heap memory by an abstract domain (\emph{symbolic memory graphs}).
 It targets memory errors and assertions and can handle unbounded lists (both doubly- and singly-linked, circular, and nested lists).
-It has only a limited ability to handle non-list types.
+Predator has only a limited ability to handle non-list types.
 % - uses function summaries, recursion depth bound
 To avoid parsing C directly, Predator uses intermediate representation of the GCC compiler.
-PredatorHP is a tool which runs several configurations of Predator in parallel (a verifier which can prove correctness but overapproximates and several bug hunters which can show incorrectness).
+PredatorHP is a tool which runs several configurations of Predator in parallel (a verifier which can prove correctness but over-approximates and several bug hunters which can show incorrectness).
 
 SatAbs \mcite{Clarke2005} is a tool for bit-precise analysis of (possibly parallel) C programs.
 It uses predicate abstraction with counterexample guided refinement to decrease size of the analysed program -- the program is abstracted into a boolean program which is analysed by a backend model checker.
-If the backend model checker concludes the abstracted program is correct, then the original program is correct, otherwise the trace of the abstract program is validated using SAT-queries which simulate the corresponding path of the original program.
-If the counterexample is spurious SatAbs refines the abstraction.
+If the backend model checker concludes the abstracted program is correct, then the original program is correct, otherwise the trace of the abstract program is validated using SAT-queries that simulate the corresponding path of the original program.
+If the counterexample is spurious, SatAbs refines the abstraction.
 SatAbs uses bitvectors (bit-blasted to SAT formulas\mnote{Bit-blasing is a technique which rewrites a bitvector variables to a sequence of boolean variables and implements bitvector operations by respective boolean circuits.
 It allow solving (existentially-qualified) bitvector formulas with a SAT solver.}) and therefore is bit-precise.
 It can perform reachability and equivalence checking of a C program and the corresponding Verilog circuit.
 
 An unnamed tools that encodes behaviour of relaxed memory models in a program is presented in \mcite{Alglave2013}.
 Given a C program which is supposed to run under one of the supported relaxed memory model (including \xtso and a fragment of POWER) it transforms it into an equivalent program which can be analysed by an analyser for sequentially consistent parallel programs.
-The authors evaluate their approach with various backend analyses including CBMC, ESBMC, and SatAbs.
-The encoding of relaxed behaviour uses \emph{abstract event graph} that encode events of the program and dependencies between them.
+The authors evaluate their approach with various backend analysers including CBMC, ESBMC, and SatAbs.
+The encoding of relaxed behaviour uses an \emph{abstract event graph} that encodes events of the program and dependencies between them.
 
-GACAL \mcite{Quiring2020} is a tool which analyses C programs by generating potential invariants from traces and verifies them using the ACL2 theorem prover.
-It supports only a subset of sequential C (it has no support for arrays, only 32 bit integers, …). \TODO{remove?}
+% GACAL \mcite{Quiring2020} is a tool which analyses C programs by generating potential invariants from traces and verifies them using the ACL2 theorem prover.
+% It supports only a subset of sequential C (it has no support for arrays, only 32 bit integers, …). \TODO{remove?}
 
-VIAP~\mcite{Rajkhowa2019,Rajkhowa2017}
-- aims at programs with loops, does not need invariants
-- C programs without dynamic memory, floats, concurrency
-- uses integral arithmetic
-- translates to quantified first-order formulas over integers
-- non-bounded loops
-- can use preconditions and postconditions, or assertions
-- \TODO{remove?}
+% VIAP~\mcite{Rajkhowa2019,Rajkhowa2017}
+% - aims at programs with loops, does not need invariants
+% - C programs without dynamic memory, floats, concurrency
+% - uses integral arithmetic
+% - translates to quantified first-order formulas over integers
+% - non-bounded loops
+% - can use preconditions and postconditions, or assertions
+% - \TODO{remove?}
 
-VeriAbs~\mcite{Afzal2019}
-- portfolio verifier -- uses different independent techniques for program analysis
-- targets sequential C programs with loops
-- lightweight analysis to infer which technique should be used, based on the type of loops and data used in them
-- techniques include: random fuzz testing, array abstractions, explicit-state model checking, loop invariant generation, CEGAR, loop abstraction, loop summarization, BMC, k-induction
-- \TODO{remove?}
+% VeriAbs~\mcite{Afzal2019}
+% - portfolio verifier -- uses different independent techniques for program analysis
+% - targets sequential C programs with loops
+% - lightweight analysis to infer which technique should be used, based on the type of loops and data used in them
+% - techniques include: random fuzz testing, array abstractions, explicit-state model checking, loop invariant generation, CEGAR, loop abstraction, loop summarization, BMC, k-induction
+% - \TODO{remove?}
 
-VeriFuzz~\mcite{Basak2019}
-- fuzz testing with lightweight analaysis and instrumentation to extract useful infromation about the program
-- coverage driven
-- uses evolutionary algorithm to generate test inputs and learning algorithm based on decision trees to decide which techniques to use for fuzzing
-- uses loop unrolling (with increasing bounds)
-- \TODO{remove?}
+% VeriFuzz~\mcite{Basak2019}
+% - fuzz testing with lightweight analaysis and instrumentation to extract useful infromation about the program
+% - coverage driven
+% - uses evolutionary algorithm to generate test inputs and learning algorithm based on decision trees to decide which techniques to use for fuzzing
+% - uses loop unrolling (with increasing bounds)
+% - \TODO{remove?}
 
 \iffalse
 \section{XXX}
