@@ -569,46 +569,46 @@ Map2Check runs multiple fuzzers in parallel.
 
 \section{Bounded Model Checking \& Other Symbolic Techniques}\label{sec:stateoftheart:bmc}
 
-Bounded model checking (BMC) was introduced in~\mcite{Biere1999} as an alternative to
+Bounded model checking (BMC) was introduced in \mcite{Biere1999} as an alternative to
 symbolic model checking techniques which used binary decision diagrams.
 BMC encodes program runs of fixed length into propositional formulas, or to
 formulas over some first-order logic.
-It then in relies on SAT or SMT solvers to decide if the formula is satisfiable
+It then in relies on SAT or SMT solvers to decide whether the formula is satisfiable
 or not.
-One of the advantages of BMC is that is naturally handles data nondeterminism.
+One of the advantages of BMC is that is naturally handles data nondeterminism and can cope with scheduling nondeterminism too.
 
 The original paper introducing BNC presented a verification procedure for LTL
 (which detected loops in the program runs by checking equality of the last
-state of the bounded run to some of its previous states).
+state of a bounded run to some of its previous states).
 However, for realistic programs the focus is mainly on safety properties, and
 more recently also on (non)termination.\mnote{For tools which use approximation
 or heuristics, checking for termination is not the same as checking for
 nontermination as the tool might simply return \emph{unknown} result if it
 fails to prove its objective (i.e., termination or nontermination).}
 
-Most BMC tools build formula from SSA form\mnote{Static single assignment, each variable is assigned only at one place in the source code.} of the program with bounded number $n$ of loop iterations and recursion depth \mcite{Clarke2004}.
+BMC tools usually build formula from an SSA form\mnote{Static single assignment, each variable is assigned only at one place in the source code.} of the program with bounded number $n$ of loop iterations and recursion depth \mcite{Clarke2004}.
 The loops and recursive functions are unwound -- repeated $n$ times with guard before each repetition which allows the program to skip the repetition if the number of iterations was lower then $n$.
 Furthermore, \emph{unwinding assertions} are inserted after the last repetition to ensure the unwinding was sufficient.
-The result is that all jump lead forward, which simplifies creation of logic formula which describes transition function of the program.
+The result is that all jump lead forward, which simplifies creation of the logic formula which describes transition function of the program.
 
 \paragraph{Parallelism}
 
-We have identified three broad approaches to support of parallelism in BMC.
+We have identified three broad approaches to parallelism in BMC.
 The conceptually simplest is to explicitly enumerate symbolic context-switch
 bounded runs of the program and then encode them to resolve symbolic data.
-This is the approach used by ESBMC~\mcite{Cordeiro2011} and by
+This is the approach used by ESBMC \mcite{Cordeiro2011} and by
 \mcite{Rabinovitz2005} for an early concurrent extension of CBMC.
 Another approach is to encode control flow of threads separately and add scheduling constraints which specify inter-thread ordering.
-This approach is used by CBMC~\mcite{Alglave2013po} and also proposed in~\mcite{Ganai2008}.
-The last approach is sequentialization, which makes use of a BMC for sequential programs and a pre-processing step which converts a parallel program into a nondeterministic sequential program.
-Many sequentialization schemes were proposed, differing both in the size of the encoding and the way they limit thread interaction (e.g., limit to the number of context switches, to the number of shared-variable interactions, …) \mcite{Qadeer2004,Lal2009,Inverso2015,Tomasco2016,Tomasco2017}.
+This approach is used by CBMC \mcite{Alglave2013po} and also proposed in \mcite{Ganai2008}.
+The last approach is sequentialization, which makes use of a BMC for sequential programs and a preprocessing step that converts a parallel program into a nondeterministic sequential program.
+Many sequentialization schemes were proposed, differing both in the size of the encoding and the way they limit thread interaction (e.g., limit to the number of context switches, to the number of shared-variable interactions) \mcite{Qadeer2004,Lal2009,Inverso2015,Tomasco2016,Tomasco2017}.
 
 \paragraph{Path Bounding}
 
 The main limitation of BMC is that it explores only runs up to some length
 bound $k$.
 Therefore, BMC alone cannot prove correctness unless it shows that the loop
-bound was sufficient (for example showing unwinding assertions are not
+bound was sufficient (for example by showing unwinding assertions are not
 violated).
 To mitigate this limitations, BMC can be combined with other techniques which
 aim to prove correctness of the program, such as $k$-induction or
@@ -620,34 +620,37 @@ $k$-induction \mcite{Donaldson2011,Gadelha2017} is an extension of
 bounded model checking which allows it to find bugs faster and to prove
 correctness of programs without unwinding loops fully.
 Multiple $k$-inductions schemes exists, in the one proposed in~\mcite{Gadelha2017} a verifier with $k$-induction repeatedly performs following three steps with an increasing bound $k$.
+
 \begin{itemize}
     \item \emph{Base Case} checks if an error is reachable in $k$ steps.
     \item \emph{Forward Condition} checks if all program's paths had terminated in
-        $k$ steps (i.e., the verification is done as the tool had already
-        explored all states).
-    \item \emph{Inductive Step} checks that if the property holds for the first $k$
-        steps, it also holds for the $k+1$ steps.
+        $k$ steps (i.e., the tool had already explored all states and therefore
+        the verification is done).
+    \item \emph{Inductive Step} checks a formula corresponding to the following
+        proposition: if the property holds for the first $k$ steps, it also
+        holds for $k+1$ steps.
         This is checked in a modified program in which all loop variables are
         initialized to nondeterministic values before the loops and the loops
         are required to execute to completion.\mnote{This can be achieved by
-        instrumenting \texttt{assume} statements which ensure that the loop
-        body is entered and that after the given number of iterations the
-        condition for loop termination holds.}
+        inserting \texttt{assume} statements that ensure that the loop body is
+        entered and that after the given number of iterations the condition for
+        loop termination holds.}
 \end{itemize}
+
 One of the problems with $k$-induction is that the induction argument may not be strong enough to prove the inductive step.
 For this reason, the induction can be strengthen by invariants derived from the original program (i.e., the nondeterministic values of loop variables are constrained by the invariants) \mcite{Rocha2017}.
 
 \subparagraph{IC3/PDR}
 
-Another symbolic technique which uses solvers is \emph{IC3} (\emph{Incremental Construction of Inductive Clauses for Indubitable Correctness}), also known as \emph{Property Directed Reachability} (\emph{PDR}).
-It verifies the system without unrolling the transition relation and uses a lot of relatively small solver queries while BMC usually encodes the whole program into one big query.
-IC3 iteratively builds approximations of reachable safe state space and refines them once it finds a step which leads from the set of already discovered states to an unsafe state.
+Another symbolic technique that uses solvers is \emph{IC3} (\emph{Incremental Construction of Inductive Clauses for Indubitable Correctness}), also known as \emph{Property Directed Reachability} (\emph{PDR}).
+It verifies a system without unrolling its transition relation and uses a lot of relatively small solver queries (while BMC usually encodes the whole program into one big query).
+IC3 iteratively builds approximations of reachable safe state space and refines them once it finds a step that leads from the set of already discovered states to an unsafe state.
 The refinement works backwards from the predecessor of the unsafe state.
-If the refinement reaches the initial state the analysed system is incorrect.
+If the refinement reaches the initial state, the analysed system is incorrect.
 Solver queries in IC3 concern separate steps in the state space (not entire paths).
 
-IC3 was originally introduced in the context of hardware (circuit) verification \mcite{Bradley2011} and refined as \emph{property directed reachability} (\emph{PDR}) \mcite{Een2011}.
-IC3 was later extended to software using SMT solvers \mcite{Cimatti2012}.
+IC3 was originally introduced in the context of hardware (circuit) verification \mcite{Bradley2011} and refined later as \emph{property directed reachability} (\emph{PDR}) \mcite{Een2011}.
+It was later extended to software using SMT solvers \mcite{Cimatti2012}.
 The SMT-based IC3 can also handle software with infinite state space.
 Software IC3 was also combined with predicate abstraction in multiple ways including \emph{Implicit Predicate Abstraction} \mcite{Cimatti2014} and \emph{Counterexample to Induction-Guided Abstraction-Refinement} (\emph{CTIGAR}) \mcite{Birgmeier2014}.
 IC3 was also combined with $k$-induction to strengthen the inductive step of $k$-induction \mcite{Beyer2020pdr}.
@@ -655,44 +658,47 @@ IC3 was also combined with $k$-induction to strengthen the inductive step of $k$
 \paragraph{Tools}
 
 The original bounded model checker BMC \mcite{Biere1999} was an LTL bounded
-model checker which targeted a modelling language.
+model checker that targeted a modelling language.
 
 F-Soft \mcite{Ivancic2005} is a tool for safety analysis of sequential C programs.
-It supports both BMC and BDD-based model checking.\mnote{BDDs, or Binary Decision Diagrams are use in symbolic model checking methods. However, for software analysis these methods are superseded by bounded model checking and not used these days.}
-It uses program slicing and predicate abstraction to reduce improve analsys performance.
+It supports both BMC and BDD-based model checking.\mnote{BDDs, or Binary Decision Diagrams are used in symbolic model checking methods. However, for software analysis these methods are superseded by bounded model checking and not used these days.}
+It uses program slicing and predicate abstraction to improve analysis performance.
 An interesting property of F-Soft is that it can generate executable counterexamples.
 
 CBMC \mcite{Clarke2004,Kroening2014} is a widely used SAT-based bounded
 model checker for sequential and parallel C programs.
 It uses bit-precise encoding and therefore preserves semantics of computer
 integers.
-CBMC can detect safety errors, it uses instrumentation for detection of errors
-other then assertions.
-For efficient analysis of parallel programs CBMC uses encoding based on partial
-orders described in~\mcite{Alglave2013po} -- it builds the formula from the SSA
-form of each thread and ordering constraints for shared variables.
+CBMC can detect safety errors, and it uses instrumentation for detection of
+errors other then assertions.
+For efficient analysis of parallel programs, CBMC uses encoding based on
+partial orders described in \mcite{Alglave2013po} -- it builds the formula from
+the SSA form of each thread and ordering constraints for shared variables.
 CBMC is notable for its support of relaxed memory models, including \xtso,
-PSO and partially POWER memory model as well as sequential consistency \mcite{Alglave2013po}.
+PSO and partially the POWER memory model, as well as sequential consistency
+\mcite{Alglave2013po}.
 CBMC uses a custom parser for C.
 
 ESBMC \mcite{Gadelha2018,Gadelha2019}, is another widely used BMC for C
-programs in which it can detect assertion violations, memory errors, overflows and mutex-caused deadlocks.
-ESBMC was derived from CBMC, it uses SMT for encoding of the program and has
+programs.
+It can detect assertion violations, memory errors, overflows and mutex-caused
+deadlocks.
+ESBMC was derived from CBMC, but it uses SMT for encoding of the program and has
 support for $k$-induction with invariant generation (based on interval analysis
-of integral variables; the invariant generation is currently unsound for
-programs with pointers).
-The support for concurrency in ESBMC is described in~\mcite{Cordeiro2011}.
-Interestingly, ESBMC explores possible program interleavings explicitly and
+of integral variables).
+The invariant generation is currently unsound for programs with pointers.
+The support for concurrency in ESBMC is described in \mcite{Cordeiro2011}.
+ESBMC explores possible program interleavings explicitly and
 doing so it collects constrains on nondeterministic variables, which are then
 used to generate a formula.
 The formula can be generated and solved either for each run separately (lazy
 approach, has the advantage of being incremental), or all interleavings can be
 encoded into one formula that uses guards to encode scheduling of each
 interleaving (schedule recording).
-There is also encoding based on under-approximation and widening which attempts
-to produce more compact encoding.
+There is also an encoding based on under-approximation and widening that
+attempts to produce more compact encoding.
 The approximation uses proofs of unsatisfiability of the formula for refinement.
-The lazy approach seems to work best according to~\mcite{Cordeiro2011}.
+The lazy approach seems to work best according to \mcite{Cordeiro2011}.
 Regardless of the formula encoding, ESBMC uses a bound on the number of context
 switches.
 In order to limit number of runs which need to be explored, ESBMC allows
@@ -701,12 +707,12 @@ shared memory).
 The handling of parallelism in ESBMC makes it closely related to explicit-state
 model checkers with symbolic extensions, like Symbolic Pathfinder or DIVINE.
 Similarly to CBMC, ESBMC used a custom C parser, but it had later switched to
-using the clang compiler for parsing C and C++.
-Unlike other tools which use clang, it does not use the LLVM intermediate
+using the clang compiler for parsing C and there is ongoing work for using this
+parser for C++.
+Unlike other tools which use clang, ESBMC does not use the LLVM intermediate
 representation, but instead builds its own internal representation based on the
 C/C++ AST produced by clang.
-
-ESBMC has derivatives which aim at C++ verification.
+Furthermore, ESBMC has derivatives which aim at C++ verification.
 ESBMC++ \mcite{Ramalho2013} uses a model of parts of the standard C++ library,
 has support for C++ exceptions and inheritance.
 $\text{ESBMC}^{\textit{Qt}OM}$ \mcite{Sousa2015,Garcia2016} adds a model
@@ -723,22 +729,23 @@ representation) and has an exact verification-friendly model of most common
 parts of the Java standard libraries.
 It can detect assertions, memory errors, integral overflows an type casting
 errors.
-JBMC has no support for threads currently and it also lacks support for the
+JBMC has currently no support for threads and it also lacks support for the
 Java Native Interface (JNI) and reflection.
 
-LLBMC~\mcite{Merz2012,Falke2013} is an SMT-based bit-precise BMC for
-sequential C and C++ programs that is notable for its used of the LLVM
+LLBMC \mcite{Merz2012,Falke2013} is an SMT-based, bit-precise BMC for
+sequential C and C++ programs that is notable for its use of the LLVM
 intermediate representation which allows it to reuse existing C and C++
 compilers.
-It is also one of the few tools which have support of C++.
-However, the C++ support has some limitations, most notably there is not
-support for exceptions and run-time type support and there is no support for
-threads and floating-point arithmetic for both C and C++.
+It is also one of the few tools which claim support of C++.
+However, the C++ support has some limitations, most notably there is no
+support for exceptions and run-time type support.
+Furthermore, LLBMC has no support for threads and floating-point arithmetic in
+both C and C++.
 It can detect assertion violations, integer overflows, invalid shifts, memory
 errors and memory leaks.
 % \TODO{unmaintained}
 
-Another LLVM-based tool is LLVMVF \mcite{Sousa2013} which is a generic verification framework on which a BMC for parallel programs is built.
+Another LLVM-based tool is LLVMVF \mcite{Sousa2013}, a generic verification framework on which a BMC for parallel programs is built.
 Concurrency support in LLVMVF is incomplete, for example it lacks support for condition variables.
 % \TODO{unmaintained}
 
@@ -746,7 +753,7 @@ An older version of Map2Check \mcite{Rocha2015} was a test generator for memory 
 It uses ESBMC to extract verification conditions (conditions of memory safety violation).
 Then it instruments the program to convert memory safety to assertions about pointers and runs the tests with concrete data.
 
-Yogar-CBMC \mcite{Yin2018,Yin2019} is a derivative of CBMC which uses
+Yogar-CBMC \mcite{Yin2018,Yin2019} is a derivative of CBMC that uses
 abstraction and refinement for the encoding of scheduling constraints in
 parallel programs in order to make the formulas smaller.
 Unlike CBMC, it has no support for relaxed memory.
@@ -758,19 +765,19 @@ Yogar-CBMC was able to solve all concurrency benchmarks in SV-COMP 2019 and sign
 CBMC-Path~\mcite{Khazem2019} is another derivative of CBMC, it encodes paths in
 the state space one by one instead of building a formula for the whole
 (bounded) state space of a parallel program.
-While it was designed to facilitate faster bug discovery for SV-COMP it performed significantly worse than CBMC.
+While it was designed to facilitate faster bug discovery for SV-COMP, it performed significantly worse than CBMC.
 
-DepthK~\mcite{Rocha2017,Rocha2017svc}, is a tool based on ESBMC with
+DepthK \mcite{Rocha2017,Rocha2017svc}, is a tool based on ESBMC with
 addition of polyhedral invariants which aim to strengthen inductive step in the
 $k$-induction.
 It was presented before ESBMC gained ability to compute invariants itself and it uses an external tool for invariant generation.
 DepthK can analyze concurrent C programs.
 
-Dartagnan~\mcite{PonceDeLeon2020,Gavrilenko2019} is a BMC for analysis if parallel C programs under relaxed memory models.
+Dartagnan~\mcite{PonceDeLeon2020,Gavrilenko2019} is a BMC for analysis of parallel C programs under relaxed memory models.
 In this case, the relaxed memory model is specified on input, not encoded in the verifier.
-To achieve this Dartagnan uses symbolic encoding of relation between program's actions (data dependencies, reads-from, program order, …) and the memory model restricts the possible runs based on these relations.
+To achieve this, Dartagnan uses symbolic encoding of relations between program's actions (data dependencies, reads-from, program order, …) and the memory model restricts the possible runs based on these relations.
 It should be possible to use Dartagnan with a wide range of memory models including \xtso, ARMv8, POWER, C/C++11 and Linux kernel memory model.
-To speed up the analysis, it uses relation analysis that reduces size of the encoding -- it determines which pairs of events may influence constraints specified by the memory model.
+To speed up the analysis, it uses relation analysis that reduces the size of the encoding -- it determines which pairs of events may influence constraints specified by the memory model.
 Dartagnan internally uses Boogie intermediate language and translates C to it using SMACK \mcite{Rakamaric2014}, it lacks support for pointer arithmetic.
 
 Lazy-CSeq~\mcite{Inverso2015,Nguyen2017,Inverso2020} is a se\-quen\-tial\-iza\-tion-based
@@ -781,38 +788,35 @@ sequential C program which simulates a bounded number of round-robin scheduling
 rounds (i.e., the number of context switches is limited and the threads are
 required to execute in a fixed order, with possibility to perform no steps in a
 given round).
-This way Lazy-CSeq can simulate a bounded number of interleavings with small
+This way, Lazy-CSeq can simulate a bounded number of interleavings with small
 memory overhead while limiting added nondeterminism.
 It can detect errors detectable by the used backend and POSIX mutex deadlocks.
-In order to speed verification, Lazy-CSeq uses Frama-C~\mcite{Canet2009} to
-infer  bounds of integral variables and shrink the corresponding bitvector
+In order to speed up verification, Lazy-CSeq uses Frama-C \mcite{Canet2009} to
+infer bounds of integral variables and shrink the corresponding bitvector
 formulas.
-Lazy-CSeq performs \emph{lazy sequentialization}, i.e., it explores only the reachable state space of the program, unlike some older works on sequentialization \mcite{Lal2009}.
-Lately a support for parallelization by partitioning the set of execution traces into independent instances was added to Lazy-CSeq.
-
-% \TODO{- the formula size if O(|orig prog.| * |n threads| * |n rounds|)
+Lazy-CSeq performs \emph{lazy sequentialization}, i.e., it explores only the reachable state space of the program, unlike some older works on sequentialization like \mcite{Lal2009}.
+Lately, a support for parallelization by partitioning the set of execution traces into independent instances was added to Lazy-CSeq.
+% - the formula size if O(|orig prog.| * |n threads| * |n rounds|)
 
 MU-CSeq~\mcite{Tomasco2015,Tomasco2016} and IMU-CSeq~\mcite{Tomasco2017}
 are se\-quen\-tial\-iza\-tion-based tools for analysis of concurrent C programs
 that use CBMC as a backend.
 They work by nondeterministically guessing a bounded sequence of shared memory
 writes and then simulating the program so that its runs match this sequence.
-Optionally it can allow also unobserved memory writes which are not part of the
-sequence to execute.
+Optionally, they can execute also unobserved memory writes which are not part of the
+sequence.
 The difference between the tools is that IMU-CSeq uses a separate sequence for
 each memory location, while MU-CSeq has a single sequence of visible memory
 operations.
-IMU-CSeq has also support for relaxed memory (TSO, PSO) by the means of
+IMU-CSeq also has support for relaxed memory (TSO, PSO) by the means of
 \emph{Shared Memory Abstraction} which defines behaviour of memory operations
 and synchronization primitives of the given memory model.
 These tools perform \emph{eager sequentialization}, i.e., threads are executed separately, with nondeterministic values for shared memory reads which connect them.
 
-
 BLITZ \mcite{Cho2013} is a BMC for C programs that decomposes the verification instance using approximations of preconditions of property violation.
 These approximations are are gradually refined based on the proofs of unsatisfiability (for the under-approximated instance).
 It aims to detect assertion violations and memory safety in larger programs (100kloc).
-BLITZ appearch to have no support for parallelism.
-
+BLITZ appears to have no support for parallelism.
 
 TCBMC \mcite{Rabinovitz2005} is an early extension of CBMC to parallel programs.
 It uses context switch bounding and the authors proposed mutex deadlock detection and race detection for it.
@@ -820,15 +824,15 @@ However, the implementation supported only two theads without deadlock detection
 
 CheckFence~\mcite{Burckhardt2007} is a tool for checking implementations of concurrent data structures in C against a relaxed memory model which is an over-approximation of many hardware memory models (i.e., safety in CheckFence should imply safety under these memory models).
 It uses a test program as a specification -- it checks if the set of all executions under the given memory model is a subset of a set of \emph{serial executions} which are sequentially consistent executions in which each operation with the data structure is atomic.
-That means that CheckFence does not detect properties such as assertion violation or memory safety, but considers the program unsafe it if can exhibit new behaviour under its relaxed memory model.
+Therefore, CheckFence does not detect properties such as assertion violation or memory safety, but considers the program unsafe it if can exhibit new behaviour under its relaxed memory model.
 CheckFence encodes threads and scheduling separately.
 
 NBIS \mcite{Gunther2014} is an incremental BMC for sequential C programs.
 In this case, incremental means that it can change bounds without throwing away the formula and re-runing the solver (provided the solver can support incremental solving, which is common).
-NBIS uses LLVM IR to facilitate analysis of C.
+NBIS uses LLVM IR to facilitate analysis of C programs.
 % - not maintained
 
-VVT \mcite{Gunther2016,Gunther2017} is a tool which combines bounded model checking for fast bug discovery with CTIGAR a SMT-based version of IC3 with counterexample refinement.
+VVT \mcite{Gunther2016,Gunther2017} is a successor to NBIS which combines bounded model checking for fast bug discovery with CTIGAR, a SMT-based version of IC3 with counterexample refinement.
 It aims at analysis of parallel C software and uses LLVM IR internally.
 VVT can analyze infinite-state systems (with finite number of threads and with arrays with statically known bounds).
 To improve performance with parallel programs, VVT uses dynamic state-space reduction based on conditionally atomic blocks of code (which are instruented into the code).
@@ -836,8 +840,8 @@ VVT is not bit-precise, it uses integer arithmetics instead of arithmetics with 
 % - not maintained
 
 power2sc \mcite{Abdulla2017} is a tool for analysis of C programs under the POWER memory model which uses CBMC as a backend.
-It uses program transformation to build a new program which when executed under sequential consistency simulates context-switch-bounded runs of the original program under POWER.
-The transformed program relies on nondeterminism to guess results of interaction between threads and then checks validity of these guesses.
+It uses program transformation to build a new program which, when executed under sequential consistency, simulates context-switch-bounded runs of the original program under POWER.
+The transformed program relies on nondeterminism to guess results of interactions between threads and then checks validity of these guesses.
 While the presented tool uses CBMC, the authors claim that their program transformation can work with any verifier for safety-checking parallel program under sequential consistency.
 
 % \mcite{Donaldson2011}: \textsc{K-Inductor}, \textsc{K-Boogie}
