@@ -1044,18 +1044,17 @@ However, in CBMC, the support for exceptions seems to be limited to recognition
 of the \cpp{try-catch} syntax, and throwing an exception triggers an error.\mnote{A
 simple test which throws and tries to catch an exception object crashes CBCM
 5.11 during verification and a code which attempts to catch exception by
-referrence (which is the recommended pracice in C++) results in spurious syntax error during program parsing.}
-\TODO{
+reference (which is the recommended practice in C++) results in spurious syntax error during program parsing.}
 In our survey of tools for verification of C++ programs, ESBMC
-has by far the best exception support: the latest version can deal with
-most, but not all,\mnote{ESBMC 3.0 is unable to determine that an
+has by far the best exception support: ESBMC 3.0 can deal with most, but not
+all, types of exception handlers and even with exception
+specifications.\mnote{ESBMC 3.0 is unable to determine that an
   exception ought to be caught when the \cpp{catch} clause specifies
   a type which is a virtual base class in a diamond-shaped hierarchy and
   the object thrown is of the most-derived type of the diamond. This
   suggests that ESBMC uses its own implementation of RTTI support code,
   which is somewhat incomplete, compared to production implementations.}
-types of exception handlers and even with exception specifications.
-}
+However, ESBMC is currently (as of version 6.3) migrating C++ to the clang frontend and does not support exceptions.
 Finally, \divine{} 3~\mcite{RBB16} also comes close to
 full support for exceptions, but lacks support for exception
 specifications. Overall, this survey suggests that all current
