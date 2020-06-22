@@ -218,7 +218,6 @@
 \widegeom % will override later, set here for the sake of headers
 \usepackage{fancyhdr}
 \fancyhf{}
-% TODO: there is a weird space before \leftmark… so far, we just make similar-sized space on the right :-/
 \fancyhead[LE]{\footnotesize\makebox[\widthof{000}]{\thepage\hfill}~\leftmark}
 \fancyhead[RO]{\footnotesize\rightmark~\makebox[\widthof{000}]{\hfill\thepage}}
 \renewcommand{\headrulewidth}{0pt} % remove lines after header
@@ -387,8 +386,19 @@
 %\vfill
 \clearpage
 \section*{Keywords}
-\TODO{relaxed memory, memory models, parallelism, software verification, program transformation,
-LLVM, C++, DIVINE, implementation}
+    program analysis,
+    software verification,
+    C++,
+    DIVINE,
+    LLVM,
+    parallelism,
+    concurrency,
+    relaxed memory,
+    memory models,
+    exceptions,
+    termination,
+    program transformation,
+    implementation
 \cleardoublepage
 
 \section*{Acknowledgments}
