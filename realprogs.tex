@@ -1,5 +1,3 @@
-\TODO{Level of verification - TODO (C++ x LLVM x ASM)}
-
 \srcnote{Text of this chapter is in part extension of~\mcite{SRB2017}.
 The text was brought up to date with certain implementation details of DIVINE
 and extended with the wider context of analysis of realistic programs in
@@ -14,9 +12,7 @@ libraries.
 However, by choosing a suitable intermediate language, most of the complexity
 can be delegated to existing execution-oriented (as opposed to
 verification-oriented) compiler frontends and standard library implementations.
-In this chapter, we describe how support for the C and C++ including their
-standard librararies and for C++ exceptions in DIVINE can be done by using
-these principles.
+In this chapter, we describe how support for C++ exceptions in DIVINE can be done by using these principles and how they are applied to support of C and C++ and their standard libraries.
 
 % Our implementation consists of 2 parts: an implementation of the
 % \texttt{libunwind} platform API which is linked to the program under
@@ -27,9 +23,9 @@ these principles.
 As we have already outlined in \autoref{sec:intro:programs}, realistic
 programs have many features not present in verification-centric modelling
 languages.
-For example C has dynamic memory and pointer arithmetic (i.e., it is possible
-to access elements of arrays and data structures by numberic manipulation of
-pointer values) and function pointers.
+For example, C has dynamic memory, pointer arithmetic,\mnote{Using pointer
+arithmetic it is possible to access elements of arrays and data structures by
+numberic manipulation of pointer values.} and function pointers.
 Languages with support for object-oriented programming like C++, C\#, and Java
 have inheritance and dynamic dispatch of member functions based on the runtime
 type of the object they are caled on.
@@ -38,13 +34,13 @@ control between functions.
 C++ is particualrly complex, with features like function and class
 templates,%
 \mnote{Templates allow the programmer to write a generic code which
-    does not depend on the concrete type, the compiler is then responsible for
+    does not depend on concrete types, the compiler is then responsible for
     generation of implementations for concrete types the code is used with.}
 inheritance with multiple base classes, runtime type information (RTTI),
 compiler-generated special member functions,%
 \mnote{C++ compiler can auto-generate code that handles copying, creation and
     destruction of objects, and since C++20 also comparison of objects. Of
-    course the programmer can override the default behaviour in case it is not
+    course, the programmer can override the default behaviour in case it is not
     sufficient, for example when implementing resource abstractions.}
 and support for threads and thread synchronization including low-level atomic
 access.
@@ -57,14 +53,14 @@ community efforts like GCC and clang (whith clang being also supported by
 Apple).
 
 Considering the efforst put into compiler development and the complexity of
-programming languages like C++, it makes sence to reuse as much of the existing
+programming languages like C++, it makes sense to reuse as much of the existing
 execution-oriented infrastructure which exists around these programming
 languages.
 Re-implementing this infrastructure could easily consume large portion of the
-limited resources of developers of verification tools.
-For example, DIVINE and many other tool for analysis of C and C++ use the
+limited resources developers of verification tools have.
+For example, DIVINE and many other tools for analysis of C and C++ use the
 clang compiler to translate C and C++ into LLVM intermediate representation.
-Similar approach can be applied to any language that use LLVM in its
+Similar approach can be applied to any language that uses LLVM in its
 translation (e.g., Rust, Swift, Objective-C), to Java (by tranalating it to
 Java Virtual Machine bytecode), or to C\# (by translating it to Common Language
 Infrastructure).
@@ -72,7 +68,7 @@ For libraries, existing open-source versions can also be used for verification t
 
 The rest of this chapter is structured as follows: \autoref{sec:lang:components} takes a deeper look at advantages and disadvantages of reuse of execution-oriented components for program verification.
 \autoref{sec:lang:divine} then describes how DIVINE uses existing components in analysis of C and C++ and why the C standard library cannot be fully re-used from execution-oriented implementations.
-\autoref{sec:lang:except} then takes more detailed look at the particular case of excetion support in DIVINE 4, which was originally published in~\mcite{SRB2017}.
+\autoref{sec:lang:except} then takes more detailed look at the particular case of excetion support in DIVINE 4; this part was originally published in \mcite{SRB2017}.
 
 % The paper is structured as follows: the remainder of
 % \autoref{sec:introduction} gives motivation, context and
@@ -93,26 +89,29 @@ Reuse of execution-oriented componenents (such as compilers and libraries) for
 program analysis is a compromise and it is important to know the advantages and
 disadvantages of component reuse.
 On one hand, reuse can save developement time and offload significant cost
-of development and testing to a third parties and therefore enable support for the whole complexity of the given programming language, or at least its large parts.
+of development and testing to third parties and therefore enable support for the whole complexity of the given programming language, or at least its large parts.
 This is important as the whole reason for analysis of realistic programming languages is to enable the programmer to use the tool for analysis of the code they normally write, not a code written in a small subset of their language of choice.
-Furthermore, reuse can also increase precision of program analysis for the cases where the same components are used for analysis and execution -- for example if the same optimizing compiler is used in both situations the analysis tool can find problems introduced by the compiler's optimizer (which is quite complex and error-prone) which were not in the original code.
+Furthermore, reuse can also increase precision of program analysis for the cases where the same components are used for analysis and for execution.
+For example, if the same optimizing compiler is used in both situations the analysis tool can find problems introduced by the compiler's optimizer (which is quite complex and error-prone) that were not in the original code.
 On the other hand, potential problems with the reused components can also
 impact verification precision negatively, especially if they are able to hide
 problems is the analysed code.
-Even if there were no bugs in the reused components and they adhered to specification, the problem is that these components can under-approximate all behaviours allowed by the standard -- the standard can define multiple allowed ways in which a particular feature can behave and the implementors of the library or compiler are free to choose from these options, for example, in C++ the order of evaluation of arguments of a function is not specified by the standard (and the program should not assume any particular order).
+Even if there were no bugs in the reused components and they adhered to the specification, the problem is that these components can under-approximate all behaviours allowed by the standard.
+The standard can define multiple allowed ways in which a particular feature can behave and the implementors of the library or compiler are free to choose from these options.
+For example, in C++ the order of evaluation of arguments of a function is not specified by the standard (and the program should not assume any particular order).
 The execution-oriented components are also usually performance oriented, which might make the task of program analysis harder.
 
-\subsection{Compilation}
+\subsection{Parsing and Compilation}
 
 Compilers are now routinely re-used in verifiers, and the LLVM toolchain and clang compiler are especially popular in the area of C (and C++) analysis.
 Many program analysis tools are in fact analysing LLVM IR and not C/C++ directly (for example DIVINE \mcite{DIVINEToolPaper2017}, Skink \mcite{Cassez2017}, VVT \mcite{Gunther2016}, Symbiotic \mcite{Chalupa2018}, and many more).
-Building a verfier for LLVM IR is simpler since LLVM IR abstracts from many of
-the high-level concepts and presents only a reasonable amount of instructions
-which has to be implemented.
+Building program analysis for LLVM IR is simpler since LLVM IR abstracts from
+many of the high-level concepts and presents only a reasonable amount of
+instructions which has to be implemented.
 The clang compiler (which can compile C and C++ to LLVM IR) can handle many
 features of these programming languages in such a way that the program analysis
 tools does not need to know about them.
-For example template instantiation, function overloading, dynamic dispatch, and
+For example, template instantiation, function overloading, dynamic dispatch, and
 local variable lifetime (in absence of exceptions) are handled in this way.
 The problem of parsing the rich grammar of languages such as C++ is
 also handled by the compiler and various control-flow constructs are translated
@@ -123,44 +122,51 @@ information present in the original code.
 For example, a loop condition is often more clearly represented in the original
 code than in the LLVM IR where it has to be extracted from the value used in
 the conditional branch.
-Another disadvantage is the loss of possible behaviours -- for example the C++ standards leaves the order of evaluation of function argument uspecified, letting the compiler to optimize the code by evaluating them in any order necessary.
+Another disadvantage is the loss of possible behaviours -- for example, the C++ standards leaves the order of evaluation of function argument unspecified, letting the compiler to optimize the code by evaluating them in any order necessary.
 However, on the level of LLVM IR, the evaluation order is already fixed.
 
 Some of these disadvantages can be mitigated by reusing less of the compilation
-infrastructure, for example using an approach similar to the one taken by
-ESBMC~\mcite{Gadelha2018}, which uses only the C and C++ parser from clang,
-building their own intermediate representation from the abstract syntax tree.
+infrastructure, for example by using an approach similar to the one taken by
+ESBMC \mcite{Gadelha2018}, which uses only the C and C++ parser from clang and
+builds their intermediate representation from the abstract syntax tree.
 Nevertheless, there is a cost to pay for the increased precision -- for example, ESBMC has to be able to handle many of the language features which are abstracted away in the compilation.
 
-\subsection{Libaries}
+It is also possible go in the other direction and compile the program to an assembly language for some platform before the analysis, or even to an executable binary.
+The disadvantage of this approach is that assembly languages often contain many details of the platform that are irrelevant for the analysis.
+For example, the number of registers is limited and on some platforms it might be hard to distinguish between function calls and jumps.
+In an executable, there are further complications related to address relocations and dynamic linking.
+Some of the advantages of this approach are that it might be easier to support multiple programming languages and that it might be possible to run the analysis on the exact same program that is executed in production.
+
+\subsection{Libraries}
 
 Programmers expect not only the language features, but also the standard
 libraries to work in the program analyser.
-The standard libraries provide basic features such as the data structures, algorithms, access to the filesystem, threading support, and memory allocation.
+These standard libraries provide basic features such as the data structures, algorithms, access to the file system, threading support, and memory allocation.
 
-Clearly, any program analysis tool for C which has support for dynamic memory will need to support at least the parts of library that allow its management (\texttt{malloc}, \texttt{free}, …) and any tool that supports threading will need the support for thread spawning.
-These parts of the library will be specific to the analysis tool, which in
-this context plays the same role as the operating system in the program
-execution.
+Clearly, any program analysis tool for C which has support for dynamic memory will need to support at least the parts of the standard library that allow its management (\texttt{malloc}, \texttt{free}, …) and any tool that supports threading will need the support for thread spawning.
+These parts of the library will most likely be specific to the analysis tool,
+which in this context plays the same role as the operating system in the
+program execution.
 Nevertheless, large parts of the C standard library, and almost all of the C++
 standard library is independent of the operating system it executes on and by
 extension is also independent on whether it is used in the context of execution
 or program analysis.
 
 The advantages and disadvantages of library reuse are in part similar to the
-once mentioned for compilers -- the library is already tested and developed by
+once mentioned for compilers.
+The library is already tested and developed by
 an external entity, but it can contain bugs, or it may use design choices which
 are correct implementation of the standard, but limit possible behaviours of
 the program to a subset of behaviours allowed by the standard.
 However, there are some compromises specifics to library reuse.
 Many of the bugs potentially present in a library can be actually caught if the
-library is treated by the analysis tool as a part of the analysed program -- in
-this way reuse of libraries can lead to discovery of bugs in the library and
+library is treated by the analysis tool as a part of the analysed program.
+In this way, reuse of libraries can lead to discovery of bugs in the library and
 therefore help to ensure correctness of the code which uses the
-library.\mnote{An example is the data race in initialization of C++ threads in
+library.\mnote{An example is a data race in an initialization of C++ threads in
 \texttt{libc++} discovered by DIVINE.
 This bug was later fixed by the \texttt{libc++} developers.}
-The same feature also makes library reuse preferable to implementation of given features in the verifier itself -- a bug in the verifier will can go unnoticed, while a bug in the library has much higher chance to be caught by the verifier.
+The same feature also makes library reuse preferable to implementation of given features in the verifier itself -- a bug in the verifier can go unnoticed, while a bug in the library has much higher chance to be caught by the verifier.
 Library reuse also keeps the verifier itself as small as possible, making it easier to ensure its correctness.
 Sadly, the same aspect of library reuse increases the complexity of the verification task, as the analysis tool now has to analyse the code of the library itself.
 Furthermore, production-ready libraries are usually performance-tuned and therefore their code is more complex to analyse than a simple library implementation.
@@ -171,26 +177,27 @@ Therefore, good support for the language is usually a prerequisite for library r
 It is also important to consider what degree of library reuse makes sense.
 For example, a C standard library uses low-level operating system API (such as
 \texttt{sbrk} and \texttt{mmap} on on POSIX) to implement memory allocation.
-It would therefore be possible to reuse the allocation implementation from a C
-standard library implementation, provided this API was supported by the
-verifier.
-This, however, is probably not a good idea -- the OS level API provides large blocks of memory that are subdivided by the allocation functions in the library.
+It would therefore be possible to reuse the implementation of allocation from a C
+standard library, provided this API was supported by the verifier.
+This, however, is probably not a good idea.
+The OS level API provides large blocks of memory that are subdivided by the allocation functions in the library.
 This subdivision (and block reuse) makes it impossible to discern boundaries of different allocations, and to detect if the memory is allocated or freed without a detailed knowledge of the allocation algorithm.
-If the memory is instead provided in a separate unit for each allocation it is relatively easy to detect out-of-bounds accesses and access to freed memory.
+If the memory is instead provided in a separate unit for each allocation, it is relatively easy to detect out-of-bounds accesses and access to freed memory.
 
 Overall, we believe that reuse of (parts of) existing library implementations is crucial for good language support.
 To the best of our knowledge, there are no program analysis tools which re-implement libraries which have complete or nearly complete support of the
-respective programming languages -- examples of these tools are ESBMC++ \mcite{Ramalho2013} for C++, SMACK for C, C++, Rust and many other \mcite{Garzella2020}, and JPF \mcite{Artho2019} for Java, all of which mention that they support only parts of the respective standard libraries.
+respective programming languages.
+Examples of these tools are ESBMC++ \mcite{Ramalho2013} for C++, SMACK for C, C++, Rust and many other \mcite{Garzella2020}, and Java Path Finder \mcite{Artho2019} for Java, all of which mention that they support only parts of the respective standard libraries.
 
 \section{Component Reuse in DIVINE}\label{sec:lang:divine}
 
 In DIVINE, we use the clang compiler to produce LLVM IR.
-The IR is then then linked with implementations of libraries and instrumented for the verification.
+The IR is then linked with implementations of libraries and instrumented for the verification.
 The LLVM IR with verification-specific instrumentation will be called \divm IR,
 matching the naming introduced by~\mcite{DIVINEToolPaper2017}.
 \divm is the core of DIVINE which handles execution of LLVM in a memory-safe
 way and is able to save and restore state of the execution.
-The overview of this process can be seen in \autoref{fig:lang:divineworkflow}.
+An overview of processing of C++ code in DIVINE can be seen in \autoref{fig:lang:divineworkflow}.
 
 \begin{figure}[t]
 \center
@@ -239,20 +246,20 @@ To make the compilation as easy as possible, the clang compiler is integrated
 into DIVINE as a library, and the libraries which are linked with the program
 are built at the time of built of DIVINE.
 The original integration of clang into DIVINE 4 and the adaptation of LLVM
-linker for use with DIVINE was done by me, with the work then taken over by
-other members of the team.
+linker for use with DIVINE was done by me.
+The work was then taken over by other members of the team.
 The current state of the compilation for DIVINE is described in~\mcite{BR2020}.
 
 In order to provide support for most of C and C++, DIVINE has to provide standard libraries for these languages.
 DIVINE has support for the C and C++ standard libraries, and for the POSIX
 thread library (\texttt{pthreads}), which is used on POSIX systems for
 implementation of threading in C/C++ code prior to the 2011 standards and for
-the implementation of the standard threading in the later versions of C/C++.
+implementation of the standard threading in the later versions of C/C++.
 DIVINE also has support for many POSIX standard functions, including large parts of the file system API \mcite{RBMKB2019}.
 
 The threading library is written specifically for verification with DIVINE.
-Indeed the whole idea of verification of parallel programs requires that that at some level of the abstraction a verification-specific semantics of threads is given.
-In the case of DIVINE, \divm provides explicit nondeterministic choice primitives, that are used by the core of DIVINE's runtime (\dios) to implement thread spawning, which is in turn used by implementation of POSIX thread library to start threads.
+Indeed, the whole idea of verification of parallel programs requires that at some level of the abstraction a verification-specific semantics of threads is given.
+In the case of DIVINE, \divm provides explicit nondeterministic choice primitives which are used by the core of DIVINE's runtime (\dios) to implement thread spawning, which is in turn used by implementation of POSIX thread library to start threads.
 Mutexes, condition variables, and other synchronisation primitives, which in
 execution environment usually use operating system for the waiting and
 signalling, are implemented using atomic sections.
@@ -264,8 +271,8 @@ takes memory directly from \divm, program startup and exit which is \dios specif
 The rest of the standard C library originates mostly from PDClib, with some parts from various other open-source C library implementations and contributions from DIVINE developers.
 
 The C++ standard library usually builds on top of a C standard library.
-This allowed us to re-use existing implementation of C++ standard library,
-namely the libc++abi (which takes care of low-level features such as
+This allowed us to re-use existing implementation of the C++ standard library,
+namely libc++abi (which takes care of low-level features such as
 memory allocation and run-time type support, which can be viewed as part of the
 language itself, but need a library implementation in practice) and
 libc++ (which represents all the user-facing features of the C++
@@ -285,8 +292,8 @@ in libc++abi without any changes to it.
 The changes in the source code of libc++ and libc++abi are limited to changes to platform configuration macros and in libc++abi there is a change in allocation of thread-local backup storage for exception handling.
 
 The POSIX APIs, mainly concerning file system, are provided by \dios and were
-implemented for use with \divine or other program analysis tools~\mcite{RBMKB2019}.
-This functionality makes it possible to analyze programs which use file system and other supported parts of POSIX, either with a simulated environment, or with recording and replay of interaction with real environment.
+implemented for use with \divine or other program analysis tools \mcite{RBMKB2019}.
+This functionality makes it possible to analyze programs which use file system and other supported parts of POSIX, either with a simulated environment, or with recording and replay of interaction with the real environment.
 
 The library support and the situation concerning library reuse in DIVINE is summarized by \autoref{tab:lang:reuse}.
 
@@ -295,18 +302,18 @@ compiled into LLVM IR at the time of compilation of DIVINE.
 These LLVM IR libraries are then linked to the program at the time of its
 compilation for DIVINE.
 The verification workflow and the execution workflow are rather similar in the
-case of DIVINE (especially on POSIX systems) -- the program is in both cases
-compiled and then linked with an implementation of C and C++ standard
-librarires, POSIX thread library, and an stack unwinder.
+case of DIVINE (especially on POSIX systems).
+In both cases the program is compiled and then linked with an implementation of
+C and C++ standard librarires, POSIX thread library, and an stack unwinder.
 
 \begin{table}[t]
   \begin{tabularx}{\textwidth}{>{\raggedright}p{5.5em}p{5.5em}L}
       \toprule
       Library    & Reused? & Comment \\\midrule\midrule
       C standard & mostly (\mbox{PDClib}, other) & Platform dependent code such as allocation, program startup and exit, \texttt{errno} cannot be reused without replicating too many details of the operating system. \\\midrule
-      C++ standard & yes (libc++) & Only changes to of platform selection macros needed. \\\midrule
-      C++ runtime  & yes (libc++abi) & Platform selection + tweak of backup allocator for exceptions (to prevent performance penalty) \\\midrule
-      POSIX threads & no & Needs to be verification specific to allow exploration of all behaviours of a concurrent program. \\\midrule
+      C++ standard & yes (libc++) & Only changes to platform selection macros needed. \\\midrule
+      C++ runtime  & yes (libc++abi) & Platform selection + tweak of backup allocator for exceptions (to prevent performance penalty). \\\midrule
+      POSIX threads & no & Needs to be verification specific to allow exploration of all behaviours of a parallel program. \\\midrule
       POSIX filesystem & no & Normally requires operating system support and cannot revert into previous state. Verified program should not access outside environment directly. \\\midrule
       stack unwinder & no & Platform specific (depends on stack layout and metadata format), cannot be reused without replicating too many details of the hardware platform. \\
       \bottomrule
