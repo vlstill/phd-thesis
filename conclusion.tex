@@ -1,43 +1,44 @@
 In this work, we have introduced the problem of analysis of parallel C++ programs and more generally of analysis of parallel programs written in real-world programming languages.
 We have focused on the analysis techniques that can help programmers to discover hard to find bugs (caused by thread interaction or other problems such as mishandling of memory).
 Furthermore, we have aimed to techniques that can be realistically used by programmers (i.e., do not require a separate modelling effort before the analysis).
-We have performed a review of the state of the art in the area of analysis of parallel programs written in realistic programming languages and contributed to it in three main ares.
-First, in \autoref{chap:lang}, we took a look at the problem of analysis of programs in a high level programming language (C++ in our case), in particular we focused on the addition of support for C++ exceptions to the DIVINE model checker.
-Second, in \autoref{chap:mm}, we proposed a novel technique for analysis of programs under the relaxed memory model of common x86-64 processors.
+We have performed a review of the state of the art in the area of analysis of parallel programs written in realistic programming languages and contributed to it in three main areas.
+First, in \autoref{chap:lang}, we took a look at the problem of analysis of programs in a high-level programming language (C++ in our case), in particular, we focused on the addition of support for C++ exceptions to the DIVINE model checker.
+Second, in \autoref{chap:mm}, we proposed a novel technique for analysis of programs under the relaxed memory model of x86-64 processors.
 Finally, in \autoref{chap:lnterm}, we proposed an automatic technique for finding parts of a finite-state parallel program which should terminate but do not terminate.
-Overall, we believe our contributions improve on the state of the art in analysis of parallel programs and offer utility to both researchers as well as developers.
+Overall, we believe our contributions improve on the state of the art in the analysis of parallel programs and offer utility to both researchers as well as developers.
 
 \section{Contributions}
 
 \paragraph{Language Support}
 
 In the area of language support, we have shown that reuse of existing libraries (which are not designed with program analysis in mind) is a valid option that can both save effort and improve analysis fidelity.
-In particular, we have focused on the case of exception support for C++ and we have devised a solution which allows us to reuse existing exception-handling code from the C++ standard library implementation.
+In particular, we have focused on the case of exception support for C++, and we have devised a solution which allows us to reuse existing exception-handling code from the C++ standard library implementation.
 This approach required only minimal modifications of the DIVINE verifier and a small new library which implements platform-specific stack unwinding routines for DIVINE and is linked to the analysed program.
-This contrasts with a previous attempt to support exceptions in an older version of DIVINE that required more complex changes to the core of the verifier and had to re-implement exception matching.
-We have also showed that our solution can handle cases which were not supported correctly in neither the older DIVINE, nor ESBMC, which is one of the few other tools with reasonable support for C++ exceptions.
-While the core of the work presented in this chapter is about C++ exceptions, we believe its message is more general and reuse of existing libraries is a valid approach for extension of language support in program analysis tools.
-Indeed, DIVINE reuses the entire C++ standard library with only a minor modifications and its C standard library is also in large part reused.
+These results contrast with a previous attempt to support exceptions in an older version of DIVINE that required more complex changes to the core of the verifier and had to re-implement exception matching.
+We have also shown that our solution can handle cases which were supported correctly in neither the older DIVINE nor ESBMC, which is one of the few other tools with reasonable support for C++ exceptions.
+While the core of the work presented in this chapter is about C++ exceptions, we believe its message is more general, and reuse of existing libraries is a valid approach for extension of language support in program analysis tools.
+Indeed, DIVINE reuses the entire C++ standard library with only minor modifications, and its C standard library is also in large part reused.
 
 \paragraph{Relaxed Memory}
 
 In the area of analysis of programs running under relaxed memory models, we have proposed a novel operational semantics for the \xtso memory model of common Intel and AMD x86-64 processors.
-This operational semantics allows us to lower the amount of nondeterminism introduced by the simulation of relaxed behaviour and therefore it lowers the overall complexity of program analysis.
+This operational semantics allows us to lower the amount of nondeterminism introduced by the simulation of relaxed behaviour, and therefore, it reduces the overall complexity of program analysis.
 The crucial idea behind this method is that it moves the nondeterminism to the load (and fence) operations.
 This delayed nondeterminism allows us to reduce the number of redundant runs that are simulated.
-Our technique can impose bounds on the number of operations that can be delayed by each thread, in which case it can be applied to any program which has finite state space under sequential consistency, or it can forego the buffer bound, in which case it might not terminate for programs which do not terminate even if they have finite state space under sequential consistency.
+Our technique can impose bounds on the number of operations that can be delayed by each thread, in which case it can be applied to any program which has finite state space under sequential consistency.
+It can also forego the buffer bound, in which case it might not terminate for programs which do not terminate even if they have finite state space under sequential consistency.
 
 \paragraph{Local Nontermination}
 
 The final area of our work was checking nontermination in parallel programs.
-We have devised a method based on state space exploration which can prove termination or nontermination of programs with finite state space.
+We have devised a method based on state-space exploration that can prove termination or nontermination of programs with finite state space.
 This approach is significantly different from most existing methods for proving termination or nontermination.
-These methods usually focus on sequential programs or, in the rare case they support parallel programs, they usually focus on thread-modular proofs, i.e., proofs that perform reasoning on each thread separately while abstracting the other threads.
+These methods usually focus on sequential programs or, in the rare case they support parallel programs, they typically focus on thread-modular proofs, i.e., proofs that perform reasoning on each thread separately while abstracting the other threads.
 While this allows these competing techniques to support programs with possibly infinite state spaces, it also makes them more complex, which is witnessed by the fact that tools which implement these techniques for programming languages and support parallelism are rare.
 In our work, we have therefore limited ourselves to programs with finite state space -- our analysis procedure will not stop if the state space is infinite unless it happens to find an error with a finite witness.
-However, our technique is reasonably simple to implement and can be readily applied C and C++ programs.
+However, our technique is reasonably simple to implement and can be readily applied to C and C++ programs.
 On top of that, our technique can detect \emph{local nontermination}; i.e., it can detect that a part of the program which is supposed to terminate does not.
-Such parts can include a critical section or a function of a thread-safe data structure, for example a \texttt{pop} operation of a queue.
+Such parts can include a critical section or a function of a thread-safe data structure, for example, a \texttt{pop} operation of a queue.
 This ability makes our technique useful for analysis of event loops and similar constructs that can run without termination but dispatch procedures that must terminate.
 
 \paragraph{Implementation and Evaluation}
@@ -53,24 +54,24 @@ We will now shortly focus on some of the directions which could improve on the r
 
 The C++ language support in DIVINE is mostly complete for the C++17 standard.
 With the soon-to-be-released C++20 standard, we expect that most of the support will be covered by updates of clang compiler and the C++ standard library we reuse, and therefore will require little effort from the DIVINE developers.
-A more ambitious future work would be addition of support of other programming languages to DIVINE.
-Currently, DIVINE supports C and C++, but there are many other languages which can be compiled to LLVM and therefore it should be possible to integrate them with DIVINE.
-This would have two important consequences.
+A more ambitious future work would be the addition of support of other programming languages to DIVINE.
+Currently, DIVINE supports C and C++, but there are many other languages which can be compiled to LLVM, and therefore it should be possible to integrate them with DIVINE.
+Such an addition would have two important consequences.
 First, it would either provide further validation to the general approach of component reuse in program analysis or discover some of its possible limitations.
 Second, it would extend the number of programs in which DIVINE can discover problems.
 
-Finally, one of the missing features of DIVINE in relation to C++ is support for the C++ relaxed memory model.
+Finally, one of the missing features of DIVINE concerning C++ is support for the C++ relaxed memory model.
 
 \paragraph{Relaxed Memory}
 
 There are three main directions in which future work on relaxed memory in DIVINE could continue.
-First, it would be useful to perform a new comprehensive evaluation which would compare our method with recent methods build on stateless model checking which appeared around the time of publication of our approach or after it.
-Such an evaluation would shed further light on the promises of stateless and explicit-state model checking and could inform the further general approach to analysis of relaxed memory models in our tool.
+First, it would be useful to perform a new comprehensive evaluation which would compare our method with recent methods build on stateless model checking that appeared around the time of publication of our approach or after it.
+Such an evaluation would shed further light on the promises of stateless and explicit-state model checking and could inform the further general approach to the analysis of relaxed memory models in our tool.
 
-Second, if our approach continues to hold promises compared to the new developments by other researches, or if it can be extended to at least match them, it remains to be seen how it can be extended to more relaxed memory models, for example the ARM memory model or the memory model of C++.
-These memory models are more complex both in the sense that the number of possible executions under them is higher, which worsens the state space explosion problem, and in the sense that the behaviour itself is more complex which makes it harder to simulate them.
+Second, if our approach continues to hold promises compared to the new developments by other researches, or if it can be extended to at least match them, it remains to be seen how it can be extended to more relaxed memory models, for example, the ARM memory model or the memory model of C++.
+These memory models are more complex both in the sense that the number of possible executions under them is higher, which worsens the state space explosion problem and in the sense that the behaviour itself is more complex which makes it harder to simulate them.
 
-Finally, it remains to be seen if the program transformation used in our \xtso support can be efficiently combined with the program transformation that introduces symbolic and abstract data as presented in \mcite{LRB2018}, without the need to tightly integrate the two transformations.
+Finally, it remains to be seen if the program transformation used in our \xtso support can be efficiently combined with the program transformation that introduces symbolic and abstract data as presented in \mcite{LRB2018}, without the need to integrate the two transformations tightly.
 
 \paragraph{Termination Checking}
 
@@ -78,9 +79,9 @@ Termination checking of parallel programs is a topic which is not widely explore
 Some of the areas in which our method could be extended are apparent from its current limitations -- the future work should include integration with analysis under the \xtso memory model and analysis of programs with symbolic (or abstract) data.
 It is also likely that a more efficient algorithm for detection of local nontermination can be devised.
 
-Further interesting research area would be to investigate practical performance difference between our method and the existing methods based mostly on thread-modular proofs and well-founded relations.
-Currently, we have a hypothesis that our method would offer advantages in cases where the complexity of the program arises mainly from thread interactions while the thread-modular approaches would handle programs with complex data manipulations better.
+Further research area would be to investigate the practical performance difference between our method and the existing methods based mostly on thread-modular proofs and well-founded relations.
+Currently, we have a hypothesis that our method would offer advantages in cases where the complexity of the program arises mainly from thread interactions, while the thread-modular approaches would handle programs with complex data manipulations better.
 After that, it might be interesting to investigate possibilities to combine our method with existing research in this area.
-For example it might be possible use our method to discover potential nontermination in an abstracted state space and then use arguments based on well-foundedness to attempt to validate the counterexample and refine the abstraction.
+For example, it might be possible to use our method to discover potential nontermination in an abstracted state space and then use arguments based on well-foundedness to attempt to validate the counterexample and refine the abstraction.
 
 % vim: colorcolumn=80 expandtab sw=4 ts=4 spell spelllang=en
