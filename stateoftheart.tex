@@ -429,13 +429,13 @@ In practice, this means that nondeterministic decisions take place at read opera
 
 \section{Symbolic and Concolic Execution}
 
-Sybolic execution was introduced in~\mcite{King1976}.
-It executes the program with symbolic values instead of concrete once, and tracks the relations between these symbolic values.
+Symbolic execution was introduced in \mcite{King1976}.
+It executes the program with symbolic values instead of concrete once and tracks the relations between these symbolic values.
 When a symbolic value is used in a conditional branch, the symbolic executor can follow one or both of the branches based on the concrete values which are permitted by the symbolic values.
 If both of the branches are followed, the corresponding branching condition (or its negation) is added to the \emph{path condition}.
-The path condition therefore collects the constraints required to get to the given code location.
+Therefore, the path condition collects the constraints required to get to the given code location.
 Symbolic executors usually use SAT or SMT solvers to decide which paths can be taken.\mnote{SAT solvers are used for propositional formulas while SMT solvers
-can solve first order formulas that use some theory, for example theory of
+can solve first-order formulas that use some theory, for example, the theory of
 bitvectors which can be used to precisely model computer integers. The
 advantage of SMT solvers is that the encoding is simpler and the solver
 can make use of the additional information encoded in the richer theory.}
@@ -496,7 +496,7 @@ The symbolic execution tree can be explored in different manners (e.g., depth-fi
 
 \paragraph{Test Generation}
 
-Symbolic execution can be used to generate concrete test cases for a program (or a function) -- each time the executor finishes a path (either the program terminates or an error is found) it can use a solver to generate concrete inputs that reproduce this path in a test case \mcite{Cadar2008}.
+Symbolic execution can be used to generate concrete test cases for a program (or a function) -- each time the executor finishes a path (either the program terminates, or an error is found), it can use a solver to generate concrete inputs that reproduce this path in a test case \mcite{Cadar2008}.
 This way, it is possible to generate tests which cover the program well and do not execute the same path repeatedly.
 Even if the symbolic execution tree is large or infinite, the test generation can use random search or some other heuristics to provide good coverage of the code and therefore improve on manually-written tests.
 Furthermore, tests generated from symbolic execution can be very useful for bug fixing as the programmer can use their debugging tools of choice on the generated test and do not need to learn a verifier-specific way to analyse the counterexample.
@@ -504,46 +504,46 @@ Furthermore, tests generated from symbolic execution can be very useful for bug 
 \paragraph{Concolic Execution}
 
 \emph{Concolic Execution}, also knows \emph{Concolic Testing}, \emph{Dynamic Symbolic Execution} or \emph{Directed Automated Random Testing} is a modification of symbolic execution which can eliminate some of the expensive solver queries issued during exploration \mcite{Godefroid2005,Sen2005}.
-Using concolic execution, the program is executed with concrete values and it follows a single run, but the concolic executor records the path condition as with conventional symbolic execution.
-When the run is finished, the executor uses the path condition and a solver to find values of input variables that will lead the program to follow a different path.
+With concolic execution, the program is executed with concrete values and it follows a single run, but the concolic executor records the path condition as with conventional symbolic execution.
+When the run finishes, the executor uses the path condition and a solver to find values of input variables that will lead the program to follow a different path.
 This is repeated until no more paths can be discovered, or until the given coverage criteria are met.
 
 \paragraph{Tools}
 
 CUTE \mcite{Sen2005,Majumdar2007} is a concolic test generator for sequential C programs that specializes at dynamic memory.
-It can generated input values for pointers (e.g., linked list nodes) as well as scalars.
+It can generate input values for pointers (e.g., linked list nodes) as well as scalars.
 CUTE uses approximate constraints for pointers to prevent undecidable theories (pointer constraints can contain pointer (in)equality and check for \texttt{NULL} pointers).
 It detects assertion violations, memory access errors, and certain cases of infinite loops.
-Furthermore, CUTE has support for \emph{hybrid concolic testing} which combines concolic and random testing.
-It targets reactive programs and uses primarily random-generated inputs.
+Furthermore, CUTE has support for \emph{hybrid concolic testing}, which combines concolic and random testing.
+It targets reactive programs and primarily uses random-generated inputs.
 In this mode, concolic input generation is used to avoid getting stuck (i.e., the tool will switch to concolic input generation if it fails to add to coverage in a certain number of randomized tests).
 
 KLEE \mcite{Cadar2008} is a symbolic executor and test generator that targets realistic C and C++ programs that communicate with the environment.
 Its goal is to work with unmodified programs (with source code available, the program needs to be compiled to LLVM).
 KLEE can check for memory safety and assertion safety violations.
-It uses array theory with separate array for each memory object to facilitate analysis of programs with dynamic memory.
-In KLEE, sybolic pointers are handled by explicit enumeration of all possibilities on dereference.
-To achieve good coverage even if time and the size of the symbolic execution tree do not allow for full exploration, KLEE uses path selection heuristics.
+It uses array theory with a separate array for each memory object to facilitate analysis of programs with dynamic memory.
+In KLEE, symbolic pointers are handled by explicit enumeration of all possibilities when the pointer is dereferenced.
+To achieve good coverage even when time and the size of the symbolic execution tree do not allow for full exploration, KLEE uses path selection heuristics.
 KLEE is notable for its support of realistic programs that communicate with their environment.
-It has a models of some of the POSIX system calls (mostly related to the file system) and these models can contain symbolic values (e.g., in files).
+It has models of some of the POSIX system calls (mostly related to the file system) and these models can contain symbolic values (e.g., in files).
 The system call models are written in C and can be modified without modification of KLEE itself.
-Furthermore, the program running in KLEE can also access real file system and KLEE can perform fault injection into system calls.
+Furthermore, the program running in KLEE can also access the real file system, and KLEE can perform fault injection into system calls.
 When an error is encountered, KLEE generates a test harness which creates the corresponding files and fills them with values which reproduce the problem.
 % (and simulate system failures by replacing appropriate system calls)
-To support the C standard library, KLEE uses uClibc standard library implementation which is linked to the program under analysis.
+To support the C standard library, KLEE uses uClibc standard library implementation, which is linked to the program under analysis.
 
 Symbiotic~\mcite{Chalupa2018,Chalupa2020} is a tool for analysis of sequential C programs which uses KLEE symbolic executor as a backend.
 It can detect assertion violations, memory safety errors, memory leaks, and integral overflows.
 Symbiotic uses instrumentation to add pointer checks where needed and uses various analysis techniques (e.g., pointer analysis and shape analysis based on Predator \mcite{Dudka2013}) to limit the number of inserted checks.
 %  - pointer analysis has to account for deallocation
 Furthermore, Symbiotic uses program slicing to remove code irrelevant for the property.
-Symbiotic has basic support for detection of termination and nontermination.
+Symbiotic has basic support for the detection of termination and nontermination.
 It can detect simple cycles in the program's state space and therefore in some cases decide the program does not terminate (for non-nested loops that preserve values of all variables).
 It can also conclude the program terminates if all paths were explored.
 
 Pinaka \mcite{Chaudhary2019} is a symbolic executor for sequential C programs which uses incremental solver to check path feasibility.
-It can run either in fully incremental mode where it reuses one solver instance for the whole program, which can cause big formulas, or in partially incremental mode which creates new instance of solver on backtracking.
-Pinaka may not terminate on nonterminating programs and it has an option for loop unwinding limit.
+It can run either in a fully incremental mode where it reuses one solver instance for the whole program, which can cause big formulas or in a partially incremental mode which creates a new instance of the solver on backtracking.
+Pinaka may not terminate on nonterminating programs, and it has an option for loop unwinding limit.
 It can be used to show termination -- if a program is found to be safe without any unwinding limit, then all its paths terminate.
 
 JDart \mcite{Mues2020,Luckow2016} is a concolic executor and test generator for sequential Java programs build on Java Path Finder.
@@ -555,10 +555,10 @@ It can merge paths using summarization of regions with multiple paths (e.g., bra
 
 COASTAL \mcite{Visser2020} combines concolic execution with fuzz testing for Java programs.
 % - uses instrumentation
-It uses fuzz testing for fast exploration, the fuzzing mode tracks only direction of branches.
+It uses fuzz testing for fast exploration; the fuzzing mode only tracks the direction of branches.
 Concolic execution can be used to get to parts of the program's state space which are harder to reach.
 COASTAL can explore different parts of the symbolic execution tree in parallel (with different fuzzer or concolic executor instances).
-To help with analysis of realistic programs, COASTAL has models for some of the standard Java classes. % but seems to be able to handle original java bitecode libraries (?)
+To help with the analysis of realistic programs, COASTAL has models for some of the standard Java classes. % but seems to be able to handle original java bytecode libraries (?)
 % - no symbolic arrays
 
 Map2Check \mcite{Rocha2020} is a tool which combines fuzzing, symbolic execution, inductive invariants for safety checking for sequential C programs.
@@ -574,32 +574,32 @@ Bounded model checking (BMC) was introduced in \mcite{Biere1999} as an alternati
 symbolic model checking techniques which used binary decision diagrams.
 BMC encodes program runs of fixed length into propositional formulas, or to
 formulas over some first-order logic.
-It then in relies on SAT or SMT solvers to decide whether the formula is satisfiable
+It then relies on SAT or SMT solvers to decide whether the formula is satisfiable
 or not.
-One of the advantages of BMC is that is naturally handles data nondeterminism and can cope with scheduling nondeterminism too.
+One of the advantages of BMC is that it naturally handles data nondeterminism and can cope with scheduling nondeterminism too.
 
 The original paper introducing BNC presented a verification procedure for LTL
 (which detected loops in the program runs by checking equality of the last
 state of a bounded run to some of its previous states).
-However, for realistic programs the focus is mainly on safety properties, and
+However, for realistic programs, the focus is mainly on safety properties, and
 more recently also on (non)termination.\mnote{For tools which use approximation
 or heuristics, checking for termination is not the same as checking for
-nontermination as the tool might simply return \emph{unknown} result if it
+nontermination as the tool might simply return \emph{unknown} as a result if it
 fails to prove its objective (i.e., termination or nontermination).}
 
-BMC tools usually build formula from an SSA form\mnote{Static single assignment, each variable is assigned only at one place in the source code.} of the program with bounded number $n$ of loop iterations and recursion depth \mcite{Clarke2004}.
+BMC tools usually build formula from an SSA form\mnote{Static single assignment; each variable is assigned only at one place in the source code.} of the program with a bounded number $n$ of loop iterations and recursion depth \mcite{Clarke2004}.
 The loops and recursive functions are unwound -- repeated $n$ times with guard before each repetition which allows the program to skip the repetition if the number of iterations was lower then $n$.
 Furthermore, \emph{unwinding assertions} are inserted after the last repetition to ensure the unwinding was sufficient.
-The result is that all jump lead forward, which simplifies creation of the logic formula which describes transition function of the program.
+The result is that all jump lead forward, which simplifies the creation of the logic formula which describes the transition function of the program.
 
 \paragraph{Parallelism}
 
 We have identified three broad approaches to parallelism in BMC.
 The conceptually simplest is to explicitly enumerate symbolic context-switch
 bounded runs of the program and then encode them to resolve symbolic data.
-This is the approach used by ESBMC \mcite{Cordeiro2011} and by
+This approach is used by ESBMC \mcite{Cordeiro2011} and by
 \mcite{Rabinovitz2005} for an early concurrent extension of CBMC.
-Another approach is to encode control flow of threads separately and add scheduling constraints which specify inter-thread ordering.
+Another approach is to encode the control flow of threads separately and add scheduling constraints which specify inter-thread ordering.
 This approach is used by CBMC \mcite{Alglave2013po} and also proposed in \mcite{Ganai2008}.
 The last approach is sequentialization, which makes use of a BMC for sequential programs and a preprocessing step that converts a parallel program into a nondeterministic sequential program.
 Many sequentialization schemes were proposed, differing both in the size of the encoding and the way they limit thread interaction (e.g., limit to the number of context switches, to the number of shared-variable interactions) \mcite{Qadeer2004,Lal2009,Inverso2015,Tomasco2016,Tomasco2017}.
@@ -609,9 +609,9 @@ Many sequentialization schemes were proposed, differing both in the size of the 
 The main limitation of BMC is that it explores only runs up to some length
 bound $k$.
 Therefore, BMC alone cannot prove correctness unless it shows that the loop
-bound was sufficient (for example by showing unwinding assertions are not
+bound was sufficient (for example, by showing unwinding assertions are not
 violated).
-To mitigate this limitations, BMC can be combined with other techniques which
+To mitigate this limitation, BMC can be combined with other techniques which
 aim to prove correctness of the program, such as $k$-induction or
 IC3.
 
@@ -620,26 +620,26 @@ IC3.
 $k$-induction \mcite{Donaldson2011,Gadelha2017} is an extension of
 bounded model checking which allows it to find bugs faster and to prove
 correctness of programs without unwinding loops fully.
-Multiple $k$-inductions schemes exists, in the one proposed in~\mcite{Gadelha2017} a verifier with $k$-induction repeatedly performs following three steps with an increasing bound $k$.
+Multiple $k$-inductions schemes exist, in the one proposed in~\mcite{Gadelha2017} a verifier with $k$-induction repeatedly performs following three steps with an increasing bound $k$.
 
 \begin{itemize}
     \item \emph{Base Case} checks if an error is reachable in $k$ steps.
     \item \emph{Forward Condition} checks if all program's paths had terminated in
-        $k$ steps (i.e., the tool had already explored all states and therefore
+        $k$ steps (i.e., the tool had already explored all states, and therefore
         the verification is done).
     \item \emph{Inductive Step} checks a formula corresponding to the following
         proposition: if the property holds for the first $k$ steps, it also
         holds for $k+1$ steps.
-        This is checked in a modified program in which all loop variables are
-        initialized to nondeterministic values before the loops and the loops
-        are required to execute to completion.\mnote{This can be achieved by
-        inserting \texttt{assume} statements that ensure that the loop body is
-        entered and that after the given number of iterations the condition for
-        loop termination holds.}
+        This step is checked in a modified program in which all loop variables
+        are initialised to nondeterministic values before the loops, and the
+        loops are required to execute to completion.\mnote{This can be achieved
+        by inserting \texttt{assume} statements that ensure that the loop body
+        is entered and that after the given number of iterations the condition
+        for loop termination holds.}
 \end{itemize}
 
 One of the problems with $k$-induction is that the induction argument may not be strong enough to prove the inductive step.
-For this reason, the induction can be strengthen by invariants derived from the original program (i.e., the nondeterministic values of loop variables are constrained by the invariants) \mcite{Rocha2017}.
+For this reason, the induction can be strengthened by invariants derived from the original program (i.e., the invariant constraints the nondeterministic values of loop variables) \mcite{Rocha2017}.
 
 \subparagraph{IC3/PDR}
 
@@ -650,7 +650,7 @@ The refinement works backwards from the predecessor of the unsafe state.
 If the refinement reaches the initial state, the analysed system is incorrect.
 Solver queries in IC3 concern separate steps in the state space (not entire paths).
 
-IC3 was originally introduced in the context of hardware (circuit) verification \mcite{Bradley2011} and refined later as \emph{property directed reachability} (\emph{PDR}) \mcite{Een2011}.
+IC3 was initially introduced in the context of hardware (circuit) verification \mcite{Bradley2011} and refined later as \emph{property directed reachability} (\emph{PDR}) \mcite{Een2011}.
 It was later extended to software using SMT solvers \mcite{Cimatti2012}.
 The SMT-based IC3 can also handle software with infinite state space.
 Software IC3 was also combined with predicate abstraction in multiple ways including \emph{Implicit Predicate Abstraction} \mcite{Cimatti2014} and \emph{Counterexample to Induction-Guided Abstraction-Refinement} (\emph{CTIGAR}) \mcite{Birgmeier2014}.
@@ -668,10 +668,10 @@ An interesting property of F-Soft is that it can generate executable counterexam
 
 CBMC \mcite{Clarke2004,Kroening2014} is a widely used SAT-based bounded
 model checker for sequential and parallel C programs.
-It uses bit-precise encoding and therefore preserves semantics of computer
+It uses bit-precise encoding and therefore preserves the semantics of computer
 integers.
 CBMC can detect safety errors, and it uses instrumentation for detection of
-errors other then assertions.
+errors other than assertions.
 For efficient analysis of parallel programs, CBMC uses encoding based on
 partial orders described in \mcite{Alglave2013po} -- it builds the formula from
 the SSA form of each thread and ordering constraints for shared variables.
@@ -684,13 +684,13 @@ ESBMC \mcite{Gadelha2018,Gadelha2019}, is another widely used BMC for C
 programs.
 It can detect assertion violations, memory errors, overflows and mutex-caused
 deadlocks.
-ESBMC was derived from CBMC, but it uses SMT for encoding of the program and has
+ESBMC was derived from CBMC, but it uses SMT for the encoding of the program and has
 support for $k$-induction with invariant generation (based on interval analysis
 of integral variables).
 The invariant generation is currently unsound for programs with pointers.
 The support for concurrency in ESBMC is described in \mcite{Cordeiro2011}.
 ESBMC explores possible program interleavings explicitly and
-doing so it collects constrains on nondeterministic variables, which are then
+collects constraints on nondeterministic variables, which are then
 used to generate a formula.
 The formula can be generated and solved either for each run separately (lazy
 approach, has the advantage of being incremental), or all interleavings can be
@@ -699,38 +699,38 @@ interleaving (schedule recording).
 There is also an encoding based on under-approximation and widening that
 attempts to produce more compact encoding.
 The approximation uses proofs of unsatisfiability of the formula for refinement.
-The lazy approach seems to work best according to \mcite{Cordeiro2011}.
+According to \mcite{Cordeiro2011}, the lazy approach seems to work best. 
 Regardless of the formula encoding, ESBMC uses a bound on the number of context
 switches.
-In order to limit number of runs which need to be explored, ESBMC allows
+To limit the number of runs which need to be explored, ESBMC allows
 context switches only at visible instructions (i.e., instructions which access
 shared memory).
 The handling of parallelism in ESBMC makes it closely related to explicit-state
 model checkers with symbolic extensions, like Symbolic Pathfinder or DIVINE.
 Similarly to CBMC, ESBMC used a custom C parser, but it had later switched to
-using the clang compiler for parsing C and there is ongoing work for using this
+using the clang compiler for parsing C, and there is ongoing work for using this
 parser for C++.
 Unlike other tools which use clang, ESBMC does not use the LLVM intermediate
-representation, but instead builds its own internal representation based on the
+representation but instead builds its internal representation based on the
 C/C++ AST produced by clang.
 Furthermore, ESBMC has derivatives which aim at C++ verification.
 ESBMC++ \mcite{Ramalho2013} uses a model of parts of the standard C++ library,
 has support for C++ exceptions and inheritance.
 $\text{ESBMC}^{\textit{Qt}OM}$ \mcite{Sousa2015,Garcia2016} adds a model
 of parts of the Qt framework for C++ programs.
-In both cases the models approximate behaviour of the respective libraries
+In both cases, these models approximate behaviour of the respective libraries
 based on the standard or documentation.
 
 JBMC \mcite{Cordeiro2019,Cordeiro2018}, is a bounded model checker for
 Java built on the same basis as CBMC.
-It uses combination of SAT and SMT solving with a dedicated solver for string
+It uses a combination of SAT and SMT solving with a dedicated solver for string
 operations.
 JBMC has support for exceptions (by lowering them to jumps in its intermediate
 representation) and has an exact verification-friendly model of most common
 parts of the Java standard libraries.
-It can detect assertions, memory errors, integral overflows an type casting
+It can detect assertions, memory errors, integral overflows and type casting
 errors.
-JBMC has currently no support for threads and it also lacks support for the
+JBMC has currently no support for threads, and it also lacks support for the
 Java Native Interface (JNI) and reflection.
 
 LLBMC \mcite{Merz2012,Falke2013} is an SMT-based, bit-precise BMC for
@@ -738,7 +738,7 @@ sequential C and C++ programs that is notable for its use of the LLVM
 intermediate representation which allows it to reuse existing C and C++
 compilers.
 It is also one of the few tools which claim support of C++.
-However, the C++ support has some limitations, most notably there is no
+However, the C++ support has some limitations, most notably, there is no
 support for exceptions and run-time type support.
 Furthermore, LLBMC has no support for threads and floating-point arithmetic in
 both C and C++.
@@ -747,7 +747,7 @@ errors and memory leaks.
 % \TODO{unmaintained}
 
 Another LLVM-based tool is LLVMVF \mcite{Sousa2013}, a generic verification framework on which a BMC for parallel programs is built.
-Concurrency support in LLVMVF is incomplete, for example it lacks support for condition variables.
+Concurrency support in LLVMVF is incomplete; for example, it lacks support for condition variables.
 % \TODO{unmaintained}
 
 An older version of Map2Check \mcite{Rocha2015} was a test generator for memory safety and leak detection unit tests for C programs.
@@ -756,93 +756,94 @@ Then it instruments the program to convert memory safety to assertions about poi
 
 Yogar-CBMC \mcite{Yin2018,Yin2019} is a derivative of CBMC that uses
 abstraction and refinement for the encoding of scheduling constraints in
-parallel programs in order to make the formulas smaller.
+parallel programs to make the formulas smaller.
 Unlike CBMC, it has no support for relaxed memory.
-It can run multiple counterexample-guided refinement loops in parallel and they
-share the learned scheduling constraints in order to analyse the program
-faster.
+It can run multiple counterexample-guided refinement loops in parallel, and
+they share the learned scheduling constraints to analyse the program faster.
 Yogar-CBMC was able to solve all concurrency benchmarks in SV-COMP 2019 and significantly outperformed CBMC.
 
-CBMC-Path~\mcite{Khazem2019} is another derivative of CBMC, it encodes paths in
+CBMC-Path~\mcite{Khazem2019} is another derivative of CBMC.
+It encodes paths in
 the state space one by one instead of building a formula for the whole
 (bounded) state space of a parallel program.
 While it was designed to facilitate faster bug discovery for SV-COMP, it performed significantly worse than CBMC.
 
-DepthK \mcite{Rocha2017,Rocha2017svc}, is a tool based on ESBMC with
+DepthK \mcite{Rocha2017,Rocha2017svc}, is a tool based on ESBMC with the
 addition of polyhedral invariants which aim to strengthen inductive step in the
 $k$-induction.
-It was presented before ESBMC gained ability to compute invariants itself and it uses an external tool for invariant generation.
+It was presented before ESBMC gained the ability to compute invariants itself, and it uses an external invariant generator.
 DepthK can analyse concurrent C programs.
 
 Dartagnan~\mcite{PonceDeLeon2020,Gavrilenko2019} is a BMC for analysis of parallel C programs under relaxed memory models.
 In this case, the relaxed memory model is specified on input, not encoded in the verifier.
-To achieve this, Dartagnan uses symbolic encoding of relations between program's actions (data dependencies, reads-from, program order, …) and the memory model restricts the possible runs based on these relations.
+To achieve this, Dartagnan uses symbolic encoding of relations between the program's actions (data dependencies, reads-from, program order, …) and the memory model restricts the possible runs based on these relations.
 It should be possible to use Dartagnan with a wide range of memory models including \xtso, ARMv8, POWER, C/C++11 and Linux kernel memory model.
 To speed up the analysis, it uses relation analysis that reduces the size of the encoding -- it determines which pairs of events may influence constraints specified by the memory model.
-Dartagnan internally uses Boogie intermediate language and translates C to it using SMACK \mcite{Rakamaric2014}, it lacks support for pointer arithmetic.
+Dartagnan internally uses Boogie intermediate language and translates C to it using SMACK \mcite{Rakamaric2014}; it lacks support for pointer arithmetic.
 
-Lazy-CSeq~\mcite{Inverso2015,Nguyen2017,Inverso2020} is a se\-quen\-tial\-iza\-tion-based
+Lazy-CSeq~\mcite{Inverso2015,Nguyen2017,Inverso2020} is a se\-quen\-tial\-isa\-tion-based
 tool for analysis of concurrent C programs which uses bounded model checker as
 a backend (CBMC by default).
 It performs source-to-source transformation from a concurrent C program to a
-sequential C program which simulates a bounded number of round-robin scheduling
-rounds (i.e., the number of context switches is limited and the threads are
-required to execute in a fixed order, with possibility to perform no steps in a
-given round).
+sequential C program.
+The sequential program simulates a bounded number of round-robin scheduling
+rounds (i.e., the number of context switches is limited, and the threads are
+required to execute in a fixed order, with the possibility to perform no steps
+in a given round).
 This way, Lazy-CSeq can simulate a bounded number of interleavings with small
 memory overhead while limiting added nondeterminism.
 It can detect errors detectable by the used backend and POSIX mutex deadlocks.
-In order to speed up verification, Lazy-CSeq uses Frama-C \mcite{Canet2009} to
+To speed up analysis, Lazy-CSeq uses Frama-C \mcite{Canet2009} to
 infer bounds of integral variables and shrink the corresponding bitvector
 formulas.
-Lazy-CSeq performs \emph{lazy sequentialization}, i.e., it explores only the reachable state space of the program, unlike some older works on sequentialization like \mcite{Lal2009}.
-Lately, a support for parallelization by partitioning the set of execution traces into independent instances was added to Lazy-CSeq.
+Lazy-CSeq performs \emph{lazy sequentialisation}, i.e., it explores only the reachable state space of the program, unlike some older works on sequentialisation like \mcite{Lal2009}.
+Lately, support for parallelisation by partitioning the set of execution traces into independent instances was added to Lazy-CSeq.
 % - the formula size if O(|orig prog.| * |n threads| * |n rounds|)
 
 MU-CSeq~\mcite{Tomasco2015,Tomasco2016} and IMU-CSeq~\mcite{Tomasco2017}
-are se\-quen\-tial\-iza\-tion-based tools for analysis of concurrent C programs
+are se\-quen\-tial\-isa\-tion-based tools for analysis of concurrent C programs
 that use CBMC as a backend.
 They work by nondeterministically guessing a bounded sequence of shared memory
 writes and then simulating the program so that its runs match this sequence.
-Optionally, they can execute also unobserved memory writes which are not part of the
+Optionally, they can also execute unobserved memory writes which are not part of the
 sequence.
 The difference between the tools is that IMU-CSeq uses a separate sequence for
 each memory location, while MU-CSeq has a single sequence of visible memory
 operations.
-IMU-CSeq also has support for relaxed memory (TSO, PSO) by the means of
-\emph{Shared Memory Abstraction} which defines behaviour of memory operations
-and synchronization primitives of the given memory model.
-These tools perform \emph{eager sequentialization}, i.e., threads are executed separately, with nondeterministic values for shared memory reads which connect them.
+IMU-CSeq also has support for relaxed memory (TSO, PSO) using \emph{Shared
+Memory Abstraction}, which defines the behaviour of memory operations
+and synchronisation primitives of the given memory model.
+These tools perform \emph{eager sequentialisation}, i.e., threads are executed separately, with nondeterministic values for shared memory reads which connect them.
 
 BLITZ \mcite{Cho2013} is a BMC for C programs that decomposes the verification instance using approximations of preconditions of property violation.
-These approximations are are gradually refined based on the proofs of unsatisfiability (for the under-approximated instance).
+These approximations are gradually refined based on the proofs of unsatisfiability for the under-approximated instances.
 It aims to detect assertion violations and memory safety in larger programs (100kloc).
 BLITZ appears to have no support for parallelism.
 
 TCBMC \mcite{Rabinovitz2005} is an early extension of CBMC to parallel programs.
-It uses context switch bounding and the authors proposed mutex deadlock detection and race detection for it.
-However, the implementation supported only two theads without deadlock detection.
+It uses context switch bounding, and the authors proposed mutex deadlock detection and race detection for it.
+However, the implementation supported only two threads without deadlock detection.
 
 CheckFence~\mcite{Burckhardt2007} is a tool for checking implementations of concurrent data structures in C against a relaxed memory model which is an over-approximation of many hardware memory models (i.e., safety in CheckFence should imply safety under these memory models).
 It uses a test program as a specification -- it checks if the set of all executions under the given memory model is a subset of a set of \emph{serial executions} which are sequentially consistent executions in which each operation with the data structure is atomic.
-Therefore, CheckFence does not detect properties such as assertion violation or memory safety, but considers the program unsafe it if can exhibit new behaviour under its relaxed memory model.
+Therefore, CheckFence does not detect properties such as assertion violation or memory safety but considers the program unsafe it if can exhibit new behaviour under its relaxed memory model.
 CheckFence encodes threads and scheduling separately.
 
 NBIS \mcite{Gunther2014} is an incremental BMC for sequential C programs.
-In this case, incremental means that it can change bounds without throwing away the formula and re-runing the solver (provided the solver can support incremental solving, which is common).
+In this case, incremental means that it can change bounds without throwing away the formula and re-running the solver (provided the solver can support incremental solving, which is common).
 NBIS uses LLVM IR to facilitate analysis of C programs.
 % - not maintained
 
-VVT \mcite{Gunther2016,Gunther2017} is a successor to NBIS which combines bounded model checking for fast bug discovery with CTIGAR, a SMT-based version of IC3 with counterexample refinement.
-It aims at analysis of parallel C software and uses LLVM IR internally.
-VVT can analyse infinite-state systems (with finite number of threads and with arrays with statically known bounds).
-To improve performance with parallel programs, VVT uses dynamic state-space reduction based on conditionally atomic blocks of code (which are instruented into the code).
+VVT \mcite{Gunther2016,Gunther2017} is a successor to NBIS which combines bounded model checking for fast bug discovery with CTIGAR, an SMT-based version of IC3 with counterexample refinement.
+It aims at the analysis of parallel C software and uses LLVM IR internally.
+VVT can analyse infinite-state systems (with a finite number of threads and with arrays with statically known bounds).
+To improve performance with parallel programs, VVT uses dynamic state-space reduction based on conditionally atomic blocks of code (which are instrumented into the code).
 VVT is not bit-precise, it uses integer arithmetics instead of arithmetics with overflows and therefore cannot find problems caused by bounded bitwidth of computer integers.
 % - not maintained
 
 power2sc \mcite{Abdulla2017} is a tool for analysis of C programs under the POWER memory model which uses CBMC as a backend.
 It uses program transformation to build a new program which, when executed under sequential consistency, simulates context-switch-bounded runs of the original program under POWER.
-The transformed program relies on nondeterminism to guess results of interactions between threads and then checks validity of these guesses.
+The transformed program relies on nondeterminism to guess the results of interactions between threads and then checks the validity of these guesses.
 While the presented tool uses CBMC, the authors claim that their program transformation can work with any verifier for safety-checking parallel program under sequential consistency.
 
 % \mcite{Donaldson2011}: \textsc{K-Inductor}, \textsc{K-Boogie}
@@ -853,18 +854,20 @@ While the presented tool uses CBMC, the authors claim that their program transfo
 \section{Other Approaches to Program Analysis}
 
 There are many program analysis techniques relevant to realistic parallel programs which were not covered in the previous sections.
-These techniques are often very different and categorizing them does not seem to provide much benefit.
+These techniques are often very different, and categorising them does not seem to provide many benefits.
 Therefore, we will now outline these techniques as they are represented by notable tools that implement them.
 
 \paragraph{Tools}
 
 Ultimate Automizer \mcite{Heizmann2017,Heizmann2013} is a program analysis tool for sequential and parallel C programs.
-It uses \emph{automata-theoretic verification approach} which, in essence, converts a program to an automaton (starting with automaton derived from the control-flow graph), and then checks reachability of error states in this automaton and possibly refines it.
-The automata are constructed in such a way that the set of traces of the automaton over-approximates program traces and therefore if the automaton cannot reach error location the program is correct.
-If the automaton can reach error location, the feasibility of the error trace is checked and if it is not feasible, the automaton is refined (otherwise an error was found).
+It uses \emph{automata-theoretic verification approach} which, in essence, converts a program to an automaton (starting with an automaton derived from the control-flow graph), and then checks reachability of error states in this automaton and possibly refines it.
+The automata are constructed in such a way that the set of traces of the automaton over-approximates program traces.
+Therefore, if the automaton cannot reach an error location, the program is correct.
+If the automaton can reach an error location, the feasibility of the error trace is checked, and if it is not feasible, the automaton is refined (otherwise an error was found).
 Therefore, automata-theoretic verification is an instance of CEGAR.
-The refinement is performed by construction of automaton of spurious traces -- Floyd-Hoare automaton -- which is constructed on-demand using an SMT solver.
-Furthermore, Ultimate Automizer uses nested words automata for interprocedural analysis and Büchy automata and ranking functions for termination and nontermination analysis.
+The refinement is performed by the construction of automaton of spurious traces -- Floyd-Hoare automaton -- which is constructed on-demand using an SMT solver.
+Furthermore, Ultimate Automizer uses nested words automata for interprocedural analysis.
+It also uses Büchy automata and ranking functions for termination and nontermination analysis.
 Ultimate Automizer can detect assertion violations, memory safety errors, check for integral overflows, and termination.
 
 Ultimate Taipan \mcite{Dietsch2020,Greitschus2017} is a close relative of Ultimate Automizer that uses refinement based on \emph{path programs}.
@@ -873,9 +876,9 @@ It then attempts to show trace infeasibility by proving unreachability of the er
 % - newer version uses SMT formulas to represent program states
 
 Ultimate Kojak \mcite{Nutz2015} is another related tool which uses a different algorithm for the refinement step.
-This algorithm is based on proofs of unsatisfiability provided by an SMT solver used to check feasibility of error paths.
+This algorithm is based on proofs of unsatisfiability provided by an SMT solver used to check the feasibility of error paths.
 
-Skink \mcite{Cassez2017} is a LLVM-based tool for assertion checking of sequential and concurrent C programs.
+Skink \mcite{Cassez2017} is an LLVM-based tool for assertion checking of sequential and concurrent C programs.
 It uses the automata-theoretic verification approach similar to Ultimate Automizer (with automata-based refinement).
 However, Skink is limited to programs which can be fully inlined, i.e., it does not support function calls.
 Furthermore, it uses mathematical integers and therefore is not bit-precise.
@@ -891,64 +894,66 @@ CPA-BAM-BnB \mcite{Andrianov2017} is a CPAchecker-based tool that uses Block Abs
 It uses a cache of existing block abstractions.
 Furthermore, it uses value analysis and predicate analysis with refinement on spurious counterexamples.
 It also uses BnB, which is a model of memory that uses predicate analysis and uninterpreted functions to map memory locations to memory values.
-In this model, the memory is split into regions and each region has its own mapping function.
+In this model, memory is split into regions, and each region has its mapping function.
 
-CPALockator \mcite{Andrianov2018} is a version of CPAchecker which specializes on parallel programs and data race detection.
-The aim of CPALockator is to provide lightweight analysis at the cost of possibly missing errors.
+CPALockator \mcite{Andrianov2018} is a version of CPAchecker which specialises on parallel programs and data race detection.
+CPALockator aims to provide a lightweight analysis at the cost of possibly missing errors.
 To do this, it tracks locks and threads that are active at the given time.
 CPALockator uses predicate analysis and CEGAR to exclude spurious race conditions.
 
 PeSCo \mcite{Richter2019,Czech2017} is a tool build on top of CPAchecker that tries to predict efficient verification approach for a given task using machine learning.
-The learning uses graph encoding of programs and decides which of the 6 predefined configurations of CPAchecker should run and in which order.
+The learning uses graph encoding of programs and decides which of the six predefined configurations of CPAchecker should run and in which order.
 
-Corral \mcite{Lal2012} is a verifier for the Boogie modelling language accompanied by language front-ends for C and .NET bytecode.
+Corral \mcite{Lal2012} is a verifier for the Boogie modelling language accompanied by language frontends for C and .NET bytecode.
 It performs bounded reachability and uses abstraction and refinement.
 Abstracted programs track values of only a selected set of variables (which is initially empty).
 On top of that, functions are inlined on-demand if an over-approximation of a function's effects causes a spurious error.
-Corral supports parallel programs using sequentialization.
+Corral supports parallel programs using sequentialisation.
 
 SMACK \mcite{Rakamaric2014,Carter2016,Garzella2020} is a bug-finder for various programming languages that can be translated to LLVM.
 It translates LLVM IR into Boogie intermediate verification language and then uses Boogie, Corral (default) or other Boogie-based verifiers as a backend.
 This approach is intended to allow easy prototyping of backend verifiers which do not need to handle some of the complexities of programming languages.
 SMACK can use either bitvectors (i.e., be bit-precise) or arbitrary precision integers.
-Since Boogie has no support for dynamic memory, SMACK partitions the memory into disjoint regions that are represented by maps in Boogie.
-While SMACK originally targeted C, it was later extended to (partially) support various other programming languages that can be translated to LLVM: C++, Rust, Objective-C, D, Fortran, Swift, and Kotlin.
-In this effort SMACK relies heavily on LLVM-based language frontends to provide basic language support.
-On top of that, SMACK has a basic support for standard libraries (allocation, C string and math operations, POSIX threads, models of most common parts of the libraries), but the authors claim these models must be written manually which they consider to be a major undertaking.
-This is shown to be a limiting factor especially for languages with heavy runtime components, such as Swift, Objective-C and Kotlin.
+Since Boogie has no support for dynamic memory, SMACK partitions memory into disjoint regions that are represented by maps in Boogie.
+While SMACK initially targeted C, it was later extended to (partially) support various other programming languages that can be translated to LLVM: C++, Rust, Objective-C, D, Fortran, Swift, and Kotlin.
+In this effort, SMACK relies heavily on LLVM-based language frontends to provide basic language support.
+On top of that, SMACK has basic support for standard libraries (allocation, C string and math operations, POSIX threads, models of most common parts of the libraries).
+However, the authors claim these models must be written manually, which they consider being a major undertaking.
+This is shown to be a limiting factor, especially for languages with heavy runtime components, such as Swift, Objective-C and Kotlin.
 % - shows limits of SMACK's handling of LLVM
 % - pratialy reuse of existing library (Kotlin arithmetics)
 Furthermore, thanks to compilation to a common intermediate representation (LLVM), SMACK has support for cross-language program analysis.
 With a concurrency-enabled backend (e.g., Corral), Smack also supports parallel programs.
 
-JayHorn \mcite{Kahsai2019} is tool for analysis of sequential Java programs.
-It encodes the program into Horn clauses and is able to handle certain cases of unbounded heap data structures and unbounded execution using invariants.
-JayHorn is not bit precise (it uses unbounded integers) and has only a basic model of Java library, it mostly assumes library calls return arbitrary values.
+JayHorn \mcite{Kahsai2019} is a tool for analysis of sequential Java programs.
+It encodes programs into Horn clauses and can handle some instances of unbounded heap data structures and unbounded execution using invariants.
+JayHorn is not bit precise (it uses unbounded integers) and has only a basic model of Java library (it mostly assumes library calls return arbitrary values).
 
 Threader \mcite{Gupta2011} is a tool for compositional verification of parallel C programs.
 It uses thread-modular proofs based on proof rules from \mcite{Jones1983,Owicki1976}.
-The analysis is based on abstract reachability with refinement, and uses a Horn clause solver.
-Threader can detect safety violations and termination properties, it is not limited to specific synchronization primitives.
+The analysis is based on abstract reachability with refinement and uses a Horn clause solver.
+Threader can detect safety violations and termination properties and is not limited to specific synchronisation primitives.
 
 Predator and PredatorHP \mcite{Peringer2020,Dudka2013} are tools for checking memory safety of sequential C programs.
-Predator uses shape analysis, i.e., it describes shape of heap memory by an abstract domain (\emph{symbolic memory graphs}).
+Predator uses shape analysis; i.e., it describes the shape of heap memory by an abstract domain (\emph{symbolic memory graphs}).
 It targets memory errors and assertions and can handle unbounded lists (both doubly- and singly-linked, circular, and nested lists).
 Predator has only a limited ability to handle non-list types.
 % - uses function summaries, recursion depth bound
-To avoid parsing C directly, Predator uses intermediate representation of the GCC compiler.
+To avoid parsing C directly, Predator uses an intermediate representation of the GCC compiler.
 PredatorHP is a tool which runs several configurations of Predator in parallel (a verifier which can prove correctness but over-approximates and several bug hunters which can show incorrectness).
 
 SatAbs \mcite{Clarke2005} is a tool for bit-precise analysis of (possibly parallel) C programs.
-It uses predicate abstraction with counterexample guided refinement to decrease size of the analysed program -- the program is abstracted into a boolean program which is analysed by a backend model checker.
-If the backend model checker concludes the abstracted program is correct, then the original program is correct, otherwise the trace of the abstract program is validated using SAT-queries that simulate the corresponding path of the original program.
+It uses predicate abstraction with counterexample guided refinement to decrease the size of the analysed program -- the program is abstracted into a boolean program which is analysed by a backend model checker.
+If the backend model checker concludes the abstracted program is correct, then the original program is correct.
+Otherwise, the trace of the abstract program is validated using SAT-queries that simulate the corresponding path of the original program.
 If the counterexample is spurious, SatAbs refines the abstraction.
-SatAbs uses bitvectors (bit-blasted to SAT formulas\mnote{Bit-blasing is a technique which rewrites a bitvector variables to a sequence of boolean variables and implements bitvector operations by respective boolean circuits.
-It allow solving (existentially-qualified) bitvector formulas with a SAT solver.}) and therefore is bit-precise.
+SatAbs uses bitvectors (bit-blasted to SAT formulas\mnote{Bit-blasting is a technique which rewrites bitvector variables to a sequence of boolean variables and implements bitvector operations by respective boolean circuits.
+It allows solving (existentially-qualified) bitvector formulas with a SAT solver.}) and therefore is bit-precise.
 It can perform reachability and equivalence checking of a C program and the corresponding Verilog circuit.
 
-An unnamed tools that encodes behaviour of relaxed memory models in a program is presented in \mcite{Alglave2013}.
+An unnamed tool that encodes the behaviour of relaxed memory models in a program is presented in \mcite{Alglave2013}.
 Given a C program which is supposed to run under one of the supported relaxed memory model (including \xtso and a fragment of POWER) it transforms it into an equivalent program which can be analysed by an analyser for sequentially consistent parallel programs.
-The authors evaluate their approach with various backend analysers including CBMC, ESBMC, and SatAbs.
+The authors evaluate their approach with various backend analysers, including CBMC, ESBMC, and SatAbs.
 The encoding of relaxed behaviour uses an \emph{abstract event graph} that encodes events of the program and dependencies between them.
 
 % GACAL \mcite{Quiring2020} is a tool which analyses C programs by generating potential invariants from traces and verifies them using the ACL2 theorem prover.
