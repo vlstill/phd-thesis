@@ -9,7 +9,7 @@ Our approach makes it possible to detect partial deadlocks and livelocks, i.e., 
 The approach is also applicable to programs that do not terminate (such as daemons with infinite control loops) as it can be configured to check only for termination of selected sections of the program.
 The termination criteria can be user-provided; however, \divine comes with the set of built-in termination criteria suited for the analysis of programs with mutexes and other common synchronisation primitives.
 
-\section{Motivation}
+\section{Motivation and Introduction}
 
 A significant limitation of many existing tools for analysis of parallel
 programs in programming languages such as C and C++ is that they are only concerned with safety checking -- they check that a bad state of the program is unreachable.
@@ -123,7 +123,7 @@ Similarly, a program can be in multiple resource sections which wait for the sam
 We propose to introduce resource sections in two ways -- some synchronization primitives (mutexes, condition variable, threads) have built-in resource sections in DIVINE, and the user can introduce their own resource sections.
 Examples of resource sections can be seen in \autoref{fig:lnterm:secs:a} and \autoref{fig:lnterm:secs:b}.
 
-\begin{figure}[tp]
+\begin{figure}[t]
     \begin{cppcodeln}
       mutex m;
 
@@ -148,7 +148,7 @@ Examples of resource sections can be seen in \autoref{fig:lnterm:secs:a} and \au
       waits for \texttt{worker} to finish).
     }\label{fig:lnterm:secs:a}
 \end{figure}
-\begin{figure}[tp]
+\begin{widefigure}
     \begin{cppcodeln}
       #include <atomic>
       #include <rst/termsec.h> // for user-defined
@@ -192,14 +192,14 @@ Examples of resource sections can be seen in \autoref{fig:lnterm:secs:a} and \au
       helper) is automatically also identified by the thread which executes it
       -- this allows more then one thread to wait for the same spin lock.
     }\label{fig:lnterm:secs:b}
-\end{figure}
+\end{widefigure}
 
 \section{Local Nontermination} \label{sec:local-nontermination}
 
 With our local nontermination property, we aim at detection of resource section instances which are entered but are never left -- \emph{nonterminating resource section instances}.
 We will first use examples of terminating and nonterminating resource section instances, and then we will define them precisely.
 
-\begin{figure}[tp]
+\begin{widefigure}
 \begin{subfigure}[t]{0.475\textwidth}
 \begin{cppcode}
     mutex m;
@@ -255,8 +255,8 @@ We will first use examples of terminating and nonterminating resource section in
 \end{subfigure}
 \caption{Example programs with nonterminating resource section (\subref{fig:ntermsec0}) and terminating resource sections (\subref{fig:ntermsec1}).
 }
-\end{figure}
-\begin{figure}[tp]
+\end{widefigure}
+\begin{widefigure}
 \center
 \begin{tikzpicture}[node distance=2.3cm,>=stealth',bend angle=45,auto, baseline=(i.base), line width = 2pt]
 
@@ -282,7 +282,7 @@ Each edge is marked by the thread it belongs to and the action of this thread.
 Furthermore, to ease the orientation, actions belonging to \texttt{thread0} are marked with continuous \textcolor{red}{red} edges while actions belonging to \texttt{thread1} are marked with dashed \textcolor{blue}{blue} edges.
 We can see that both threads participate in the repeated part of the counterexample and \texttt{thread0} is denied the possibility (starves) to execute after \texttt{0:~unlock(m)} (the thin blue dashed edge).
 } \label{fig:ntermsec1ce}
-\end{figure}
+\end{widefigure}
 
 A simple example can be seen in \autoref{fig:ntermsec0}. There we have a mutex which
 is locked, but never unlocked as the corresponding critical section contains an
@@ -350,7 +350,7 @@ graph. To let the exploration algorithm know that it is exploring a part of the
 state space that is within an ARSI, we mark all edges within ARSIs as accepting.\mnote{The accepting label of an edge is a notation borrowed from (transition-based) Büchy automata.
 In DIVINE this information can be used by the exploration algorithm to behave differently for accepting edges.}
 
-\begin{figure}[p]
+\begin{widefigure}
 \begin{cppcode}
     mutex m1, m2;
     {
@@ -429,7 +429,7 @@ In DIVINE this information can be used by the exploration algorithm to behave di
     Please recall that active resource section instances cannot be nested.
     Crosses at the end of edges denote points where exploration of the state space was terminated due to reaching the end of an active resource section instance.
 } \label{fig:active}
-\end{figure}
+\end{widefigure}
 
 An illustration of a state space graph augmented with nondeterministic choices
 and accepting edges is given in \autoref{fig:active}. This augmentation of the state
@@ -539,7 +539,7 @@ program as a single active resource section instance.
 % An idea for finding such resource section instances can be taken from considerations about fairness in parallel systems.
 To provide further context, we also want to discuss the relation of our
 nontermination property to LTL model checking with fairness.  Fairness
-constraints~\mcite[Chapter 3.5]{PoMC} are needed in analysis of temporal
+constraints~\mcite[Chapter 3.5]{Baier2008} are needed in analysis of temporal
 properties of parallel systems to avoid reporting of unrealistic
 counterexamples, such as those in which an enabled thread never gets the chance
 to make an action. However, even if we use LTL formula to
@@ -977,20 +977,21 @@ Overall, neither of these techniques is applicable in general for the detection 
 
 A more realistically-targeted termination checker for parallel programs is presented in \mcite{Cook2007thr}.
 Its primary goal is to show a given thread terminates.
-It abstracts other threads into a model of environment which is incrementally refined and attempts to prove termination of the thread locally.
-It appears to support C programs, it does, however, assume the number of threads is fixed and does not support synchronization with mutexes and similar primitives.
-Another tool for termination-checking parallel C programs is presented in \mcite{Popeea2012}.
-Is similar to \cite{Cook2007thr} but more general.
+It abstracts other threads into a model of environment which is incrementally refined, and attempts to prove termination of the thread locally.
+It appears to support C programs, but it assumes the number of threads is fixed and it does not support synchronization with mutexes and similar primitives.
+Another tool for termination-checking parallel C programs is presented in \mcite{Popeea2012}, it is similar to \cite{Cook2007thr} but more general.
 % rely-guarantee reasoning -- keeps track of communication of each thread with the rest of the program.
 It uses transition invariants and well-foundedness to prove termination of whole programs or of individual threads and uses predicate abstraction and refinement.
 The downside of this approach is that it can report unfair paths as termination counterexamples.
 
-Probably the closes relative to our approach is shown in \mcite{Atig2012term}, which presents a tool MUTANT that can detect fair nontermination.
-It aims to detect ultimately periodic executions (i.e., executions in which after a finite stem the same sequence of states is repeated) and therefore is complete only in programs with finite state space.
+Probably the closes relative to our approach is shown in \mcite{Atig2012term}.
+It presents a tool MUTANT that can detect fair nontermination.
+It aims to detect ultimately periodic executions (i.e., executions in which the same sequence of states is repeated, this sequence can be preceded by a finite stem) and therefore is complete only in programs with finite state space.
 Furthermore, the number of context switches in the stem and in each of the periods is bounded.
-The tool uses sequentialization -- it reduces the problem of (context-bounded) termination checking of a parallel program to assertion checking in a sequential program.
-It does not target any realistic programming language, however, it targets the Boogie modelling language for which translators from C and other languages exist; therefore, it might be possible to use this tool even for C and other programming languages.
-The main difference between our approach and the one in \cite{Atig2012term} is that our approach uses a different notion of fairness, targets primarily C and C++ and does not impose any limits on the number of context switches.
+The tool uses sequentialisation -- it reduces the problem of (context-bounded) termination checking of a parallel program to assertion checking in a sequential program.
+It does not target any realistic programming language, however, it targets the Boogie modelling language for which translators from C and other languages exist.
+Therefore, it might be possible to use this tool even for C and other programming languages.
+The main difference between our approach and the one in \cite{Atig2012term} is that our approach uses a different notion of fairness, targets primarily C and C++, does not impose any limits on the number of context switches, and can detect local nontermination.
 
 \section{Conclusion} \label{sec:conclusion}
 
