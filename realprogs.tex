@@ -459,13 +459,13 @@ The process of exception handling in C++ is illustrated by \autoref{fig:lang:exc
             foo();
         } catch (std::range_error &) {
             std::cout << "range error\n";
-        } catch (std::invalid_argument &) {
-            std::cout << "invalid argument\n";
+        } catch (std::exception &) {
+            std::cout << "other exception\n";
         }
     }
   \end{cppcode}
 \caption{Exception handling in C++.
-  At the moment the execution is thrown in \texttt{max}, there are three frames
+  At the moment an execution is thrown in \texttt{max}, there are three frames
   on the stack \texttt{max}, \texttt{foo}, and \texttt{main}.
   The exception can be caught by \texttt{main}, but first the cleanup code
   in \texttt{foo} has to be executed -- this code will deallocate memory owned
@@ -475,7 +475,7 @@ The process of exception handling in C++ is illustrated by \autoref{fig:lang:exc
   After the cleanup, the stack frame of \texttt{foo} will be removed from
   stack.
   Finally in \texttt{main}, the unwinder will transfer control to the second
-  catch statement.
+  catch statement (\texttt{std::exception} is predecessor of \texttt{std::invalid\_argument}, but \texttt{std::range\_error} is not its predecessor).
 }\label{fig:lang:exceptcpp}
 \end{figure}
 
@@ -673,6 +673,37 @@ An illustration of how the stack looks while the unwinder is active is shown in
 \autoref{fig:lang:treestack}.
 
 \begin{widefigure}
+%   \small
+%   \begin{multicols}{3}
+%   \begin{cppcode}
+%     struct File {
+%       ~File() {
+%         if (_fd >= 0)
+%             close(_fd);
+%       }
+%       /* ... */
+%     }
+%   \end{cppcode}
+%   \columnbreak
+%   \begin{cppcode}
+%     void bar(File &) {
+%       /* ... */
+%       throw std::runtime_error("...");
+%     }
+%   \end{cppcode}
+%   \columnbreak
+%   \begin{cppcode}
+%     int main() {
+%       try {
+%         /* ... */
+%         File f("foo.txt");
+%         bar(f);
+%       } catch (std::exception &ex) {
+%         /* ... */
+%       }
+%     }
+%   \end{cppcode}
+%   \end{multicols}
 \centering
 \begin{tikzpicture}[ ->, >=stealth', shorten >=1pt, auto, node distance=3cm
                    , semithick
@@ -760,7 +791,7 @@ An illustration of how the stack looks while the unwinder is active is shown in
         (main-5-1) edge[out=0, in=180] (exception-1-1.west)
       ;
 \end{tikzpicture}
-\caption{In this figure we can see a stack of a program which is running
+\caption{In this figure, we can see a stack of a program which is running
 cleanup block in the \texttt{main} function. The cleanup block calls the
 destructor of \texttt{File} structure, which in turn calls the
 \texttt{close} function (which is the current active function).
@@ -1045,8 +1076,8 @@ As of April 2020, there is ongoing work on exception support in KLEE.
 
 Both CBMC~\mcite{Clarke2004,Kroening2014} and
 ESBMC~\mcite{Gadelha2018} bounded model checkers support C++
-(but neither appears to support the standard library) and they appear to have some
-support for exceptions.
+(but neither appears to have working support of the standard library) and they
+appear to have some support for exceptions.
 However, in CBMC, the support for exceptions seems to be limited to recognition
 of the \cpp{try-catch} syntax, and throwing an exception triggers an error.\mnote{A
 simple test which throws and tries to catch an exception object crashes CBCM
@@ -1061,7 +1092,7 @@ specifications.\mnote{ESBMC 3.0 is unable to determine that an
   the object thrown is of the most-derived type of the diamond. This
   suggests that ESBMC uses its own implementation of RTTI support code,
   which is somewhat incomplete, compared to production implementations.}
-However, ESBMC is currently (as of version 6.3) migrating C++ to the clang frontend and does not support exceptions.
+However, ESBMC is currently (in 2020, as of version 6.3) migrating C++ to the clang frontend and does not support exceptions.
 Finally, \divine{} 3~\mcite{RBB16} also comes close to
 full support for exceptions, but lacks support for exception
 specifications. Overall, this survey suggests that all current
@@ -1082,6 +1113,9 @@ not directly deal with exceptions (i.e.~it violates the zero-cost
 principle of modern exception handling). Unfortunately, we were unable
 to evaluate this approach, since there are no publicly available tools
 which would implement it.
+
+Exceptions are more widely supported in the context of Java analysis, probably thanks to their prevalence in Java code.
+Examples of tools for analysis of Java with exception support are Java Path Finder \mcite{Artho2019}, JBMC \mcite{Cordeiro2019}, and JDart \mcite{Mues2020}.
 
 \section{Evaluation}\label{sec:lang:evaluation}
 
