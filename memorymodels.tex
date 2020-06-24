@@ -5,18 +5,18 @@ The benchmarks are unmodified from the original paper.}
 This chapter presents an extension of the \divine model checker that allows for
 analysis of C and C++ programs under the \xtso relaxed memory model.
 We use an approach in which the program to be verified is first transformed so
-that it itself encodes the relaxed memory behaviour, and after that it is
+that it encodes the relaxed memory behaviour, and after that, it is
 verified by an explicit-state model checker supporting only the standard
 sequentially consistent memory.
-The novelty of our approach is in a careful design of an encoding of \xtso
+The novelty of our approach is in careful design of encoding of \xtso
 operations so that the nondeterminism introduced by the relaxed memory
-simulation is minimized.
+simulation is minimised.
 In particular, we allow for nondeterminism only in connection with memory
 fences and load operations of those memory addresses that were written to by a
 preceding store.
 We evaluate and compare our approach with the state-of-the-art bounded model
 checker CBMC~\mcite{Clarke2004,Kroening2014} and stateless model checker Nidhugg~\mcite{Abdulla2015}.
-For the comparison we employ SV-COMP concurrency benchmarks that do not exhibit
+For the comparison, we employ SV-COMP concurrency benchmarks that do not exhibit
 data nondeterminism, and we show that our solution built on top of the
 explicit-state model checker outperforms both of the other tools.
 The implementation is publicly available as an open source software.
@@ -28,11 +28,11 @@ caused by cache hierarchies, instruction reordering, and speculative execution.
 This, together with the rise of parallel programs, means that programmers often have to deal with the added complexity of programming under relaxed memory.
 The behaviour of relaxed memory can be highly unintuitive even on x86 processors, which have stronger memory model than most other architectures.
 Therefore, programmers often have to decide whether to stay relatively safe with
-higher-level synchronization constructs such as mutexes, or whether to tap to the full power of the architecture and risk subtle unintuitive behaviour of relaxed memory accesses.
+higher-level synchronisation constructs such as mutexes, or whether to tap to the full power of the architecture and risk subtle unintuitive behaviour of relaxed memory accesses.
 For these reasons, it is highly desirable to have robust tools for finding bugs in programs running under relaxed memory.
 
 Our aim is primarily to help with the development of lock-free data structures and algorithms.
-Instead of using higher-level synchronization techniques such as mutexes, lock-free programs use low-level atomic operations provided by the hardware or programming language to ensure correct results.
+Instead of using higher-level synchronisation techniques such as mutexes, lock-free programs use low-level atomic operations provided by the hardware or programming language to ensure correct results.
 This way, lock-free programs can exploit the full power of the architecture they target, but they are also harder to design, as the ordering of operations in the program has to be considered very carefully.
 We believe that by providing a usable validation procedure for lock-free
 programs, more programmers will find courage to develop fast and correct programs.
@@ -66,7 +66,7 @@ from \xtso as long as possible.
 Our approach is based on the standard operational semantic of \xtso with store
 buffers, but it removes entries from the store buffer only when a load or a
 fence occurs (or if the store buffer is bounded and full).
-Furthermore, in loads we only remove those entries from store buffers that
+Furthermore, in loads, we only remove those entries from store buffers that
 relate to the address being loaded, even if there are some older entries in the
 store buffer.
 
@@ -76,7 +76,7 @@ store buffer.
 
 \section{Conventional Semantics of \xtso}
 
-In order to better illustrate the advantages of our semantics for \xtso, we
+To better illustrate the advantages of our semantics for \xtso, we
 will now present the more usual semantics of this memory model often used in
 verification.
 This semantics is based on the \xtso semantics presented in~\mcite{x86tso}.
@@ -256,10 +256,10 @@ We illustrate this behaviour in \autoref{fig:mm:conventional}.
           (s3) edge node[right, xshift=-1em, yshift=-1.5em] {flush \be{z}{1}} (s2b)
       ;
   \end{tikzpicture}
-  \caption[An example parallel program and a fragments of its state space.]{
-    An example parallel program and a fragments of its state space.
+  \caption[An example parallel program and a fragment of its state space.]{
+    An example parallel program and a fragment of its state space.
     We start in a state where the threads \texttt{t0} and \texttt{t1} had
-    already executed, but did not flush their buffers yet and \texttt{t2} did
+    already executed but did not flush their buffers yet and \texttt{t2} did
     not start executing.
     This fragment of the state space shows (some of) the states that reach the
     assertion violation, i.e., states where $\texttt{a} = 0 \land \texttt{b} =
@@ -273,10 +273,10 @@ We illustrate this behaviour in \autoref{fig:mm:conventional}.
 
     We can see that the state space contains many redundant runs.
     First, flushes of \be{z}{1} are irrelevant as \texttt{z} is never read.
-    The same holds for flushes of \be{y}{1} after execution of line 2 in
+    The same holds for flushes of \be{y}{1} after the execution of line 2 in
     \texttt{t2}.
-    Finally, flushes of \be{x}{1} are only relevant just before execution of
-    line 2 in \texttt{t2} which is the only one which reads \texttt{x}.
+    Finally, flushes of \be{x}{1} are only relevant just before the execution
+    of line 2 in \texttt{t2}, which is the only one which reads \texttt{x}.
   }\label{fig:mm:conventional}
 \end{widefigure}
 
@@ -289,7 +289,7 @@ suffices to execute it just before such a read.
 Taking this into account requires either changes to the reduction mechanism, or
 to the semantics of \xtso simulation.
 We have decided to take the second route and show that it opens room for
-further optimizations not possible with the conventional flusher-thread
+further optimisations not possible with the conventional flusher-thread
 implementation.
 
 
@@ -308,7 +308,7 @@ The main novelty is in the way of simulation of \xtso which produces significant
 
 \subsection{Simulation of the \xtso Memory Model}
 
-The most straight-forward way of simulating \xtso is to add store buffers to the program and flush them nondeterministically, for example using a dedicated flusher thread which flushes one entry at a time and interleaves freely with all other threads.
+The most straightforward way of simulating \xtso is to add store buffers to the program and flush them nondeterministically, for example using a dedicated flusher thread which flushes one entry at a time and interleaves freely with all other threads.
 We used this technique in \mcite{SRB15weakmem}.
 This approach does, however, create many redundant interleavings as the flusher
 thread can flush an entry at any point, regardless of whether or not it is going
@@ -330,13 +330,13 @@ All of these cases can cause many entries to be flushed, often with a multitude 
 
 \paragraph{Delayed Flushing} %
 To alleviate aforementioned explosion of possible orders in which the store
-buffers can be flushed, we propose a \emph{delayed flushing}: entries in the
+buffers can be flushed, we propose \emph{delayed flushing}: entries in the
 store buffers can be kept in the store buffer after newer entries were flushed
 if the retained entries are marked as \emph{flushed}.
 Such the entries behave as if they were already written to the main memory, but can still be reordered with entries in other store buffers.
 That is, when there is a flushed entry for a given location in any store buffer, the value stored in the memory is irrelevant as any load will either read the flushed entry or entry from the other store buffer (which can be written after the flushed entry).
 Flushed entries make it possible to remove store buffer entries out of order while preserving total store order of observable operations.
-This way a load only affects entries from the matching addresses and not their predecessors in the store order.
+This way, a load only affects entries from the matching addresses and not their predecessors in the store order.
 This improvement is demonstrated in~\autoref{fig:mm:flushflag}.
 
 
@@ -481,7 +481,7 @@ Atomic operations are basically a combination of a load, store, and a fence --
 all atomics are sequentially consistent under \xtso.
 The only intricate part of these operations is that if an entry is flushed out
 of the store buffer, the entries from other store buffers which involve the
-same memory location can also be non-deterministically flushed (to simulate
+same memory location can also be nondeterministically flushed (to simulate
 they could have been flushed before the given entry).
 This flushing is similar to flushing performed in load.
 An example which shows a series of loads can be found in~\autoref{fig:mm:flushflag}.
@@ -504,11 +504,11 @@ This way, the in-thread store order is maintained.
 As \xtso simulation can delay memory stores, special care must be taken to preserve memory safety of the program.
 More precisely, it is necessary to prevent the transformed program from writing into freed memory.
 This problem occurs if a store to dynamically allocated memory is delayed after the memory is freed, or if a store to stack location is delayed after the corresponding function had returned.
-This problem does not require special handling in normal program execution as both stack addresses as well as dynamic memory addresses remain to be writable for the program even after they are freed (except for memory mapped files, but these have to be released by a system call which includes sufficiently strong memory barrier which prevents memory accesses to be delayed past the system call).
+This problem does not require special handling in normal program execution as both stack addresses as well as dynamic memory addresses remain to be writable for the program even after they are freed (except for memory-mapped files, but these have to be released by a system call which includes sufficiently strong memory barrier which prevents memory accesses from being delayed past the system call).
 
 To solve the problem of freed memory, it is necessary to evict store buffer entries which correspond to the freed memory just before the memory is freed.
 For entries not marked as flushed, this eviction concerns only store buffer of the thread which freed the memory.
-If some other thread attempted to write to the freed memory, this is an error as there is insufficient synchronization between the freeing and the store to the memory.
+If some other thread attempted to write to the freed memory, this is an error as there is insufficient synchronisation between the freeing and the store to the memory.
 However, corresponding entries marked as flushed should be evicted from all store buffers, as these entries correspond to changes which should have been already written to the shared memory.
 
 Eviction of dynamic memory is straightforward -- the program transformation injects a call to the eviction function just before every call to the function which releases memory.
@@ -521,14 +521,14 @@ The program transformation takes care of tracking which local memory addresses s
 The integration of \xtso simulation with the rest of \divine is straightforward in most cases.
 No changes are required in the \divine's execution engine or state space exploration algorithms.
 As for the libraries shipped with \divine, only minor tweaks were required.
-The \texttt{pthread} implementation had to be modified to add full memory barrier both at the beginning and at the end of every synchronizing functions.
+The \texttt{pthread} implementation had to be modified to add full memory barrier both at the beginning and at the end of every synchronising functions.
 This corresponds to barriers present in the implementations used for normal execution, \texttt{pthread} mutexes and other primitives have to guarantee sequential consistency of the guarded operations (provided all accesses are properly guarded).
 
 The \divine's operating system, \dios, is used to implement low-level threading as well as simulation of various filesystem APIs \mcite{RBMKB2019}.
 We had to add memory barrier into the system call entry which hands control to \dios.
 \dios itself does not use relaxed memory simulation -- the implementation of \xtso operations detects that the code is executed in the kernel mode and bypasses store buffers.
 In this way, the entire \dios executes as if under sequential consistency which makes its design simpler and more robust.
-This synchronization is easily justifiable -- system calls require a memory barrier or kernel lock in most operating systems.
+This synchronisation is easily justifiable -- system calls require a memory barrier or kernel lock in most operating systems.
 
 \paragraph{Relaxed Memory and Abstract Data}
 %
@@ -536,7 +536,7 @@ DIVINE has support for symbolic and abstract data (data nondeterminism) which
 uses program transformation to implement symbolic manipulation of
 data~\mcite{LRB2018}.
 However, the integration of support for abstract data and for memory models is
-not yet done as it requires more complex changes then just a straight-forward
+not yet done as it requires more complex changes than just a straightforward
 composition of the two program transformations.
 Performing transformation for abstractions first is not possible currently, as
 it introduces additional memory operations and therefore is not correct in
@@ -548,13 +548,13 @@ However, this would mean that if an abstract value is ever stored to memory
 (i.e., it is not only present in LLVM registers) then all values loaded from
 the memory are potentially abstract, because the store buffers themselves need
 to be abstract.
-Therefore, this approach is not practical because in introduces too much extra
+Therefore, this approach is not practical because it introduces too much extra
 overhead.
 Overall, we defer this problem to future work.
 
 \subsection{Further Optimizations} \label{sec:mm:opt}
 
-We have implemented two further optimizations of our \xtso simulation.
+We have implemented two further optimisations of our \xtso simulation.
 
 \paragraph{Static Local Variable Detection}
 Accesses of local variables which are not accessible to other threads need not
@@ -567,19 +567,19 @@ detect most local variables which are never accessed using pointers.
 \paragraph{Dynamic Local Memory Detection}
 \divine can also dynamically detect if the given memory object is shared between threads (i.e., it is accessible from global variables or stacks of more then one thread).
 Using this information, it is possible to dynamically bypass store buffers for operations with non-shared memory objects.
-This optimization is correct even though the shared status of memory can change during its lifetime.
+This optimisation is correct even though the shared status of memory can change during its lifetime.
 A memory object $o$ can become shared only when its address is written to some memory object $s$ which is already shared (or $o$ can become shared transitively through a series of pointers and intermediate objects).
 For this to happen, there has to be a store to the already shared object $s$, and this store has to be propagated to other threads.
 Once the store of the address of $o$ is executed and written to the store buffer, $o$ becomes shared, and any newer stores into it will go through the store buffer.
 Furthermore, once this store is propagated, any store which happened before turning $o$ into a shared object also had to be propagated as \xtso does not reorder stores.
 Therefore, there is no reason to put stores to $o$ through the store buffer if $o$ is not shared.
-This optimization is not correct for memory models which allow store reordering -- for such memory models, we would need to know that the object will never be shared during its lifetime.
+This optimisation is not correct for memory models which allow store reordering -- for such memory models, we would need to know that the object will never be shared during its lifetime.
 
 \subsection{Bounding the Size of Store Buffers}
 
 The complexity of analysis of programs under the \xtso memory model is high.
 From the theoretical point of view, we know due to~\mcite{wmdecidability} that reachability for programs with finite-state threads which run under TSO is decidable, but non-primitive recursive (it is in \textsc{pspace} for sequential consistency).
-The proof uses the so called SPARC TSO memory model~\mcite{SPARC94} that is very similar to \xtso. However, the proof of decidability does not translate well to an efficient decision procedure, and real-world programs are much more complex than the finite-state systems used in the decidability proof.
+The proof uses the so-called SPARC TSO memory model~\mcite{SPARC94} that is very similar to \xtso. However, the proof of decidability does not translate well to an efficient decision procedure, and real-world programs are much more complex than the finite-state systems used in the decidability proof.
 
 For this reason, we would need to introduce unbounded store buffers to properly
 verify real-world programs. Unfortunately, this can be impractical, especially for programs which do not terminate.
@@ -588,7 +588,7 @@ inserts store buffers of limited size, limiting thus the number of store
 operations that can be delayed at any given time. The
 size of the store buffers is fully configurable, and it currently defaults to
 32, a value probably high enough to discover most bugs which can be observed on
-a real hardware.
+real hardware.
 
 Our implementation also supports the store buffers of unlimited size (when size
 is set to 0). In this mode, programs with infinite loops that write into shared
@@ -617,7 +617,7 @@ Furthermore, due to the limitation of stateless model checking with DPOR,
 Nidhugg cannot handle data nondeterminism at all.
 There are 55 benchmarks in total.
 
-The evaluation was performed on a machine with 2 dual core Intel Xeon 5130
+The evaluation was performed on a machine with two dual core Intel Xeon 5130
 processors running at 2 GHz with 16 GB of RAM. Each tool was running with memory
 limit set to 10 GB and time limit set to 1 hour. The tools were not limited in
 the number of CPUs they can use.
@@ -652,8 +652,8 @@ Finally, ``unique'' shows the number of benchmarks solved only by the given tool
 \caption{
     Comparison of various configurations of \divine.
     The ``base'' version uses none of the improvements from \autoref{sec:mm:opt}.
-    The configurations marked with ``s'' add the static local variable optimization, while the configurations marked with ``d'' add the dynamic detection of non-shared memory objects.
-    The ``+sdu'' configuration has both optimizations enabled and it has unbounded buffers.
+    The configurations marked with ``s'' add the static local variable optimisation, while the configurations marked with ``d'' add the dynamic detection of non-shared memory objects.
+    The ``+sdu'' configuration has both optimisations enabled and it has unbounded buffers.
     Finally, the ``+sd4'' has buffer bound set to 4 entries instead of the default 32 entries.
     The default version is ``+sd''.
 } \label{tab:mm:divine:svc}
@@ -690,15 +690,15 @@ We expect this to be caused by the nondeterminism in flushing the excessive entr
 
 \section{Related work}
 
-A lot of techniques have support for program analysis under relaxed memory models, most of these were already described in \autoref{chap:stateoftheart} and therefore we will not replicate the description here.
-A lot of thse techniques is build on stateless model checking (see also \autoref{sec:stateoftheart:smc}) including \mcite{Demsky2015,Zhang2015,Huang2016,Abdulla2017tso} for \xtso and \mcite{Abdulla2016,Norris2016,Kokologiannakis2017,Abdulla2018} for other memory models. Bounded model checking (see also \autoref{sec:stateoftheart:bmc}) is another popular choice for analysis of \xtso \mcite{Alglave2013po,Gavrilenko2019,Tomasco2017} and other memory models \mcite{Burckhardt2007,Abdulla2017}.
+A lot of techniques have support for program analysis under relaxed memory models, most of these were already described in \autoref{chap:stateoftheart} and therefore, we will not replicate the description here.
+A lot of these techniques is build on stateless model checking (see also \autoref{sec:stateoftheart:smc}) including \mcite{Demsky2015,Zhang2015,Huang2016,Abdulla2017tso} for \xtso and \mcite{Abdulla2016,Norris2016,Kokologiannakis2017,Abdulla2018} for other memory models. Bounded model checking (see also \autoref{sec:stateoftheart:bmc}) is another popular choice for analysis of \xtso \mcite{Alglave2013po,Gavrilenko2019,Tomasco2017} and other memory models \mcite{Burckhardt2007,Abdulla2017}.
 An explicit-state approach to programs running under the C\# relaxed memory model is presented in \mcite{Huang2016}.
 There are also previous works which use program transformation in the analysis of relaxed memory models \mcite{Alglave2013,Abdulla2017,SRB15weakmem}.
 
 Our approach to simulation of \xtso is somewhat similar to the approach presented in \mcite{Abdulla2018}. Both approaches perform nondeterministic choice primarily on memory loads. However, \cite{Abdulla2018} is focusing on the release-acquire fragment of C11 and does not support sequential consistency.
-Similarly, \mcite{Kokologiannakis2017} presents a technique that attempts to minimize nondeterminism, this time in analysis of a modified version of the C11 memory model.
+Similarly, \mcite{Kokologiannakis2017} presents a technique that attempts to minimise nondeterminism, this time in the analysis of a modified version of the C11 memory model.
 
-There are also some approaches to analysis of relaxed memory models which were not mentioned in \autoref{chap:stateoftheart}, mostly because they lack implementation which works with realistic programming languages.
+There are also some approaches to  theanalysis of relaxed memory models which were not mentioned in \autoref{chap:stateoftheart}, mostly because they lack implementation which works with realistic programming languages.
 In \mcite{Atig2011} a program transformation that uses context switch bounding but not buffer bounding is presented. It uses additional copies for shared variables for TSO simulation. However, the evaluated was performed with manually converted programs.
 An unbounded approach to verification of programs under TSO is presented in~\mcite{Linden2010}.
 It uses store buffers represented by automata and leverages cycle iteration acceleration to get a representation of store buffers on paths which would form cycles if values in store buffers were disregarded.
@@ -723,12 +723,12 @@ Some of these techniques can be also used to insert memory fences into the progr
 
 Neither of these techniques are directly comparable to our method.
 For these techniques, a program is incorrect if it exhibits relaxed behaviour, while for us, it is incorrect if it violates specification (e.g., assertion safety and memory safety).
-In practice, the appearance of relaxed behaviour is often not a problem, provided the overall behaviour of the data structure or algorithm matches desired specification.
+In practice, the appearance of relaxed behaviour is often not a problem, provided the overall behaviour of the data structure or algorithm matches the desired specification.
 In many lock-free data structures, relaxed behaviour is essential to achieving high performance.
 
 \paragraph{Other Methods}\label{other-methods}
 
-In~\mcite{Park1995}, the SPARC hierarchy of memory models (TSO, PSO, RMO) is modeled using encoding from assembly to Mur\(\varphi\)~\mcite{Murphi}.
+In~\mcite{Park1995}, the SPARC hierarchy of memory models (TSO, PSO, RMO) is modelled using encoding from assembly to Mur\(\varphi\)~\mcite{Murphi}.
 A completely different approach is taken in~\mcite{Turon2014}.
 This work introduces a separation logic GPS, which allows proving properties about programs using (a fragment of) the C11 memory model.
 This work is intended for manual proving of properties of parallel programs, not for automatic verification.
@@ -750,7 +750,7 @@ evaluation, our explicit-state model checking approach outperforms
 a state-of-the-art stateless model checker as well as bounded model checker,
 which is actually quite an unexpected result. We also show that many of the used
 benchmarks can be solved only by one or two of the three evaluated tools, which
-highlights the importance of employing different approaches to analysis of programs
+highlights the importance of employing different approaches to the analysis of programs
 under relaxed memory. Finally, we show that for terminating programs, our
 approach is viable both with bounded and unbounded store buffer size.
 
