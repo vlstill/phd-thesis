@@ -1,12 +1,12 @@
 In this appendix, I summarize my publication results in the field of program analysis.
-For my most significant papers I also include a short description of the paper, and description of my contribution for the paper.
-The reminder of papers are mostly either older papers to which I have contributed less, or short report papers for the Software Verification Competition (SV-COMP \cite{Beyer2020svc}).
+For my most important papers, I also include a short description of the paper and a description of my contribution to the paper.
+The remainder of papers are mostly either older papers to which I have contributed less or short report papers for the Software Verification Competition (SV-COMP \cite{Beyer2020svc}).
 
 \section{Most Significant Papers}
 
 \subsection*{Local Nontermination Detection for Parallel C++ Programs}
 
-In this paper, we present our approach to ensuring that parallel programs do not hang or wait indefinitely – i.e., there are no deadlocks, livelocks and the program proceeds towards its goals.
+In this paper, we present our approach to ensuring that parallel programs do not hang or wait indefinitely – i.e., there are no deadlocks, livelocks, and the program proceeds towards its goals.
 The paper contains the theoretical description of our approach and evaluation of our publicly available implementation.
 
 The algorithm design, implementation and writing of the paper was done by me, my advisor Jiří Barnat helped by consulting the theory with me and proofreading the paper.
@@ -17,7 +17,7 @@ I have presented this paper on the SEFM 2019 conference.
 \subsection*{Model Checking of C++ Programs Under the x86-TSO Memory Model}
 
 Here we present a novel approach to verification of parallel programs with respect to the memory model of Intel processors.
-The approach is improves efficiency of explicit-state model checking by decreasing amount of nondeterminism in the program.
+The approach improves the efficiency of explicit-state model checking by decreasing amount of nondeterminism in the program.
 The paper contains evaluation and is accompanied by a publicly available implementation.
 
 The algorithm design, implementation and writing of the paper was done by me, Jiří Barnat helped by consulting the theory with me and proofreading the paper.
@@ -27,7 +27,7 @@ I have presented this paper on the ICFEM 2018 conference.
 
 \subsection*{Using Off-the-Shelf Exception Support Components in C++ Verification}
 
-In this paper, we present an extension of DIVINE which allows it to verify programs that contain C++ exceptions and C programs with non-local transfer of control flow (\texttt{setjmp}/\texttt{longjmp}).
+In this paper, we present an extension of DIVINE that allows it to verify programs that contain C++ exceptions and C programs with a non-local transfer of control flow (\texttt{setjmp}/\texttt{longjmp}).
 We show that with careful design, we can successfully reuse exception handling code from the standard C++ library.
 The result is that virtually any exception handling constructs working in the standard C++ are now available in DIVINE.
 
