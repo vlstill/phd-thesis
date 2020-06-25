@@ -156,7 +156,12 @@ Abstractions are also connected with the notion of \emph{refinement}.
 Often a program is over-approximated, then analysed, and if an error is found, this error is validated.
 If the error is valid, then there is a real error in the original program.
 However, if the error is not valid, the error trace is used to \emph{refine} the abstraction, i.e., make it more precise to rule out this spurious error (and preferably also similar spurious errors).
-This technique is often called \emph{Counterexample-Guided Abstraction Refinement} (\emph{CEGAR}).
+This technique is often called \emph{Counterexample-Guided Abstraction Refinement} (\emph{CEGAR}) \mcite{Clarke2000}.
+
+An example of an abstraction technique is \emph{predicate abstraction} \mcite{Hu1998}.
+Instead of tracking original values of variables, program abstracted with predicate abstraction tracks only validity of predicates over the variable values.
+For example, it might track predicates such as $(x > 0)$ or $(y \le x)$.
+Refinement with is usually done by addition of new predicates.
 
 \medskip
 Finally, we will need the following state-space-related definitions.
@@ -356,7 +361,7 @@ operating system support.
     the scheduler), but does not proceed in any meaningful way because it
     executes a loop that is waiting for an event that ever happens.%
     \begin{marginnote}
-      Suppose a program with thread \texttt{t0} and \texttt{t1}:
+      Suppose a program with threads \texttt{t0} and \texttt{t1}:
 
       \medskip
       \begin{cppcode}
