@@ -319,7 +319,7 @@
 
 \usepackage{listofitems}
 \makeatletter
-\newcommand{\internalmcite}[3][]{%
+\newcommand{\mcite}[2][]{%
 \checkoddpage% sync page numbers for \oddpage@page (\thepage is wrong)
 \readlist*\cilist{#2}%
 \foreachitem\ci\in\cilist[]{%
@@ -328,7 +328,7 @@
 \else%
   \expandafter\def\csname mcite: \oddpage@page : \ci\endcsname{}%
   \marginpar{%
-    \raggedout\footnotesize\cite{\ci} \citeauthor*{\ci}, \citefield{\ci}[titlelink]{title}.#3%
+    \raggedout\hypertarget{mcite:\oddpage@page:\ci}\footnotesize\cite{\ci} \citeauthor*{\ci}, \citefield{\ci}[titlelink]{title}.%
     % define note is on this page it once more in case we were forced to the next page
     \expandafter\gdef\csname mcite: \oddpage@page : \ci\endcsname{}%
   }%
@@ -337,7 +337,6 @@
 \cite[#1]{#2}%
 }
 \makeatother
-\newcommand{\mcite}[2][]{\internalmcite[#1]{#2}{}}
 
 % set space between margin notes -- unofficial, but works (unline \marginskip)
 \setlength\marginparpush\bigskipamount
