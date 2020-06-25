@@ -152,6 +152,13 @@ Usually, abstractions are designed such that results derived from the abstract s
     \end{itemize}
 \end{definition}
 
+Abstractions are also connected with the notion of \emph{refinement}.
+Often a program is over-approximated, then analysed, and if an error is found, this error is validated.
+If the error is valid, then there is a real error in the original program.
+However, if the error is not valid, the error trace is used to \emph{refine} the abstraction, i.e., make it more precise to rule out this spurious error (and preferably also similar spurious errors).
+This technique is often called \emph{Counterexample-Guided Abstraction Refinement} (\emph{CEGAR}).
+
+\medskip
 Finally, we will need the following state-space-related definitions.
 
 \begin{definition}[Finite State Space]
@@ -304,7 +311,31 @@ blocked we say there is a \emph{deadlock}.
 
 \begin{definition}[Deadlock, Partial Deadlock, Global Deadlock]\label{def:deadlock}
     A \emph{deadlock} happens if a scheduler never allows a thread to run
-    because it waits for a resource that never becomes available.
+    because it waits for a resource that never becomes available.%
+    \begin{marginnote}
+      For example, suppose a program with threads \texttt{t0} and \texttt{t1}:
+
+      \medskip
+      \begin{cppcode}
+        mutex mtx0, mtx1;
+
+        void t0() {
+          unique_lock(mtx0);
+          unique_lock(mtx1);
+          /* ... */
+        }
+
+        void t1() {
+          unique_lock(mtx1);
+          unique_lock(mtx0);
+          /* ... */
+        }
+      \end{cppcode}
+      \smallskip
+
+      If \texttt{t0} locks \texttt{mtx0} and \texttt{t1} locks \texttt{mtx1} then each of the threads will attempt to lock the mutex already owned by the other thread.
+      Therefore, the threads are in deadlock -- neither of them can proceed and both are blocked.
+    \end{marginnote}
 
     Sometimes, when we need to distinguish between all the threads being
     blocked and only some of them being blocked, we will use the notion of
@@ -323,7 +354,32 @@ operating system support.
 \begin{definition}[Livelock]\label{def:livelock}
     \emph{Livelock} is a situation in which a thread is allowed to run (by
     the scheduler), but does not proceed in any meaningful way because it
-    executes a loop that is waiting for an event that ever happens.
+    executes a loop that is waiting for an event that ever happens.%
+    \begin{marginnote}
+      Suppose a program with thread \texttt{t0} and \texttt{t1}:
+
+      \medskip
+      \begin{cppcode}
+        atomic<bool> flag;
+
+        void t0() {
+          while (!flag) {
+            /* wait */
+          }
+          /* ... */
+        }
+
+        void t1() {
+          flag = true;
+          /* ... */
+          flag = false;
+          /* ... */
+        }
+      \end{cppcode}
+      \smallskip
+
+      If \texttt{t0} starts executing the \texttt{while} loop only after \texttt{t1} sets \texttt{flag} to \texttt{false} the loop will never end, and \texttt{t0} is in livelock -- it can execute, but does not proceed (provided \texttt{flag} is not set again).
+    \end{marginnote}
 \end{definition}
 
 \paragraph{Interleaving of Threads}
