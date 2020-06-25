@@ -967,7 +967,7 @@ Some methods detect deadlocks of the whole program (i.e., a program state from w
 Also, these global deadlock detection techniques are inadequate in the presence of synchronisation mechanisms which causes busy waiting instead of blocking (for example spin locks) or in the cases when normally blocking operations are implemented using busy waiting (which can be easier to handle for the verifier in some cases).
 A somewhat different approach based on communicating channels is proposed in \mcite{Ng2016}, but this approach is aiming at the Go programming language which primarily uses shared channels for communication between threads.
 Overall, neither of these techniques is applicable in general for the detection of nontermination in programs which use a combination of synchronisation primitives in shared memory.
-% Finally, there are also techniques for checking termination of sequential programs, to name a few \cite{Giesl2017,Chen2018}.
+% Finally, there are also techniques for checking termination of sequential programs, to name a few \mcite{Giesl2017,Chen2018}.
 
 % SACO a tool for analysis of concurrent programs with loops is presented in \mcite{Albert2017}.
 % It uses may-happen-in-parallel analysis to infer which part of the program can interfere and it also also infers upper bounds on iteration numbers.
@@ -981,7 +981,7 @@ A more realistically-targeted termination checker for parallel programs is prese
 Its primary goal is to show a given thread terminates.
 It abstracts other threads into a model of the environment which is incrementally refined and attempts to prove termination of the thread locally.
 It appears to support C programs, but it assumes the number of threads is fixed and it does not support synchronisation with mutexes and similar primitives.
-Another tool for termination-checking parallel C programs is presented in \mcite{Popeea2012}, it is similar to \cite{Cook2007thr} but more general.
+Another tool for termination-checking parallel C programs is presented in \mcite{Popeea2012}, it is similar to \mcite{Cook2007thr} but more general.
 % rely-guarantee reasoning -- keeps track of communication of each thread with the rest of the program.
 It uses transition invariants and well-foundedness to prove termination of whole programs or individual threads and uses predicate abstraction and refinement.
 The downside of this approach is that it can report unfair paths as termination counterexamples.
@@ -993,7 +993,7 @@ Furthermore, the number of context switches in the stem and each of the periods 
 The tool uses sequentialisation -- it reduces the problem of (context-bounded) termination checking of a parallel program to assertion checking in a sequential program.
 It does not target any realistic programming language; however, it targets the Boogie modelling language for which translators from C and other languages exist.
 Therefore, it might be possible to use this tool even for C and other programming languages.
-The main difference between our approach and the one in \cite{Atig2012term} is that our approach uses a different notion of fairness, targets primarily C and C++, does not impose any limits on the number of context switches, and can detect local nontermination.
+The main difference between our approach and the one in \mcite{Atig2012term} is that our approach uses a different notion of fairness, targets primarily C and C++, does not impose any limits on the number of context switches, and can detect local nontermination.
 
 \section{Conclusion} \label{sec:conclusion}
 
