@@ -1,4 +1,4 @@
-# Analysis of Parallel C++Programs
+# Analysis of Parallel C++ Programs
 
 PhD Thesis
 
