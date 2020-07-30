@@ -34,11 +34,11 @@ script:
   - git remote -v
   - git remote set-url origin git@github.com:vlstill/phd-thesis.git
   - git remote -v
-  - git checkout --orphan pdf
+  - git checkout --orphan gh-pages
   - git reset --hard
   - git stage thesis.pdf
   - git commit -a -m "Update PDF"
-  - if test "$TRAVIS_BRANCH" = master; then git push --set-upstream origin pdf --force; fi
+  - if test "$TRAVIS_BRANCH" = master; then git push --set-upstream origin gh-pages --force; fi
 
   # You can also pass arguments to texliveonfly:
 #  - texliveonfly --arguments='-shell-escape' main.tex
