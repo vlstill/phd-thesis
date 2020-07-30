@@ -156,7 +156,7 @@ Abstractions are also connected with the notion of \emph{refinement}.
 Often a program is over-approximated, then analysed, and if an error is found, this error is validated.
 If the error is valid, then there is a real error in the original program.
 However, if the error is not valid, the error trace is used to \emph{refine} the abstraction, i.e., make it more precise to rule out this spurious error (and preferably also similar spurious errors).
-This technique is often called \emph{Counterexample-Guided Abstraction Refinement} (\emph{CEGAR}) \mcite{Clarke2000}.
+This technique is often called \emph{Counterexample-Guided Abstraction Refinement} (\emph{CEGAR}) \mcite{Clarke2000, Kurshan1995}.
 
 An example of an abstraction technique is \emph{predicate abstraction} \mcite{Hu1998}.
 Instead of tracking original values of variables, program abstracted with predicate abstraction tracks only validity of predicates over the variable values.
@@ -174,7 +174,7 @@ Otherwise, we say the program has an \emph{infinite state space}.
 \begin{definition}[Run]
 A \emph{run} in the state space is a (possibly infinite) path in the state space (or reduced state space) that starts in the initial state.
 That is, a run is a sequence of states $\sigma = s_0, s_1, …$ such that $s_0$ is the initial state and for each consecutive pair of states $s_i, s_{i+1}$ there is an edge from $s_i$ to $s_{i + 1}$ in the corresponding (reduced) state space.
-Please note that states can be repeated in a run and a run can be infinite.
+States can be repeated in a run and a run can be infinite.
 \end{definition}
 
 \subsection{Program Properties}
@@ -188,7 +188,7 @@ together with examples of particular properties.
 \paragraph{Safety Properties}
 %
 are properties that can be checked locally -- for each state of the program, we
-can determine if the state satisfies or violates given property.
+can determine if the state satisfies or violates the given property.
 Therefore, to conclude the program is error-free under given safety property, it suffices to show that no state violates the property.
 
 Examples of safety property include \emph{memory safety} (every
@@ -359,7 +359,7 @@ operating system support.
 \begin{definition}[Livelock]\label{def:livelock}
     \emph{Livelock} is a situation in which a thread is allowed to run (by
     the scheduler), but does not proceed in any meaningful way because it
-    executes a loop that is waiting for an event that ever happens.%
+    executes a loop that is waiting for an event that never happens.%
     \begin{marginnote}
       Suppose a program with threads \texttt{t0} and \texttt{t1}:
 
@@ -973,7 +973,7 @@ An example of (a fragment of) lock-free data structure can be found in \autoref{
     synchronisation unnecessary on x86-64 processors.
 
     Then, on line 10, the actual value is written to the node, on the location
-    pointed to by the \texttt{write} field -- please note that the
+    pointed to by the \texttt{write} field -- note that the
     \texttt{write} pointer is atomic, but the value it points to is not
     atomic.
     On line 11, we shift the write pointer, which makes the data available to
@@ -992,7 +992,7 @@ An example of (a fragment of) lock-free data structure can be found in \autoref{
     performed so far (in particular the shift of \texttt{write} on line 11) are
     visible once these changes become visible.
 
-    Please note that extending this approach to multiple producers is not
+    Extending this approach to multiple producers is not
     trivial as the check if there is space available and the publication of the
     written value would need to be performed at the same time.
     This would require either modification of two different locations in one

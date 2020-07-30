@@ -10,7 +10,7 @@ Any of this plethora of software system can contain bugs.
 These bugs can range from minor ones that cause inconvenience only, to safety-critical problems that can cause deaths of many people.
 For this reason, ensuring software correctness is a desirable goal pursued by software developers and testers, as well as researchers.
 Many techniques provide assistance to both developers and testers, with a wide range of capabilities and ease of use.
-At the basic level, developers can leverage type system, especially if they use strongly statically typed programming language, and they can use compiler warnings and linters\mnote{Lightweight analysis tools that try to find likely bugs. They rely on approximation and usually perform more thorough analysis then compilers do for warnings, but still prefer speed and a low number of spurious error reports to the discovery of hard to find bugs.} to check for mistakes and potential problems in the code.
+At the basic level, developers can leverage type system, especially if they use strongly statically typed programming language, and they can use compiler warnings and linters\mnote{Lightweight analysis tools that try to find likely bugs. They rely on approximation and usually perform more thorough analysis then compilers do for warnings, but still prefer speed and a low number of spurious error reports to the discovery of hard-to-find bugs.} to check for mistakes and potential problems in the code.
 Code is also routinely tested with a large variety of test types, starting from unit tests that test small parts of the program in isolation and continuing to tests of functionality of the whole system.
 
 These testing and code analysis techniques are wide-spread, can discover significant amounts of bugs, and are often reasonably easy to use for developers.
@@ -22,8 +22,8 @@ For example, a thread-safe data structure might be stress tested by performing m
 Such stress tests are designed to increase the likelihood of triggering a bug in the test, but they still cannot show its absence and can miss the truly rare bugs.
 Even worse, tests of parallel software are often nondeterministic on buggy software, i.e., the same test of the same software version can sometimes succeed and sometimes fail due to different interleaving of threads in different executions.
 This behaviour might make bug fixing extremely difficult.
-For example, a test may fail in a nightly automatic build, and therefore the developer knows there is a bug in the program, but they are unable to reproduce the bug, and the test result might not be sufficient to find what the bug is without reproducing it.
-Similarly, it is hard to ensure by testing that (parallel) program terminates in all cases, or that it works correctly even on hardware with relaxed memory (which can, for example, delay stores to the main memory).\begin{marginnote}%
+For example, a test may fail in a nightly automatic build, and therefore the developers know there is a bug in the program, but they are unable to reproduce the bug, and the test result might not be sufficient to find what the bug is without reproducing it.
+Similarly, it is hard to ensure by testing that a (parallel) program terminates in all cases, or that it works correctly even on hardware with relaxed memory (which can, for example, delay stores to the main memory).\begin{marginnote}%
 Consider this code:
 
 \medskip
@@ -48,10 +48,10 @@ Intuitivelly we could expect that $\texttt{a} = 0 \land \texttt{b} = 0$ is not a
 However, under the common x86 architecture, this outcome can happen due to delayed stores.
 \end{marginnote}
 
-To make the discovery of hard to find bugs easier, many techniques were proposed.
-These include both testing-based methods, such as race detectors and thread sanitisers or record and replay debuggers  and methods based on \emph{formal verification} including theorem proving, symbolic execution and various variants of model checking.\mnote{Please note that the distinction between testing and formal verification is not clear and many techniques derived from formal verification are unable to prove correctness.
+To make the discovery of hard-to-find bugs easier, many techniques were proposed.
+These include both testing-based methods, such as race detectors and thread sanitisers or record and replay debuggers  and methods based on \emph{formal verification} including theorem proving, symbolic execution and various variants of model checking.\mnote{The distinction between testing and formal verification is not clear and many techniques derived from formal verification are unable to prove correctness.
 This blurring is further increased methods like stateless model checking that is also presented under the name systematic concurrency testing.}
-In this work, we will focus on methods with a more formal basis that are capable of the discovery of hard to find bugs.
+In this work, we will focus on methods with a more formal basis that are capable of the discovery of hard-to-find bugs.
 However, for these methods to be useful to programmers, they must not only be theoretically capable of bug discovery, but they must also be reasonably convenient to use.
 For example, it is highly desirable that the program analysis tool can analyse the program directly, without the need to create a model of the program that is to be analysed (many, especially older, techniques for analysis of parallel programs require models).
 For this reason, we will focus on analysis tools which work with \emph{realistic programs}, i.e., programs written in high-level programming languages which can be both executed on the desired platform and analysed without a separate modelling step.
@@ -117,14 +117,14 @@ request-serving routine in a web server) that must terminate.
 \section{DIVINE}
 
 The work presented in this thesis is done in the context of the DIVINE model checker \mcite{DIVINEToolPaper2017, DIVINEWeb}.
-DIVINE is an open-source verification environment that aims at the discovery of hard to find bugs in programs written in C and C++.
+DIVINE is an open-source verification environment that aims at the discovery of hard-to-find bugs in programs written in C and C++.
 At its core, there is an explicit-state model checking engine, extended with data abstraction capabilities.
 DIVINE can be used to discover large classes of bugs, including assertion violations, use of uninitialised memory, bad memory accesses, memory leaks, and concurrency related bugs such as deadlocks.
 
 
 \section{Thesis Contributions}
 
-In this work, we will describe several techniques that improve analysis of realistic parallel programs in the DIVINE model checker, and we will compare them to many other methods that aim at the discovery of hard to find bugs in parallel programs.
+In this work, we will describe several techniques that improve analysis of realistic parallel programs in the DIVINE model checker, and we will compare them to many other methods that aim at the discovery of hard-to-find bugs in parallel programs.
 In our analysis, we will focus primarily on programs written in C and C++.
 Nevertheless, analysis of other real-world high-level imperative programming
 languages (such as Java, C\#, Rust and many other) should follow similar

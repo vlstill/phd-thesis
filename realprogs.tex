@@ -977,7 +977,7 @@ to the exception object and register 1 corresponds to a type index. This
 also directly maps to the return type of \texttt{landingpad}
 instructions and therefore the register values can be saved directly
 into the \llvm{} register corresponding to the particular
-\texttt{landingpad} that is about to be executed.\mnote{Please note that LLVM registers are function-local values that cannot be used to pass information between functions in pure LLVM.
+\texttt{landingpad} that is about to be executed.\mnote{LLVM registers are function-local values that cannot be used to pass information between functions in pure LLVM.
 With \divm, we can use metadata to locate the register's value in a frame of a function and modify it.}
 
 Registers other than 0 and 1 are currently not supported. In \llvm{}, in

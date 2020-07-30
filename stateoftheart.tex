@@ -594,7 +594,8 @@ The result is that all jump lead forward, which simplifies the creation of the l
 
 \paragraph{Parallelism}
 
-We have identified three broad approaches to parallelism in BMC.
+
+We have categorized the existing approaches to parallelism in BMC into thee broad categories.
 The conceptually simplest is to explicitly enumerate symbolic context-switch
 bounded runs of the program and then encode them to resolve symbolic data.
 This approach is used by ESBMC \mcite{Cordeiro2011} and by
@@ -888,7 +889,8 @@ CPAchecker \mcite{Dangl2015,Beyer2011,Beyer2020pdr} is a program analysis tool f
 It uses a combination of abstract domains and has support for various techniques such as $k$-induction, predicate abstraction, and property directed reachability (PDR/IC3).
 To avoid false counterexamples, CPAchecker performs bit-precise validation of counterexamples.
 % - memory graphs for memory safety as of~\mcite{Dangl2015} (but later in SV-COMP yes)
-Various tools build on the CPAchecker framework are participating in the SV-COMP, among these CPA-Seq appears to be just a version of CPAchecker tuned for SV-COMP.
+Various tools build on the CPAchecker framework are participating in the SV-COMP.
+It appears that CPAChecker without additional extensions participates in SV-COMP under the name CPA-Seq.
 
 CPA-BAM-BnB \mcite{Andrianov2017} is a CPAchecker-based tool that uses Block Abstraction Memoization, which means it divides programs into blocks (often a block is a function) and analyses blocks separately.
 It uses a cache of existing block abstractions.
