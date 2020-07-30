@@ -37,7 +37,8 @@ script:
   - git checkout --orphan gh-pages
   - git reset --hard
   - printf '<html><head><meta http-equiv="refresh" content="0; url=https://vlstill.github.io/phd-thesis/thesis.pdf"></head><body><a href="https://vlstill.github.io/phd-thesis/thesis.pdf">Download PDF</a></body></html>' > index.html
-  - git stage thesis.pdf index.html
+  - printf '[Download PDF](https://vlstill.github.io/phd-thesis/thesis.pdf)' > index.md
+  - git stage thesis.pdf index.html index.md
   - git commit -a -m "Update PDF"
   - if test "$TRAVIS_BRANCH" = master; then git push --set-upstream origin gh-pages --force; fi
 
