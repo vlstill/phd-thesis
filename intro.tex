@@ -4,7 +4,7 @@ Then we often travel to work either by car or by public transport.
 In either case, there is probably software in the vehicle, including life-critical software in engine control and safety systems such as ABS (brakes anting-blocking system).
 In work, many people use computers to do their job and to communicate with coworkers and the rest of the world.
 In the meanwhile, our mobile phone and the Internet accompanies us on almost every step.
-We also use much infrastructure which can have important software component in its control system -- including energy grids, smart traffic signs, and flight control.
+We also use much infrastructure which can have important software components in its control systems -- including energy grids, smart traffic signs, and flight control.
 
 Any of this plethora of software system can contain bugs.
 These bugs can range from minor ones that cause inconvenience only, to safety-critical problems that can cause deaths of many people.
@@ -49,14 +49,27 @@ However, under the common x86 architecture, this outcome can happen due to delay
 \end{marginnote}
 
 To make the discovery of hard-to-find bugs easier, many techniques were proposed.
-These include both testing-based methods, such as race detectors and thread sanitisers or record and replay debuggers  and methods based on \emph{formal verification} including theorem proving, symbolic execution and various variants of model checking.\mnote{The distinction between testing and formal verification is not clear and many techniques derived from formal verification are unable to prove correctness.
+These include both testing-based methods, such as race detectors and thread sanitisers or record and replay debuggers, and methods based on \emph{formal verification} including theorem proving, symbolic execution and various variants of model checking.\mnote{The distinction between testing and formal verification is not clear and many techniques derived from formal verification are unable to prove correctness.
 This blurring is further increased methods like stateless model checking that is also presented under the name systematic concurrency testing.}
 In this work, we will focus on methods with a more formal basis that are capable of the discovery of hard-to-find bugs.
 However, for these methods to be useful to programmers, they must not only be theoretically capable of bug discovery, but they must also be reasonably convenient to use.
 For example, it is highly desirable that the program analysis tool can analyse the program directly, without the need to create a model of the program that is to be analysed (many, especially older, techniques for analysis of parallel programs require models).
 For this reason, we will focus on analysis tools which work with \emph{realistic programs}, i.e., programs written in high-level programming languages which can be both executed on the desired platform and analysed without a separate modelling step.
 
-\section{Analysis of Realistic Programs}\label{sec:intro:programs}
+\section{Problem Statements and Contributions}
+
+In this work, we will describe several techniques that improve analysis of realistic parallel programs in the DIVINE model checker, and we will compare them to many other methods that aim at the discovery of hard-to-find bugs in parallel programs.
+In our analysis, we will focus primarily on programs written in C and C++.
+Nevertheless, analysis of other real-world high-level imperative programming
+languages (such as Java, C\#, Rust and many other) should follow similar
+principles.
+
+The work presented in this thesis is done in the context of the DIVINE model checker \mcite{DIVINEToolPaper2017, DIVINEWeb}.
+DIVINE is an open-source verification environment that aims at the discovery of hard-to-find bugs in programs written in C and C++.
+At its core, there is an explicit-state model checking engine, extended with data abstraction capabilities.
+DIVINE can be used to discover large classes of bugs, including assertion violations, use of uninitialised memory, bad memory accesses, memory leaks, and concurrency related bugs such as deadlocks.
+
+\subsection{Analysis of Realistic Programs}\label{sec:intro:programs}
 
 Analysis of realistic (parallel) programs is a hard task because these programs have many features that are complex to handle by an analysis tool.
 First, the syntax of the programming language is often complex -- modern programming languages such as C++, C\#, Java or Python are designed to be expressive and well usable by programmers and are usually not easy to parse and process.
@@ -79,60 +92,8 @@ On the other hand, if the language support is good enough, it enables the progra
 Apart from the ease of use, program analysis without modelling or simplification also increases the reliability of the analysis results --
 if the analysed program differs from the program which is actually executed, the difference can hide problems or introduce new, spurious bugs.
 
-More details about the analysis of realistic programs, including a particular
-example of adding C++ exception support to the DIVINE verifier will be given in
-\autoref{chap:lang}.
-
-\section{Parallelism and Relaxed Memory}
-
-To fully utilise the capabilities of modern hardware, programmers are encouraged to write parallel software.
-However, parallelism adds more complexity both for the author of the code and for the analysis tool as it has to be able to handle representation of threads and synchronisation in the given programming language and the semantics of parallel execution of the program.
-Furthermore, relaxed memory can come into play with parallelism.
-Modern processors use cache memories and out-of-order execution to improve their speed and hide speed difference between the processor's cores and the main memory.
-For efficiency reasons, these mechanisms are often not transparent to the programmer and can be observed by a multi-threaded program, yielding possible executions that violate ordering of actions in their threads (for example, a write to a memory can be delayed past an independent read).
-When this behaviour is observable on a hardware platform, we say that the given hardware platform has relaxed memory.
-
-Relaxed memory adds substantial complexity to the program analysis --
-an analysis tool has to be able to understand the particular relaxed memory model (different platforms exhibit different behaviour) and the amount of resources required to run the verification is also often increased.
-
-We believe that analysis under relaxed memory models is an important topic,
-in particular in the context of lock-free programs, therefore \autoref{chap:mm}
-shows how support for the memory model of the common Intel and AMD x86
-processors was added to the DIVINE verifier.
-
-\section{Termination of Parallel Programs}
-
-Most contemporary verifiers focus on proving safety of programs, i.e., they
-attempt to show at any point in the execution nothing wrong happens, or they are bug-hunters, i.e., tools which try to find safety violations but cannot prove safety.
-Safety properties often include assertion safety (absence of violation of \emph{assertions} -- programmer specified properties that should hold at the given point in the code), memory safety (which includes correct access to arrays, correct handling of dynamic memory, and absence of stack overflows), or absence of use of undefined values (in programming languages such as C and C++ that can work with uninitialised memory).
-The advantage of safety properties is that they can be checked locally -- if at
-any point in the execution the program does not do anything wrong, it is safe.
-Safety, of course, does not guarantee that the program is correct, for that it is often necessary to also prove termination or some other temporal property.
-
-However, in parallel or event-driven programs, it is also common that the program itself does
-not (and should not) terminate, but it has some parts (for example a
-request-serving routine in a web server) that must terminate.
-\autoref{chap:lnterm} takes a look at detection of parts of parallel programs that should terminate but do not terminate.
-
-\section{DIVINE}
-
-The work presented in this thesis is done in the context of the DIVINE model checker \mcite{DIVINEToolPaper2017, DIVINEWeb}.
-DIVINE is an open-source verification environment that aims at the discovery of hard-to-find bugs in programs written in C and C++.
-At its core, there is an explicit-state model checking engine, extended with data abstraction capabilities.
-DIVINE can be used to discover large classes of bugs, including assertion violations, use of uninitialised memory, bad memory accesses, memory leaks, and concurrency related bugs such as deadlocks.
-
-
-\section{Thesis Contributions}
-
-In this work, we will describe several techniques that improve analysis of realistic parallel programs in the DIVINE model checker, and we will compare them to many other methods that aim at the discovery of hard-to-find bugs in parallel programs.
-In our analysis, we will focus primarily on programs written in C and C++.
-Nevertheless, analysis of other real-world high-level imperative programming
-languages (such as Java, C\#, Rust and many other) should follow similar
-principles.
-
-\paragraph{\nameref*{chap:lang}}
-\autoref{chap:lang}.
-This chapter presents a wider look at the problem of analysis of realistic
+\paragraph{Our Contribution}
+In \autoref{chap:lang} we present a wider look at the problem of analysis of realistic
 programs from the point of features of programming languages and their libraries.
 We show that library reuse can be a viable approach for program analysers with
 good support for language features and that it can significantly simplify
@@ -143,8 +104,33 @@ Finally, we focus on more details on the particular case of exception support
 for C++ in DIVINE and how it can be achieved by a combination of library reuse
 and creation of verification-specific libraries.
 
-\paragraph{\nameref*{chap:mm}}
-\autoref{chap:mm}.
+Other works focusing on language support in program analysis tools include for example \mcite{Ramalho2013,Garzella2020}.
+Exceptions are also supported in many Java tools and some tools with C++ support \mcite{Visser2003,Cordeiro2019,Kroening2014}.
+However, to the best of our knowledge, our support of C++ exceptions is the only complete support for C++ exceptions in a comparable tool.
+Furthermore, our method of implementation or exceptions is rather generic and leverages existing language-specific exception-handling code from C++ standard library implementation.
+Therefore, it should be possible to adapt it to other programming languages with exception support with quite small effort.
+
+This contribution was first presented in \mcite{SRB2017}. \autoref{chap:lang} is further extended with unpublished content about language support in general.
+
+
+
+\subsection{Parallelism and Relaxed Memory}
+
+To fully utilise the capabilities of modern hardware, programmers are encouraged to write parallel software.
+However, parallelism adds more complexity both for the author of the code and for the analysis tool as it has to be able to handle representation of threads and synchronisation in the given programming language and the semantics of parallel execution of the program.
+Furthermore, relaxed memory can come into play with parallelism.
+Modern processors use cache memories and out-of-order execution to improve their speed and hide speed difference between the processor's cores and the main memory.
+For efficiency reasons, these mechanisms are often not transparent to the programmer and can be observed by a multi-threaded program, yielding possible executions that violate ordering of actions in their threads (for example, a write to a memory can be delayed past an independent read).
+When this behaviour is observable on a hardware platform, we say that the given hardware platform has relaxed memory.
+
+Relaxed memory adds substantial complexity to the program analysis --
+an analysis tool has to be able to understand the particular relaxed memory model (different platforms exhibit different behaviour) and the amount of resources required to run the verification is also often increased.
+We believe that analysis under relaxed memory models is an important topic,
+in particular in the context of lock-free programs.
+
+\paragraph{Our Contribution}
+
+\autoref{chap:mm} shows how support for the memory model of the common Intel and AMD x86 processors was added to the DIVINE verifier.
 In this chapter, we present an efficient extension of DIVINE that allows it to
 analyse programs under the memory model of Intel and AMD x86-64 processors.
 In our work, we leverage the LLVM infrastructure to implement support for
@@ -153,8 +139,23 @@ itself (provided it has support for nondeterministic choice).
 Furthermore, we show how the amount of nondeterminism in the resulting program
 can be limited by careful design of data structures used to simulate the
 behaviour of \xtso store buffers.
+The decreased nondeterminism directly translates to smaller state space and the therefore faster and less memory-hungry program analysis.
 
-\paragraph{\nameref*{chap:lnterm}}
+Analysis of programs under various relaxed memory models is an active research area with a lot of related techniques, including \mcite{Alglave2013,Zhang2015,Abdulla2017tso,Kokologiannakis2017,Abdulla2018}.
+Our work, which was originally presented in \mcite{SB2018x86tso}, presents a significant improvement over existing explicit-state techniques and complements well techniques based on bounded or stateless model checking.
+
+
+\subsection{Termination of Parallel Programs}
+
+An important part of correctness of programs is that they eventually do the work they are supposed to do.
+This implies the program should terminate or, often in the case of parallel or event-driven programs, that it should handle each request within a finite amount of time.
+For example, a server is often running an infinite loop that spawns request handlers and each of these request handlers must terminate.
+Similarly, a critical section of a program is usually required to terminate to ensure the program does not get stuck.
+Therefore, termination checking (and more generally checking of liveness properties) is an important companion to safety checking\mnote{Safety checking aims to show that the program does not perform any forbidden action. Examples include asssertion safety (absence of violation of \emph{assertions} -- programmer specified properties that should hold at the given point in the code), memory safety (which includes correct access to arrays, correct handling of dynamic memory, and absence of stack overflows), or absence of use of undefined values (in programming languages such as C and C++ that can work with uninitialised memory).} in the pursuit of correct parallel programs.
+
+\TODO{ …
+
+\paragraph{Our Contribution}
 \autoref{chap:lnterm}.
 In the third contribution of this work, we introduce a generic method for
 detection of nontermination caused by communication between threads.
@@ -165,6 +166,7 @@ of the box.
 Our method can also be applied to deliberately nonterminating programs (i.e.,
 daemons, services) in which it can detect parts that should terminate but do
 not terminate.
+}
 
 \section{Thesis Structure}
 

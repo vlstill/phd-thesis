@@ -11,7 +11,7 @@ that the final product is indeed correct.
 Later, with improvements of both analysis techniques, as well as overall
 improvements in available computing power, analysis tools for programs written
 in mainstream programming languages become available.
-Early examples of such tools are Java Path Finder~\mcite{Visser2003} (an explicit-state model checker for Java) and CBMC~\mcite{Clarke2004} (a SAT-based bounded model checker for C).
+Early examples of such tools are Java Pathfinder~\mcite{Visser2003} (an explicit-state model checker for Java) and CBMC~\mcite{Clarke2004} (a SAT-based bounded model checker for C).
 Since 2012, the Software Verification Competition (SV-COMP) \mcite{Beyer2020svc}
 aims to showcase tools that support direct verification of software written in
 C and lately also Java.
@@ -92,7 +92,7 @@ including \emph{D-reduction} \mcite{Lipton1975}, \emph{path reduction}
 variants and \emph{$\tau+$ reduction} \mcite{RBB13} and \mcite[Section
 6]{RSCB2018} for the dynamic once.
 These reductions are also often used without naming the technique, for example in
-Java Path Finder~\mcite{Visser2003}.
+Java Pathfinder~\mcite{Visser2003}.
 Quite naturally, the dynamic methods are better suited for the complex control-
 and data-flow of realistic programs.
 Both partial order reductions and path reductions are also often used in tools
@@ -546,11 +546,11 @@ It can run either in a fully incremental mode where it reuses one solver instanc
 Pinaka may not terminate on nonterminating programs, and it has an option for loop unwinding limit.
 It can be used to show termination -- if a program is found to be safe without any unwinding limit, then all its paths terminate.
 
-JDart \mcite{Mues2020,Luckow2016} is a concolic executor and test generator for sequential Java programs build on Java Path Finder.
+JDart \mcite{Mues2020,Luckow2016} is a concolic executor and test generator for sequential Java programs build on Java Pathfinder.
 It can detect assertion violations and uncaught exceptions.
 JDart attempts to find small values for symbolic variables, which can make loops depending on symbolic values shorter.
 
-Java Ranger \mcite{Sharma2020} is a symbolic executor for Java based on Symbolic Path Finder.
+Java Ranger \mcite{Sharma2020} is a symbolic executor for Java based on Symbolic Pathfinder.
 It can merge paths using summarization of regions with multiple paths (e.g., branches of an \texttt{if} statement). %(\TODO{veritesting})
 
 COASTAL \mcite{Visser2020} combines concolic execution with fuzz testing for Java programs.
