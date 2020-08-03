@@ -4,13 +4,17 @@ The remainder of papers are mostly either older papers to which I have contribut
 
 \section{Most Significant Papers}
 
+\newcommand{\prc}[1]{\hfill{}#1\,\%}
+\newcommand{\contrib}{\emph{My Contribution}:\xspace}
+
 \subsection*{Local Nontermination Detection for Parallel C++ Programs}
 
 In this paper, we present our approach to ensuring that parallel programs do not hang or wait indefinitely – i.e., there are no deadlocks, livelocks, and the program proceeds towards its goals.
 The paper contains the theoretical description of our approach and evaluation of our publicly available implementation.
 
-The algorithm design, implementation and writing of the paper was done by me, my advisor Jiří Barnat helped by consulting the theory with me and proofreading the paper.
+\contrib The algorithm design, implementation and writing of the paper was done by me, my advisor Jiří Barnat helped by consulting the theory with me and proofreading the paper.
 I have presented this paper on the SEFM 2019 conference.
+\prc{95}
 
 \bigskip\noindent\fcite{SB2019}
 
@@ -20,8 +24,9 @@ Here we present a novel approach to verification of parallel programs with respe
 The approach improves the efficiency of explicit-state model checking by decreasing amount of nondeterminism in the program.
 The paper contains evaluation and is accompanied by a publicly available implementation.
 
-The algorithm design, implementation and writing of the paper was done by me, Jiří Barnat helped by consulting the theory with me and proofreading the paper.
+\contrib The algorithm design, implementation and writing of the paper was done by me, Jiří Barnat helped by consulting the theory with me and proofreading the paper.
 I have presented this paper on the ICFEM 2018 conference.
+\prc{90}
 
 \bigskip\noindent\fcite{SB2018x86tso}
 
@@ -31,11 +36,12 @@ In this paper, we present an extension of DIVINE that allows it to verify progra
 We show that with careful design, we can successfully reuse exception handling code from the standard C++ library.
 The result is that virtually any exception handling constructs working in the standard C++ are now available in DIVINE.
 
-I have designed the exception support for DIVINE 4, implemented it and performed the evaluation for this paper.
+\contrib I have designed the exception support for DIVINE 4, implemented it and performed the evaluation for this paper.
 I have also written most of the text for the paper.
 Petr Ročkai and Jiří Barnat helped by consulting the design and implementation and also helped with the paper text.
 I have presented this paper on the QRS 2017 conference.
 The paper and its presentation were awarded the best paper award.
+\prc{75}
 
 \bigskip\noindent\fcite{SRB2017}
 
@@ -44,9 +50,10 @@ The paper and its presentation were awarded the best paper award.
 In this tool paper, we describe the overall architecture of DIVINE 4 and changes in the tool compared to DIVINE 3.
 Most significantly, this paper describes the modular nature of DIVINE: DIVINE 4 is built around an efficient interpreter which, together with a small, verification-oriented operating system and a set of runtime libraries, enables verification of real-world code written in C and C++.
 
-The text of the paper is written mostly by me, with additions and proofreading by Petr Ročkai and Jiří Barnat.
+\contrib The text of the paper is written mostly by me, with additions and proofreading by Petr Ročkai and Jiří Barnat.
 The architecture design was mostly due to Petr Ročkai, with additions by me and Jan Mrázek.
 The implementation includes code by all the co-authors with most significant contributions by (in the order of significance) Petr Ročkai, me, and Jan Mrázek.
+\prc{30}
 
 \bigskip\noindent\fcite{DIVINEToolPaper2017}
 
@@ -55,8 +62,9 @@ The implementation includes code by all the co-authors with most significant con
 This paper introduces the concept of a virtual machine with graph memory as a core component for explicit-state and abstraction-based verification of software.
 The paper is accompanied by an implementation of the virtual machine which runs LLVM IR (which can be obtained from C or C++ using the clang compiler) and an evaluation which compares the new approach to a more traditional design of an LLVM-based model checker as well as a symbolic model checker.
 
-The primary author of this paper is Petr Ročkai.
+\contrib The primary author of this paper is Petr Ročkai.
 My contribution concerned mostly the C++ support (including program compilation and libraries) and the evaluation and comparison of the new approach with DIVINE 3 and ESBMC.
+\prc{20}
 
 \bigskip\noindent\fcite{RSCB2018}
 
