@@ -1,12 +1,11 @@
-ALL=$(wildcard *.md) publications.tex
-PAPERS=# pdfs
+all : thesis.pdf list-of-publications.pdf cover-page.pdf
 
-all : thesis.pdf list-of-publications.pdf
-
-%.pdf : %.tex %.bbl
+%.pdf : %.tex defs.tex %.bbl
 	latexmk -pdf -shell-escape $<
 
-thesis.pdf : $(wildcard *.tex)
+thesis.pdf : defs.tex abstract.tex acknowledgements.tex intro.tex preliminaries.tex \
+			 stateoftheart.tex realprogs.tex memorymodels.tex termination.tex \
+			 conclusion.tex papers.tex
 
 list-of-publications.pdf : papers.tex
 
