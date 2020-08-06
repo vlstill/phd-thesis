@@ -1,0 +1,74 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[shorthands=off,english]{babel} % package for multilingual support
+
+\usepackage[utf8]{inputenc} 
+\usepackage[T1]{fontenc}
+\usepackage{csquotes}
+
+\usepackage[ backend=biber
+           , style=alphabetic % numeric
+           , sortlocale=en_US
+           , bibencoding=UTF8
+           , maxnames=100
+           ]{biblatex}
+\DeclareSourcemap{
+    \maps[datatype=bibtex, overwrite]{
+        \map{
+            \step[fieldset=editor, null]
+            \step[fieldset=language, null]
+            \step[fieldset=url, null]
+            \step[fieldset=note, null]
+        }
+    }
+}
+\usepackage{xcolor}
+\definecolor{dark-red}{rgb}{0.6,0.15,0.15}
+\definecolor{dark-green}{rgb}{0.15,0.4,0.15}
+\definecolor{medium-blue}{rgb}{0,0,0.5}
+\usepackage[ pdfauthor={Vladimir Still}
+           , pdftitle={Publications: Vladimír Štill},
+           , pdfsubject={List of Publications},
+           , plainpages=false
+           , pdfpagelabels
+           , unicode
+           , draft=false
+           , colorlinks=true
+           , linkcolor={dark-red}
+           , citecolor={dark-green}
+           , urlcolor={medium-blue}
+           , unicode=true
+           ]{hyperref}
+
+\usepackage{microtype}
+\usepackage{xspace}
+
+\newcommand{\fcite}[1]{\emergencystretch 3em\fullcite{#1}}
+\def\mcite{\cite}
+\addbibresource{my.bib}
+
+\usepackage[pass]{geometry}
+\usepackage{setspace}
+
+\input{defs}
+
+\setcounter{secnumdepth}{0}
+
+\begin{document}
+
+\begin{titlepage}
+\newgeometry{margin=4cm}
+\begin{center}
+    {\Large \sc \FI, \MU}
+    \vskip8em
+	\vskip4cm
+    \begin{spacing}{1}
+        \Huge \bf \thesistitle
+    \end{spacing}
+    \vskip2em
+    {\Large \sc \thesissubtitle}
+    \vfill
+\end{center}
+\LARGE\bf \thesisYearCity\hfill\thesisauthor
+\end{titlepage}
+
+\end{document}
