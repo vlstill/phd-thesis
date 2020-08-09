@@ -259,9 +259,9 @@
 \newcommand{\raggedoutunsafe}{\ifoddpage\RaggedRight\else\RaggedLeft\fi}
 \newcommand{\raggedout}{\checkoddpage\raggedoutunsafe}
 \newcounter{mnote}[chapter]
-\newcommand{\mnotemark}{\stepcounter{mnote}\hyperlink{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}$}\xspace}
-\newcommand{\mnotetext}[1]{\marginpar{\raggedout\hypertarget{mnote:\thechapter:\themnote}{${}^{\arabic{mnote}}\,$}\footnotesize{}#1}}
-\newcommand{\mnote}[1]{\mnotemark{}\mnotetext{#1}}
+\newcommand{\mnotemark}[1][\arabic{mnote}]{\stepcounter{mnote}\hyperlink{mnote:\thechapter:\themnote}{\textsuperscript{#1}}\xspace}
+\newcommand{\mnotetext}[2][\arabic{mnote}]{\marginpar{\raggedout\hypertarget{mnote:\thechapter:\themnote}{\textsuperscript{#1}\,}\footnotesize{}#2}}
+\newcommand{\mnote}[2][\arabic{mnote}]{\mnotemark[#1]{}\mnotetext[#1]{#2}}
 
 \newenvironment{marginnote}{%
         \mnotemark%
@@ -319,6 +319,8 @@
 %%
 
 \newcommand{\srcnote}[1]{\emph{#1}}
+
+\usepackage{halloweenmath}
 
 \clubpenalty=4000
 \widowpenalty=4000
