@@ -140,6 +140,7 @@ Examples of resource sections can be seen in \autoref{fig:lnterm:secs:a} and \au
         w.join(); // wait resource section
       }
     \end{cppcodeln}
+    \vspace{-\bigskipamount}
     \caption{
       Examples of predefined resource sections.
       There is a resource section in the mutex lock on line 4 (active while the
@@ -953,7 +954,7 @@ undetected.
 
 For the related work, we consider only results which go beyond safety checking.
 There are many approaches to find problems such as assertion violations or memory safety violations, but they are often fundamentally limited to properties concerning finite runs of the program, and we are focusing here on an infinite behaviour, namely on the absence of termination.
-Similarly, we do not mention techniques which specialise on checking sequential programs and have no support for parallelism, as well as techniques which are tailored to a specific modelling language and cannot be applied in general.
+Similarly, we do not explore in depth techniques which specialise on checking sequential programs and have no support for parallelism, as well as techniques which are tailored to a specific modelling language and cannot be applied in general.
 
 Several techniques for checking properties other than safety exist -- indeed
 usage of various temporal logics, such as Linear Temporal Logic (LTL)
@@ -968,15 +969,7 @@ Some methods detect deadlocks of the whole program (i.e., a program state from w
 Also, these global deadlock detection techniques are inadequate in the presence of synchronisation mechanisms which causes busy waiting instead of blocking (for example spin locks) or in the cases when normally blocking operations are implemented using busy waiting (which can be easier to handle for the verifier in some cases).
 A somewhat different approach based on communicating channels is proposed in \mcite{Ng2016}, but this approach is aiming at the Go programming language which primarily uses shared channels for communication between threads.
 Overall, neither of these techniques is applicable in general for the detection of nontermination in programs which use a combination of synchronisation primitives in shared memory.
-% Finally, there are also techniques for checking termination of sequential programs, to name a few \mcite{Giesl2017,Chen2018}.
-
-% SACO a tool for analysis of concurrent programs with loops is presented in \mcite{Albert2017}.
-% It uses may-happen-in-parallel analysis to infer which part of the program can interfere and it also also infers upper bounds on iteration numbers.
-% It targets a modelling language which contains shared memory.
-% It generates constraints on how the shared state can be modified in order for the loop to terminate and than checks that this will eventually hold.
-% Arctor \mcite{Kupriyanov2014} is another tool for termination detection of parallel programs written in a simple modelling language.
-% It uses abstraction and refinement and its termination checking is based on well-founded relations.
-% It can show termination, but cannot prove non-termination.
+There are also techniques for checking termination of sequential programs \mcite{Cook2006,Berdine2006,Dietsch2015,Brockschmidt2016,Hensel2017,Giesl2017} and techniques for termination analysis in parallel programs that target modelling languages \mcite{Kupriyanov2014,Albert2017}.
 
 A more realistically-targeted termination checker for parallel programs is presented in \mcite{Cook2007thr}.
 Its primary goal is to show a given thread terminates.
