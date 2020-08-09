@@ -173,6 +173,7 @@ Examples of resource sections can be seen in \autoref{fig:lnterm:secs:a} and \au
         std::atomic_flag _flag = ATOMIC_FLAG_INIT;
       }; 
     \end{cppcodeln}
+    \vspace{-\bigskipamount}
     \caption[UNUSED]{
       User defined resource sections in a spinlock implementation.
       The spinlock is implemented using a C++ atomic flag which is an atomic
@@ -221,6 +222,7 @@ We will first use examples of terminating and nonterminating resource section in
       } // unlock
     }
 \end{cppcode}
+\vspace{-\medskipamount}
 \caption{
     A program with a nonterminating critical section (in \texttt{thread0}) and a deadlock (if \texttt{thread0} enters its critical section, \texttt{thread1} will wait infinitely).
     In C++ it is possible to use scope-based locks: the critical section belonging to mutex \cpp{m} is entered when \cpp{unique_lock lock(m)} is executed and left at the end of the scope in which the \cpp{lock} variable was defined (at the matching curly brace; also marked with comment \cpp{// unlock}).
@@ -248,6 +250,7 @@ We will first use examples of terminating and nonterminating resource section in
       } // unlock
     }
 \end{cppcode}
+\vspace{-\medskipamount}
 \caption{
     A fixed version of the program from \autoref{fig:ntermsec0} (the start of the critical section was moved from the position \cpp{// Error} in the left code to \cpp{// Fixed} and therefore the critical section can end now).
     Intuitively, each critical section in this program terminates.
@@ -423,6 +426,7 @@ In DIVINE this information can be used by the exploration algorithm to behave di
     \node[draw, dashed, fit=(cs1acs2) (cs1acs2w) (cs1acs2wl), inner sep=0.1cm] (cs1acs2ins) {};
   \end{pgfonlayer}
 \end{tikzpicture}
+\smallskip
 \caption{
     A small example of a program with two resource section instances (on the top) and its state space, which shows active resource section instances (ARSIs; on the bottom).
     In order to keep the state space simple, this example program is sequential and deterministic; the nondeterminism is caused only by the construction which gives rise to ARSIs.

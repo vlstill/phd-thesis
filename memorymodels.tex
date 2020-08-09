@@ -372,6 +372,7 @@ void thread0() {
   int b = x;
 }
 \end{cppcode*}
+\vspace{-\medskipamount}
 \caption{
 Suppose \texttt{thread0} is about to execute with the displayed contents of store buffers of two other threads and suppose it had nondeterministically chosen to load value 2 from \texttt{y} (denoted by \textcolor{frombuf}{green} in the figure).
 The entries at the top of the store buffers are the oldest entries.
@@ -410,6 +411,7 @@ The entries at the top of the store buffers are the oldest entries.
     int b = x;
   }
 \end{cppcode*}
+\vspace{-\medskipamount}
 \caption{At this point, \texttt{x}~entries of store buffer 1 are marked as flushed (\textcolor{flushed}{orange}) and the \mbox{$\texttt{y} \leftarrow \texttt{1}$} entry was removed as it was succeeded by the used entry \mbox{$\texttt{y} \leftarrow \texttt{2}$}.
 The thread had nondeterministically selected to load \texttt{x} from store buffer 2.
 }\label{fig:mm:flushflagB}
@@ -445,6 +447,7 @@ The thread had nondeterministically selected to load \texttt{x} from store buffe
     int b = x;// →3
   }
 \end{cppcode*}
+\vspace{-\medskipamount}
 \caption{
 In the load of \texttt{x}, all \texttt{x} entries were evicted from the buffers -- all the flushed entries for \texttt{x} (which were not selected) had to be dropped before \mbox{$\texttt{x} \leftarrow \texttt{3}$} was propagated to the memory.
 The last entry (\mbox{$\texttt{y} \leftarrow \texttt{3}$}) will remain in the store buffer if \texttt{y} will never be loaded in the program again.
