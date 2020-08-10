@@ -676,6 +676,7 @@ An example of such behaviour can be seen in \autoref{fig:prelim:iriw}.
           }
         \end{cppcode}
     \end{multicols}
+    \vspace{-4.5ex}
     \center{\emph{Is it possible that $x_0 = 1 \land y_0 = 0 \land x_1 = 0 \land y_1 = 1$?}}
     \caption{
         An independent readers of independent writers example commonly used to
@@ -798,7 +799,7 @@ An example of C++ code that leverages atomic variables is shown in \autoref{fig:
       }
     \end{cppcode}
   \end{multicols}
-  \vspace{-4ex}
+  \vspace{-4.5ex}
   \caption{A basic example of C++ atomics.
       The variable \texttt{x} is atomic, and therefore can be safely used in
       concurrent settings (the standard modification operators for integral types
@@ -961,6 +962,7 @@ An example of (a fragment of) lock-free data structure can be found in \autoref{
         }
     }
   \end{cppcodeln}
+  \vspace{-\bigskipamount}
   \caption[A push in a lock-free queue]{A push (enqueue) operation of a single-producer-single-consumer
     lock-free queue from an older version of DIVINE (modified to use C++11
     atomic operations).
