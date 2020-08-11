@@ -8,7 +8,7 @@ all : thesis.pdf thesis-print.pdf list-of-publications.pdf cover-page.pdf abstra
 	latexmk -pdf -shell-escape $<
 
 %.pdf : %.md
-	pandoc -V geometry:a4paper,margin=4.5cm $< -o $@
+	pandoc -V geometry:a4paper,margin=4.5cm -V pagestyle:empty $< -o $@
 
 abstract.md : abstract.tex
 	printf "# Analysis of Parallel C++ Programs\n\n## Vladimír Štill\n\n### Abstract\n\n" > $@
