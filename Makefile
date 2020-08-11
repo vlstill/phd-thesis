@@ -2,10 +2,17 @@ THESIS_FILES = abstract.tex acknowledgements.tex intro.tex preliminaries.tex \
 	  stateoftheart.tex realprogs.tex memorymodels.tex termination.tex \
 	  conclusion.tex papers.tex
 
-all : thesis.pdf thesis-print.pdf list-of-publications.pdf cover-page.pdf
+all : thesis.pdf thesis-print.pdf list-of-publications.pdf cover-page.pdf abstract.pdf abstract-cz.pdf
 
 %.pdf : %.tex defs.tex %.bbl
 	latexmk -pdf -shell-escape $<
+
+%.pdf : %.md
+	pandoc -V geometry:a4paper,margin=4.5cm $< -o $@
+
+abstract.md : abstract.tex
+	printf "# Analysis of Parallel C++ Programs\n\n## Vladimír Štill\n\n### Abstract\n\n" > $@
+	sed 's/%.*//' $< >> $@
 
 thesis.pdf : $(THESIS_FILES)
 thesis-print.pdf : $(THESIS_FILES)
