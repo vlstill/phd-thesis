@@ -2,7 +2,7 @@ THESIS_FILES = abstract.tex acknowledgements.tex intro.tex preliminaries.tex \
 	  stateoftheart.tex realprogs.tex memorymodels.tex termination.tex \
 	  conclusion.tex papers.tex
 
-all : thesis.pdf thesis-print.pdf list-of-publications.pdf cover-page.pdf abstract.pdf abstract-cz.pdf
+all : thesis.pdf thesis-print.pdf list-of-publications.pdf cover-page.pdf abstract.pdf abstract-cz.pdf abstract.txt abstract-cz.txt
 
 %.pdf : %.tex defs.tex %.bbl
 	latexmk -pdf -shell-escape $<
@@ -13,6 +13,13 @@ all : thesis.pdf thesis-print.pdf list-of-publications.pdf cover-page.pdf abstra
 abstract.md : abstract.tex
 	printf "# Analysis of Parallel C++ Programs\n\n## Vladimír Štill\n\n### Abstract\n\n" > $@
 	sed 's/%.*//' $< >> $@
+
+%.txt : %.md
+	sed 's/\\ / /g' $< \
+		| grep -v '^#' \
+		| perl -E 'my $$e = 1; while (<>) { chomp; next if ($$e && /^$$/); $$e = 0; print; print " "; print "\n\n" if $$_ eq ""; }' \
+		| sed -e 's/  */ /g' -e 's/ $$//' \
+		> $@
 
 thesis.pdf : $(THESIS_FILES)
 thesis-print.pdf : $(THESIS_FILES)
