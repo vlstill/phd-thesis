@@ -25,6 +25,7 @@ addons:
   apt:
     packages:
       - python-pygments
+      - pandoc
     update: true
 
 script:
